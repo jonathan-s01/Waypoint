@@ -29,8 +29,11 @@ BUNDLEID="com.turnover.reader"; FEEDURL="https://doll-eye.github.io/turnover-upd
 DEVELOPER="${TURNOVER_DEVELOPER:-auto}"
 if [ "$DEVELOPER" = auto ]; then case "$IDENTITY" in *"(AV65T28PQ7)"*) DEVELOPER=0 ;; *) DEVELOPER=1 ;; esac; fi
 if [ "$DEVELOPER" = 1 ]; then
-  APPNAME="TurnOver Developer"; BUNDLEID="com.turnover.reader.developer"; FEEDURL=""
-  echo "build.sh: building TurnOver Developer, to sit beside the published TurnOver (TURNOVER_DEVELOPER=0 builds TurnOver itself)"
+  # Waypoint (this fork): the same developer build, shown to the person as Waypoint. Only the app's name changes; the
+  # bundle identifier stays, so the Accessibility and Input Monitoring grants and the login item carry over, and every
+  # lookup of the other copy goes by that identifier (DeveloperSwitch, ActiveReader, TurnOver Key), not by name.
+  APPNAME="Waypoint"; BUNDLEID="com.turnover.reader.developer"; FEEDURL=""
+  echo "build.sh: building Waypoint (the developer build), to sit beside the published TurnOver (TURNOVER_DEVELOPER=0 builds TurnOver itself)"
 fi
 APP="$BUILD/$APPNAME.app"
 INSTALL="/Applications/$APPNAME.app"
@@ -281,6 +284,9 @@ if [ "$1" != "--no-install" ]; then
   pkill -x turnover 2>/dev/null || true
   sleep 0.5
   rm -rf "$INSTALL"
+  # The copy this fork's builds were installed as before the rename: the same identifier under another name, which
+  # would leave two copies for macOS to choose between.
+  [ "$APPNAME" = "Waypoint" ] && rm -rf "/Applications/TurnOver Developer.app"
   ditto "$APP" "$INSTALL"
   # Launch Services can still think the just-replaced bundle has no executable ("cannot be opened because its
   # executable is missing", twice on 8 Oct 2026, with the file plainly there): try by path, then again a moment later.
