@@ -1,3 +1,37 @@
+# Waypoint
+
+Waypoint is a personal fork of [TurnOver](https://github.com/TurnOver-For-Mac/turnover), the open-source screen reader
+for the Mac. It is TurnOver with a few additions, built and installed as Waypoint. Everything else, including the
+source layout, the binary names, the bundle identifier and the settings folder (~/Library/Application Support/TurnOver),
+is TurnOver's, so the fork stays easy to merge and its settings carry over. The rest of this file is TurnOver's own
+README.
+
+Added in Waypoint (see the top of [CHANGELOG.md](CHANGELOG.md)):
+
+- Mouse tracking: read what is under the mouse pointer as it moves, as VoiceOver's cursor following the mouse does
+  (Settings, Presentation; off by default), with a watchdog for lookups an app holds and a cap on counting a group.
+- Deleted text by pitch: say a deleted character or word lower instead of "deleted" (Settings, Speech; off by default).
+- Typing: "Say space after a typed word" can be turned off (Settings, Keyboard).
+- Typing: Left and Right bump at once at the edge of left-to-right text fields.
+
+Building Waypoint: `./build.sh --no-install` builds and tests it, leaving ~/Library/Developer/TurnOver/build/Waypoint.app;
+`./build.sh` also installs it to /Applications/Waypoint.app and restarts it. A build signed by anyone but TurnOver's own
+team is a developer build, and build.sh names that one Waypoint (it keeps TurnOver Developer's bundle identifier, so the
+permissions already granted carry over).
+
+Keeping up with TurnOver (origin is this fork, upstream is TurnOver):
+
+```
+git remote add upstream https://github.com/TurnOver-For-Mac/turnover   # once
+git fetch upstream
+git merge upstream/main        # or: git rebase upstream/main
+```
+
+Resolve any conflicts, run `./build.sh --no-install`, then push. Send fixes that belong in TurnOver to upstream as pull
+requests from a branch with only that change.
+
+---
+
 # TurnOver
 
 A screen reader for the Mac.
