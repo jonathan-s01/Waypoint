@@ -129,6 +129,7 @@ public final class TurnOverMenu {
     public func close() {
         isOpen = false
         keyHook = nil
+        filterMatcher = nil
         stack.removeAll()
         filterSource = nil; filter = ""; rotor = nil; browsingResults = false
         config.save()
@@ -164,6 +165,7 @@ public final class TurnOverMenu {
     public func openChooser(verbatim title: String, items: [MenuItem]) {
         guard !items.isEmpty else { Speech.speakMessage(Self.none(title)); return }
         keyHook = nil
+        filterMatcher = nil
         filterSource = items; filter = ""; browsingResults = false
         stack = [(title, items, 0)]
         isOpen = true
@@ -172,6 +174,9 @@ public final class TurnOverMenu {
         announce()
     }
     private var filterSource: [MenuItem]?
+    /// A chooser's own way of narrowing and ranking by what is typed (Waypoint's Anywhere); nil: titles containing it.
+    /// Cleared whenever a list opens or closes, so a chooser sets it after opening.
+    public var filterMatcher: ((String) -> [MenuItem])?
     private var filter = ""
     /// VO-F in a chooser: the results stay as they are and letters jump between them instead of narrowing them.
     private var browsingResults = false
@@ -248,7 +253,7 @@ public final class TurnOverMenu {
             guard ch.count == 1, !(ch == " " && text.isEmpty) else { return false }
             text += ch
         }
-        let matches = text.isEmpty ? source : source.filter { $0.title.lowercased().contains(text.lowercased()) }
+        let matches = text.isEmpty ? source : (filterMatcher?(text) ?? source.filter { $0.title.lowercased().contains(text.lowercased()) })
         guard !matches.isEmpty else { Tones.edge(); Speech.speakMessage(String(localized: "no match for \(text)", comment: "Typing to filter a list found nothing: %@ is what was typed")); return true }
         filter = text
         stack[0] = (stack[0].title, matches, 0)

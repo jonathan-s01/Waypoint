@@ -122,12 +122,24 @@ public enum MenuBarList {
 
     // MARK: Search
 
-    /// Every item in every menu, narrowed as you type: the name and shortcut, then after a pause the menu it is in.
-    private static func search(pid: pid_t) {
-        guard let bar = AXUIElementCreateApplication(pid).element(kAXMenuBarAttribute) else { Tones.edge(); return }
-        var found: [MenuItem] = []
-        // A bounded walk on main (AGENTS.md): Xcode's menus are the largest seen; this stops at 4000 items or 1.5 s.
-        let deadline = Date().addingTimeInterval(1.5)
+    /// One item found by walking every menu: what the search lists, and what Anywhere ranks.
+    struct Found {
+        let title: String
+        let spoken: String
+        let path: [String]
+        let shortcut: String?
+        let enabled: Bool
+        /// The menu it is in, as the search says it after a pause.
+        let place: String
+        let press: () -> Void
+    }
+
+    /// Every item in every menu, nil when the app has no menu bar.
+    static func allItems(pid: pid_t, budget: TimeInterval = 1.5) -> [Found]? {
+        guard let bar = AXUIElementCreateApplication(pid).element(kAXMenuBarAttribute) else { return nil }
+        var found: [Found] = []
+        // A bounded walk on main (AGENTS.md): Xcode's menus are the largest seen; this stops at 4000 items or the budget.
+        let deadline = Date().addingTimeInterval(budget)
         func walk(_ menu: AXUIElement, path: [String], depth: Int) {
             for c in menu.elements(kAXChildrenAttribute) {
                 guard found.count < 4000, Date() < deadline else { return }
@@ -139,13 +151,22 @@ public enum MenuBarList {
                     continue
                 }
                 let where_ = path.count == 1 ? String(localized: "\(path[0]) menu", comment: "Where a found menu item is: %@ is the menu (File)") : path.joined(separator: ", ")
-                found.append(MenuItem(verbatim: spokenTitle(c, title: title), .action { press(c, title: title) }, hint: where_))
+                found.append(Found(title: title, spoken: spokenTitle(c, title: title), path: path,
+                                   shortcut: shortcut(char: c.string("AXMenuItemCmdChar"), modifiers: c.int("AXMenuItemCmdModifiers")),
+                                   enabled: (c.attr(kAXEnabledAttribute) as? Bool) != false, place: where_, press: { press(c, title: title) }))
             }
         }
         for (i, m) in bar.elements(kAXChildrenAttribute).enumerated() {
             guard let menu = m.elements(kAXChildrenAttribute).first(where: { $0.role == "AXMenu" }) else { continue }
             walk(menu, path: [barTitle(m, index: i)], depth: 1)
         }
+        return found
+    }
+
+    /// Every item in every menu, narrowed as you type: the name and shortcut, then after a pause the menu it is in.
+    private static func search(pid: pid_t) {
+        guard let all = allItems(pid: pid) else { Tones.edge(); return }
+        let found = all.map { MenuItem(verbatim: $0.spoken, .action($0.press), hint: $0.place) }
         Log.io("menu bar: search over \(found.count) items")
         let hook = TurnOverMenu.shared.keyHook
         TurnOverMenu.shared.openChooser(verbatim: String(localized: "Search menus", comment: "Waypoint's search of every menu item"), items: found)

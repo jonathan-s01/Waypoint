@@ -20,7 +20,12 @@ public final class PanesView {
     /// The page a document part put into browse mode: moving to another part gives the mode back to the focus.
     private var documentEntered: BrowseModeDocument?
 
-    public init(pid: pid_t, panes: RecipeView.Panes) { self.pid = pid; parts = panes.parts }
+    private struct WeakView { weak var view: PanesView? }
+    /// The view of each app that has one, by process: Describe this app and What changed ask for it. Weak, the app's module owns it.
+    private static var registry: [pid_t: WeakView] = [:]
+    public static func current(pid: pid_t) -> PanesView? { registry[pid]?.view }
+
+    public init(pid: pid_t, panes: RecipeView.Panes) { self.pid = pid; parts = panes.parts; Self.registry[pid] = WeakView(view: self) }
 
     /// The element of a part, now. Parts are containers, so the search never goes into rows, cells, text and the
     /// like, and visits a few hundred elements at most: a search that walked Notes' 800-row list held the main
@@ -34,11 +39,11 @@ public final class PanesView {
     }
 
     /// Roles a part is never inside: the search stops at them.
-    static let leafRoles: Set<String> = ["AXRow", "AXCell", "AXStaticText", "AXImage", "AXButton", "AXMenuBar", "AXMenu", "AXTextField", "AXCheckBox",
+    nonisolated static let leafRoles: Set<String> = ["AXRow", "AXCell", "AXStaticText", "AXImage", "AXButton", "AXMenuBar", "AXMenu", "AXTextField", "AXCheckBox",
                                          "AXRadioButton", "AXPopUpButton", "AXSlider", "AXLink", "AXHeading", "AXColumn", "AXDisclosureTriangle"]
     /// The first element in the app's front window that matches, breadth first, without entering leaves or
     /// the rows of a list, and within a time budget (any thread).
-    static func find(_ m: ElementMatch, pid: pid_t, budget: TimeInterval = 0.9) -> AXUIElement? {
+    nonisolated static func find(_ m: ElementMatch, pid: pid_t, budget: TimeInterval = 0.9) -> AXUIElement? {
         let app = AXUIElementCreateApplication(pid)
         let started = Date()
         var queue = [app.element(kAXFocusedWindowAttribute) ?? app.element(kAXMainWindowAttribute)].compactMap { $0 }
@@ -137,6 +142,7 @@ public final class PanesView {
         // Waypoint focus memory: leaving a part keeps its place; entering one with a place restores it.
         let from = currentIndex()
         if FocusMemory.regionsEnabled, let from, from != i { rememberPlace(of: from) }
+        if let from, from != i, let left = element(of: from) { WhatChanged.leaving(region: parts[from], pid: pid, element: left) }
         var recall: (place: FocusPlace, at: Date)?
         if (FocusMemory.regionsEnabled && from != i) || forceRestore {
             recall = FocusMemory.recall(region: part.name, pid: pid)

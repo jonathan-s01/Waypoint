@@ -194,6 +194,7 @@ public enum FocusMemory {
     /// An application has gone out of the front: its last focus is fingerprinted, unless it was a menu or said nothing
     /// (a window, a page), which also forgets what was remembered for that window.
     static func leaving(pid: pid_t) {
+        WhatChanged.leaving(app: pid)
         guard appEnabled, let e = lastFocus[pid] else { return }
         let role = e.role
         guard role != "?" else { return }
@@ -256,7 +257,7 @@ public enum FocusMemory {
 
     static func remember(region name: String, pid: pid_t, _ place: FocusPlace) { regions["\(pid)|\(name)"] = (place, Date()) }
     static func recall(region name: String, pid: pid_t) -> (place: FocusPlace, at: Date)? { regions["\(pid)|\(name)"] }
-    static func forget(pid: pid_t) { lastFocus[pid] = nil; places[pid] = nil; regions = regions.filter { !$0.key.hasPrefix("\(pid)|") } }
+    static func forget(pid: pid_t) { WhatChanged.forget(pid: pid); lastFocus[pid] = nil; places[pid] = nil; regions = regions.filter { !$0.key.hasPrefix("\(pid)|") } }
 }
 
 /// The two switches, as commands in the key list (assign them there; no key by default).
