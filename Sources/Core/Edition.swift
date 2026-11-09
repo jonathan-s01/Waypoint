@@ -54,6 +54,9 @@ public enum Edition {
         ("com.apple.TV", "TV (preview, off until you turn it on)"),
         ("com.apple.MobileSMS", "Messages (preview, off until you turn it on)"),
         ("net.whatsapp.WhatsApp", "WhatsApp (preview, off until you turn it on)"),
+        // Waypoint recipes, 9 Nov 2026.
+        ("com.microsoft.teams2", "Microsoft Teams (preview)"),
+        ("com.github.githubapp", "GitHub Copilot (preview)"),
     ]
 
     /// Apps added on one Mac only, for trying out before testers get them (TextEdit, 6 Oct 2026): the

@@ -618,28 +618,34 @@ public final class GlobalCommands: ScriptableObject {
     /// In text, the shortcut menu at the caret: a right click where the caret is, which is how Word offers the
     /// corrections for a misspelled word (VoiceOver's VO Shift M does; Control Return did nothing, 17 Oct 2026).
     public static func contextMenuAtCaret() -> Bool {
-        guard let f = API.focusObject, let info = try? f.makeTextInfo(.caret) else { return false }
-        // Only when the VoiceOver cursor is in this text: on a toolbar button it is the button's menu VoiceOver opens
-        // (the code review, 17 Oct 2026).
-        guard ObjectNavigator.shared.isWithin(f.element) else { return false }
-        var v: CFTypeRef?
-        // A selection: clicked at its start, inside it (the caret is at its end, so the click landed after a word
-        // Command Semicolon had selected, and the menu was the space's, without the corrections: 19 Oct 2026).
-        let at = (try? f.makeTextInfo(.selection)).flatMap { $0.isCollapsed ? nil : $0.start } ?? info.start
-        guard AXUIElementCopyParameterizedAttributeValue(f.element, kAXBoundsForRangeParameterizedAttribute as CFString, axRangeValue(at, 1), &v) == .success,
-              let v, CFGetTypeID(v) == AXValueGetTypeID() else { return false }
-        var r = CGRect.zero
-        guard axValue(v, .cgRect, &r), r.width >= 0, r.height > 0 else { return false }
-        // Inside the field on screen, or a scrolled-off caret would click whatever window is there.
-        if let frame = TurnOverObject.frame(f.element), !frame.insetBy(dx: -2, dy: -2).contains(CGPoint(x: r.midX, y: r.midY)) { Log.io("context menu: the caret is off the field (\(Int(r.midX)), \(Int(r.midY))); not clicked"); return false }
-        let p = CGPoint(x: r.minX + max(1, min(r.width, 4)), y: r.midY)
+        guard let p = caretMenuPoint() else { return false }
         Log.io("context menu: right click at the caret (\(Int(p.x)), \(Int(p.y)))")
         rightClick(at: p)
         return true
     }
 
+    /// Where a right click opens the menu for the caret or selection in the focused text; nil when the VoiceOver
+    /// cursor is not in that text, or the caret is not on screen.
+    static func caretMenuPoint() -> CGPoint? {
+        guard let f = API.focusObject, let info = try? f.makeTextInfo(.caret) else { return nil }
+        // Only when the VoiceOver cursor is in this text: on a toolbar button it is the button's menu VoiceOver opens
+        // (the code review, 17 Oct 2026).
+        guard ObjectNavigator.shared.isWithin(f.element) else { return nil }
+        var v: CFTypeRef?
+        // A selection: clicked at its start, inside it (the caret is at its end, so the click landed after a word
+        // Command Semicolon had selected, and the menu was the space's, without the corrections: 19 Oct 2026).
+        let at = (try? f.makeTextInfo(.selection)).flatMap { $0.isCollapsed ? nil : $0.start } ?? info.start
+        guard AXUIElementCopyParameterizedAttributeValue(f.element, kAXBoundsForRangeParameterizedAttribute as CFString, axRangeValue(at, 1), &v) == .success,
+              let v, CFGetTypeID(v) == AXValueGetTypeID() else { return nil }
+        var r = CGRect.zero
+        guard axValue(v, .cgRect, &r), r.width >= 0, r.height > 0 else { return nil }
+        // Inside the field on screen, or a scrolled-off caret would click whatever window is there.
+        if let frame = TurnOverObject.frame(f.element), !frame.insetBy(dx: -2, dy: -2).contains(CGPoint(x: r.midX, y: r.midY)) { Log.io("context menu: the caret is off the field (\(Int(r.midX)), \(Int(r.midY))); not clicked"); return nil }
+        return CGPoint(x: r.minX + max(1, min(r.width, 4)), y: r.midY)
+    }
+
     /// A right click at `p`, the pointer put back after, as VO-Shift-Space leaves it, once the menu has opened.
-    private static func rightClick(at p: CGPoint) {
+    static func rightClick(at p: CGPoint) {
         TurnOverObject.contextMenuRequestedAt = Date()
         let src = CGEventSource(stateID: .hidSystemState)
         let before = CGEvent(source: nil)?.location

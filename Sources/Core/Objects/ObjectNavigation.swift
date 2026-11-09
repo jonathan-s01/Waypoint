@@ -197,11 +197,12 @@ public final class ObjectNavigator {
     public func releaseHold() { heldList = nil }
 
     /// Into a list TurnOver holds, on its selected row (Finder: Tab from the files to the sidebar).
-    public func enterHold(_ list: AXUIElement, name: String) {
+    public func enterHold(_ list: AXUIElement, name: String, row: AXUIElement? = nil) {
         let rows = list.elements(kAXRowsAttribute)
         guard !rows.isEmpty else { return }
         let sel = list.elements(kAXSelectedRowsAttribute).first
-        let i = sel.flatMap { s in rows.firstIndex { CFEqual($0, s) } } ?? 0
+        // `row`: a place remembered for this list (focus memory), instead of the selected row.
+        let i = (row ?? sel).flatMap { s in rows.firstIndex { CFEqual($0, s) } } ?? sel.flatMap { s in rows.firstIndex { CFEqual($0, s) } } ?? 0
         heldList = list
         Speech.speakMessage(name)
         landRow(rows[i], index: i, count: rows.count)

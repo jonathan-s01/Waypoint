@@ -1,0 +1,47 @@
+{
+  "bundle": "com.microsoft.teams2",
+  "name": "Microsoft Teams",
+  "view": {
+    "kind": "panes",
+    "panes": {
+      "parts": [
+        {
+          "name": "Search",
+          "match": { "role": "AXComboBox", "inside": { "subrole": "AXLandmarkSearch" } }
+        },
+        {
+          "name": "Apps",
+          "match": { "subrole": "AXLandmarkNavigation", "description": "Apps" },
+          "hint": "Chat, Calendar, Calls and the other Teams apps."
+        },
+        {
+          "name": "Chat filters",
+          "match": { "role": "AXToolbar", "description": "Filter options" }
+        },
+        {
+          "name": "Chat list",
+          "match": { "role": "AXOutline", "description": "Teams" },
+          "hint": "Up and Down choose a chat or channel."
+        },
+        {
+          "name": "Chat tabs",
+          "match": { "role": "AXTabGroup" }
+        },
+        {
+          "name": "Chat actions",
+          "match": { "role": "AXToolbar", "description": "Chat actions" }
+        },
+        {
+          "name": "Messages",
+          "match": { "role": "AXGroup", "description": "Message List" },
+          "read": "document",
+          "hint": "Arrows read the messages. H and Shift H move by message."
+        },
+        {
+          "name": "Message box",
+          "match": { "role": "AXTextArea", "description": "Type a message" }
+        }
+      ]
+    }
+  }
+}

@@ -110,6 +110,7 @@ public final class TurnOverMenu {
     public func openList(_ title: LocalizedStringResource, items: [MenuItem]) { openList(verbatim: String(localized: title), items: items) }
     public func openList(verbatim title: String, items: [MenuItem]) {
         guard !items.isEmpty else { Speech.speakMessage(Self.none(title)); return }
+        keyHook = nil
         stack = [(title, items, 0)]
         isOpen = true
         Speech.cancel()
@@ -119,13 +120,17 @@ public final class TurnOverMenu {
 
     /// Run when the menu or list closes, however it closes (the elements list restores Word's sidebar).
     public var onClose: (() -> Void)?
+    /// A list's own keys, asked first, Command keys included (Waypoint's menu bar: VO-M again
+    /// goes on to the status menus). True: the key was used. Cleared when a list opens or closes.
+    public var keyHook: ((KeyboardGesture) -> Bool)?
     private var typeahead = ""
     private var typeaheadAt = Date.distantPast
 
     public func close() {
         isOpen = false
+        keyHook = nil
         stack.removeAll()
-        filterSource = nil; filter = ""; rotor = nil
+        filterSource = nil; filter = ""; rotor = nil; browsingResults = false
         config.save()
         let hook = onClose; onClose = nil
         Braille.releaseItem()
@@ -145,7 +150,7 @@ public final class TurnOverMenu {
                 Speech.speakMessage(hint)
             }
             hintWork = work
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.2, execute: work)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6, execute: work)
         }
         if valueOnly { Speech.speakItem("\(item.title): \(item.valueText ?? "")"); return }
         var parts = [item.title]
@@ -158,7 +163,8 @@ public final class TurnOverMenu {
     public func openChooser(_ title: LocalizedStringResource, items: [MenuItem]) { openChooser(verbatim: String(localized: title), items: items) }
     public func openChooser(verbatim title: String, items: [MenuItem]) {
         guard !items.isEmpty else { Speech.speakMessage(Self.none(title)); return }
-        filterSource = items; filter = ""
+        keyHook = nil
+        filterSource = items; filter = ""; browsingResults = false
         stack = [(title, items, 0)]
         isOpen = true
         Speech.cancel()
@@ -167,6 +173,41 @@ public final class TurnOverMenu {
     }
     private var filterSource: [MenuItem]?
     private var filter = ""
+    /// VO-F in a chooser: the results stay as they are and letters jump between them instead of narrowing them.
+    private var browsingResults = false
+    /// A chooser or rotor is open, so typing narrows it.
+    public var isFiltering: Bool { filterSource != nil }
+
+    /// VO-F in any list: every item in it and in its submenus becomes a chooser you type into, the menu it is in said
+    /// after a pause. VO-F again in the chooser keeps the results and lets letters jump (first-letter navigation);
+    /// once more goes back to typing.
+    private func searchKey() {
+        if filterSource != nil {
+            browsingResults.toggle()
+            Speech.cancel()
+            Speech.speakMessage(browsingResults ? String(localized: "browsing results, letters jump", comment: "Spoken message: the search results stay, and a letter jumps to the next result starting with it")
+                : String(localized: "typing to filter", comment: "Spoken message: typing narrows the search results"))
+            return
+        }
+        guard let root = stack.first else { return }
+        var found: [MenuItem] = []
+        // A bounded walk on main (AGENTS.md): submenus are built on demand, so this stops at 4000 items or 1.5 s.
+        let deadline = Date().addingTimeInterval(1.5)
+        func walk(_ items: [MenuItem], path: [String], depth: Int) {
+            for it in items {
+                guard found.count < 4000, Date() < deadline else { return }
+                if case .submenu(let make) = it.kind {
+                    if depth < 4 { walk(make(), path: path + [it.title], depth: depth + 1) }
+                    continue
+                }
+                var copy = it
+                if !path.isEmpty { copy.hint = path.joined(separator: ", ") }
+                found.append(copy)
+            }
+        }
+        walk(root.items, path: [], depth: 1)
+        openChooser(verbatim: String(localized: "Search \(root.title)", comment: "A search of every item in a list: %@ is the list's title"), items: found)
+    }
 
     /// VoiceOver's Rotor (VO-U), NVDA's Elements List: kinds of item (Headings, Links, Form controls…). Left and
     /// Right change kind, Up and Down move through it, typing narrows it, Enter goes there. It opens on the kind
@@ -188,7 +229,7 @@ public final class TurnOverMenu {
         guard let rotor else { return }
         let kind = rotor[rotorIndex]
         lastRotorKind = kind.name
-        filterSource = kind.items; filter = ""
+        filterSource = kind.items; filter = ""; browsingResults = false
         stack = [(kind.name, kind.items, 0)]
         Speech.speakMessage(Speech.joined([intro ?? "", kind.name, "\(kind.items.count)"]))
         announce()
@@ -196,7 +237,7 @@ public final class TurnOverMenu {
 
     /// Typing in a chooser: the list narrows to the items containing the text; Backspace widens it again.
     private func filterKey(_ g: KeyboardGesture) -> Bool {
-        guard let source = filterSource, stack.count == 1, g.modifiers.subtracting(.shift).isEmpty else { return false }
+        guard let source = filterSource, !browsingResults, stack.count == 1, g.modifiers.subtracting(.shift).isEmpty else { return false }
         var text = filter
         if g.keyName == "backspace" {
             guard !text.isEmpty else { Tones.edge(); return true }
@@ -229,6 +270,7 @@ public final class TurnOverMenu {
             showRotorKind()
             return
         }
+        if g.modifiers == [.turnover], g.keyName.lowercased() == "f" { searchKey(); return }
         if filterKey(g) { return }
         guard var top = stack.last else { return }
         let n = top.items.count

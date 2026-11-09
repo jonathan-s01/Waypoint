@@ -66,7 +66,10 @@ extension AXHandler {
             // and elements a plugin watches (a status line, a progress bar) in the application in front.
             // The progress bar being watched beeps as it moves (ProgressWatch); the event goes on as before.
             ProgressWatch.valueChanged(element)
-            if let f = API.focusObject, f.isSameElement(as: element) { EventHandler.queue(Event(.valueChange, f)); return }
+            if let f = API.focusObject, f.isSameElement(as: element) {
+                announceGhostText(in: element, pid: pid)
+                EventHandler.queue(Event(.valueChange, f)); return
+            }
             if pid == activePid, !ProfileStore.shared.profiles(for: ProfileStore.shared.bundle(of: pid)).isEmpty,
                ProfileStore.shared.watchRule(for: element, pid: pid) != nil {
                 EventHandler.queue(Event(.valueChange, ObjectFactory.make(element)))
@@ -104,17 +107,17 @@ extension AXHandler {
             menuOpenedAt = Date()
             logMenu(element)
             // Word opens its context menu and every submenu at once: one announcement.
-            if Date().timeIntervalSince(lastMenuStart) > 0.5 { EventHandler.queue(Event(.menuStart, ObjectFactory.make(element))) }
+            if Date().timeIntervalSince(lastMenuStart) > 0.5, !ItemActions.isQuiet(pid) { EventHandler.queue(Event(.menuStart, ObjectFactory.make(element))) }
             lastMenuStart = Date()
         case kAXMenuClosedNotification:
             let before = openMenus.count
             openMenus.removeAll { $0.isSame(element) }
             if openMenus.count == before { openMenus.removeAll { $0.role != "AXMenu" } }
             if openMenus.count == before, before > 0 { Log.io("menu closed under another identity; clearing \(before) open menus"); openMenus.removeAll() }
-            if element.role == "AXMenu" { EventHandler.queue(Event(.menuEnd, ObjectFactory.make(element))) }
+            if element.role == "AXMenu", !ItemActions.isQuiet(pid) { EventHandler.queue(Event(.menuEnd, ObjectFactory.make(element))) }
             // Only a real menu closing opens the gap: Safari's address completions (a scroll area, never counted as
             // open) closing made the next focus wait and the window get read ("Boson - Wikipedia, window").
-            if openMenus.isEmpty, before > 0 || element.role == "AXMenu" { lastMenuClosed = (pid, Date()) }
+            if openMenus.isEmpty, before > 0 || element.role == "AXMenu", !ItemActions.isQuiet(pid) { lastMenuClosed = (pid, Date()) }
         case kAXMenuItemSelectedNotification:
             // A keyboard shortcut also "selects" its menu item (Cmd+A: "Select All"); only a menu the user is in counts.
             if isMenuOpen { focusChanged(element, pid: pid) } else { Log.debug("menu item selected by shortcut: \(element.string(kAXTitleAttribute) ?? "")") }
@@ -188,11 +191,15 @@ extension AXHandler {
                 Speech.speakMessage(String(localized: "nothing selected", comment: "Spoken message")); return
             }
             // The Dock's Cmd+Tab list marks its highlighted item focused rather than selected.
-            guard let selected = all.first ?? element.elements(kAXChildrenAttribute).first(where: { ($0.attr(kAXFocusedAttribute) as? Bool) == true }) else { return }
+            // A suggestion list beside a text field (Copilot's "/" popup): the focus stays in the field and the
+            // list only marks its highlighted option AXSelected (probed 9 Nov 2026).
+            let beside = API.focusObject.map { f in pid == activePid && ["AXTextArea", "AXTextField", "AXComboBox"].contains(f.element.role) } ?? false
+            guard let selected = all.first ?? element.elements(kAXChildrenAttribute).first(where: { ($0.attr(kAXFocusedAttribute) as? Bool) == true })
+                    ?? (beside ? Self.highlightedOption(in: element) : nil) else { return }
             if let (last, at) = lastSelectionReport, last.isSame(selected), Date().timeIntervalSince(at) < 0.4 { return }
             lastSelectionReport = (selected, Date())
             // Only the focused container's selection matters (a sidebar changing under a dialog does not).
-            if focused || API.focusObject?.isSameElement(as: selected) == true {
+            if focused || beside || API.focusObject?.isSameElement(as: selected) == true {
                 EventHandler.queue(Event(.selection, ObjectFactory.make(selected)))
             }
         case kAXRowExpandedNotification, kAXRowCollapsedNotification:
@@ -225,6 +232,33 @@ extension AXHandler {
         default:
             break
         }
+    }
+
+    /// Text that appears after the caret in a field that had none there is a hint, not typing: Copilot adds "optional
+    /// focus instructions…" after a chosen /compact (9 Nov 2026, macOS 27), in the same change that completes the
+    /// command, and VoiceOver reads it. Typing and pasting put the caret after the new text.
+    func announceGhostText(in field: AXUIElement, pid: pid_t) {
+        guard pid == activePid, ["AXTextArea", "AXTextField"].contains(field.role) else { return }
+        // The caret is reported a moment after the value; read both once it has caught up.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [self] in
+            guard let value = field.string(kAXValueAttribute), value.utf16.count < 4000,
+                  let caret = cfRange(field.attr(kAXSelectedTextRangeAttribute)), caret.length == 0 else { lastFieldValue = nil; return }
+            let after = (value as NSString).substring(from: min(max(caret.location, 0), value.utf16.count)).trimmingCharacters(in: .whitespacesAndNewlines)
+            defer { lastFieldValue = (field, after) }
+            guard let (last, was) = lastFieldValue, last.isSame(field), was.isEmpty, after.count > 1,
+                  API.focusObject?.isSameElement(as: field) == true else { return }
+            Log.io("ghost text after the caret: \(Log.words(after))")
+            Speech.speakMessage(after)
+        }
+    }
+
+    /// The option a suggestion list has highlighted, one or two levels down.
+    static func highlightedOption(in list: AXUIElement) -> AXUIElement? {
+        for child in list.elements(kAXChildrenAttribute).prefix(200) {
+            if (child.attr("AXSelected") as? Bool) == true { return child }
+            for inner in child.elements(kAXChildrenAttribute).prefix(200) where (inner.attr("AXSelected") as? Bool) == true { return inner }
+        }
+        return nil
     }
 
     /// The object for a notification: the live focus object when it is the same element, so its state carries.

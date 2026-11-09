@@ -25,7 +25,15 @@ nonisolated public struct RecipeView: Codable {
             public var match: ElementMatch
             /// Said after the name the first time, how to use it ("Up and Down choose a folder").
             public var hint: String?
-            public init(name: String, match: ElementMatch, hint: String? = nil) { self.name = name; self.match = match; self.hint = hint }
+            /// "document": a part read as text in browse mode, entered at once with the arrows reading it (Waypoint:
+            /// the region decides the mode, plan 4.0, 9 Nov 2026). Other parts keep the keyboard behaviour above.
+            public var read: String?
+            /// For a document part: where to land, the last element inside the part that matches (default: the last
+            /// heading, which is the newest message in Teams).
+            public var land: ElementMatch?
+            public init(name: String, match: ElementMatch, hint: String? = nil, read: String? = nil, land: ElementMatch? = nil) {
+                self.name = name; self.match = match; self.hint = hint; self.read = read; self.land = land
+            }
         }
     }
     public init(kind: String, chat: Chat? = nil, panes: Panes? = nil) { self.kind = kind; self.chat = chat; self.panes = panes }

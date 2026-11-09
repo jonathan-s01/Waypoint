@@ -122,6 +122,8 @@ public enum Core {
         GlobalPluginHandler.shared.register(VoiceOverKeysPlugin.self)
         GlobalPluginHandler.shared.register(HeldListPlugin.self)
         GlobalPluginHandler.shared.register(SettingsPanePlugin.self)
+        GlobalPluginHandler.shared.register(LetterJumpPlugin.self)
+        GlobalPluginHandler.shared.register(FocusMemoryPlugin.self)
         started = true
     }
 

@@ -51,6 +51,8 @@ public final class VoiceOverKeysPlugin: GlobalPlugin {
         }
 
         add("menuBar", String(localized: "The application's menus (VO-M); pressed twice, the status menus (VO-M-M)", comment: "A command, as the key list and keyboard help say it"), ["kb:turnover+m"]) { _ in
+            // Waypoint: the app's menus in Waypoint's own list; twice, the status menus; three times, the real bar.
+            if !config.general.windowsKeys { MenuBarList.pressed(); return }
             if ScriptHandler.lastScriptRepeatCount > 0 {
                 for m in AXHandler.shared.openMenus.reversed() { _ = AXUIElementPerformAction(m, kAXCancelAction as CFString) }
                 AXHandler.shared.menusClosed()
@@ -212,7 +214,7 @@ public final class VoiceOverKeysPlugin: GlobalPlugin {
         }
         add("readWindow", String(localized: "Reads everything in the window (VO-Shift-W)", comment: "A command, as the key list and keyboard help say it"), ["kb:turnover+shift+w"]) { _ in ObjectNavigator.shared.readWindow() }
         add("linkAddress", String(localized: "Reads a link's address (VO-Shift-U)", comment: "A command, as the key list and keyboard help say it"), ["kb:turnover+shift+u"]) { _ in ObjectNavigator.shared.readURL() }
-        add("actions", String(localized: "The item's actions, to choose from (VO-Command-Space)", comment: "A command, as the key list and keyboard help say it"), ["kb:turnover+command+space"]) { _ in ObjectNavigator.shared.actionsMenu() }
+        add("actions", String(localized: "The item's actions, to choose from (VO-Command-Space)", comment: "A command, as the key list and keyboard help say it"), ["kb:turnover+command+space"]) { _ in ItemActions.open() }
         add("focusToCursor", String(localized: "The keyboard focus to the VoiceOver cursor (VO-Command-F4)", comment: "A command, as the key list and keyboard help say it"), ["kb:turnover+command+f4"]) { _ in ObjectNavigator.shared.moveFocusHere() }
         add("cursorToFocus", String(localized: "The VoiceOver cursor to the keyboard focus (VO-Shift-F4)", comment: "A command, as the key list and keyboard help say it"), ["kb:turnover+shift+f4"]) { _ in ObjectNavigator.shared.toFocus() }
         add("closeWindow", String(localized: "Closes the window (VO-Command-Escape)", comment: "A command, as the key list and keyboard help say it"), ["kb:turnover+command+escape"]) { _ in KeyboardGesture(identifier: "kb:command+w")?.send() }

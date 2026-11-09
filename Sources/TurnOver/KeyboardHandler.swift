@@ -303,6 +303,7 @@ nonisolated final class KeyboardHandler: @unchecked Sendable {
         let stamp = IOHIDValueGetTimeStamp(value)
         if pressed {
             capsDown = true; chordFired = false; Self.capsHeld.value = true
+            onMain { LetterJump.reset() }
             setLock(realCapsOn)
         } else {
             capsDown = false; Self.capsHeld.value = false
@@ -424,6 +425,7 @@ nonisolated final class KeyboardHandler: @unchecked Sendable {
             if code == 57 { return settings.capsIsTurnOver ? nil : Unmanaged.passUnretained(event) }   // caps lock's own event: nobody sees it while it is the TurnOver key
             // Control pressed and released alone stops speech (NVDA: the control key cancels).
             let ctrl = event.flags.contains(.maskControl)
+            if !settings.capsIsTurnOver, ctrl, event.flags.contains(.maskAlternate) { onMain { LetterJump.reset() } }
             if code == 59 || code == 62 {
                 if ctrl { controlAlone = true }
                 else if controlAlone {

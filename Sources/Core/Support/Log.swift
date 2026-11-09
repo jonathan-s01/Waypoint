@@ -30,7 +30,34 @@ nonisolated public enum Log {
         FileManager.default.createFile(atPath: url.path, contents: nil)
         handle = try? FileHandle(forWritingTo: url)
         path = url.path
+        folder = dir
+        pruneToLimit()
         info("TurnOver pid \(getpid()), log \(url.path)")
+    }
+
+    /// The logs folder is kept under 1 GB: the oldest other logs go first, and this log stops growing at the limit.
+    private static let sizeLimit: UInt64 = 1 << 30
+    nonisolated(unsafe) private static var folder = URL(fileURLWithPath: "/")
+    nonisolated(unsafe) private static var written: UInt64 = 0
+    nonisolated(unsafe) private static var sinceCheck: UInt64 = 0
+    nonisolated(unsafe) private static var full = false
+
+    private static func pruneToLimit() {
+        let keys: [URLResourceKey] = [.fileSizeKey, .contentModificationDateKey]
+        var files = ((try? FileManager.default.contentsOfDirectory(at: folder, includingPropertiesForKeys: keys)) ?? [])
+            .filter { $0.pathExtension == "log" && $0.path != path }
+            .map { f -> (URL, UInt64, Date) in
+                let v = try? f.resourceValues(forKeys: Set(keys))
+                return (f, UInt64(v?.fileSize ?? 0), v?.contentModificationDate ?? .distantPast)
+            }
+            .sorted { $0.2 < $1.2 }
+        var total = written + files.reduce(0) { $0 + $1.1 }
+        while total > sizeLimit, !files.isEmpty {
+            let oldest = files.removeFirst()
+            try? FileManager.default.removeItem(at: oldest.0)
+            total -= oldest.1
+        }
+        full = total > sizeLimit
     }
 
     /// Echo to stderr only when it is a terminal: a pipe nobody reads fills, and then every log line (the keyboard
@@ -47,10 +74,17 @@ nonisolated public enum Log {
         // The throwing write: the old one raises an Objective-C exception when the disk is full, and that ended
         // TurnOver (12 Oct 2026, the Mac's disk filled by a voice model; VoiceOver couldn't start either). A line
         // that can't be written is lost, counted, and noted once writing works again.
-        if let handle {
+        if let handle, !full {
             do {
                 if lost > 0 { try handle.write(contentsOf: Data("[\(t)] WARN \(lost) log lines lost (the disk was full)\n".utf8)); lost = 0 }
-                try handle.write(contentsOf: Data(out.utf8))
+                let data = Data(out.utf8)
+                try handle.write(contentsOf: data)
+                written += UInt64(data.count); sinceCheck += UInt64(data.count)
+                if sinceCheck > 8 << 20 {
+                    sinceCheck = 0
+                    pruneToLimit()
+                    if full { try? handle.write(contentsOf: Data("[\(t)] WARN the log reached 1 GB; no more is written\n".utf8)) }
+                }
             } catch { lost += 1 }
         }
         if toTerminal { try? FileHandle.standardError.write(contentsOf: Data(out.utf8)) }

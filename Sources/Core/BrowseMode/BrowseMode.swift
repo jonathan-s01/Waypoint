@@ -363,6 +363,20 @@ public final class BrowseModeDocument: ScriptableObject {
             if !singleLetterNavigation { g.send(); return }
             moveToContainerEdge(end: false)
         }.isAvailable = { config.general.windowsKeys }
+        // Waypoint: A reads on from here, Shift-A from the top, without leaving the document. Mac style only: in the
+        // Windows style A is NVDA's annotation key.
+        for fromStart in [false, true] {
+            script(fromStart ? "sayAllFromTop" : "sayAllFromHere",
+                   fromStart ? String(localized: "Reads the whole document from the top (Shift A)", comment: "A command, as the key list and keyboard help say it")
+                             : String(localized: "Reads on from the reading position (A)", comment: "A command, as the key list and keyboard help say it"),
+                   gestures: [fromStart ? "kb:shift+a" : "kb:a"], category: "Quick navigation") { [weak self] g in
+                guard let self else { return }
+                if !singleLetterNavigation { g.send(); return }
+                guard ensureContent() else { return }
+                if fromStart { position = 0 }
+                SayAll.readText(from: rootObject)
+            }.isAvailable = { !config.general.windowsKeys }
+        }
     }
 
     public struct QuickNavType { public let name: String; public let key: String; public let spoken: String; let searchKey: String; let roles: Set<String>? }

@@ -189,6 +189,7 @@ public final class AXHandler {
     /// Ask the application what has focus now and treat it as a focus change (after a menu closes: Word sends nothing).
     var menuGapTarget: AXUIElement?
     var lastAnnouncement = ("", Date.distantPast)
+    var lastFieldValue: (AXUIElement, String)?
     var lastRefocus: (AXUIElement, Date)?
 }
 

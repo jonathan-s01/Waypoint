@@ -4,6 +4,7 @@
 // the clipboard really changed, so Command+C with nothing selected stays quiet, as it does nothing.
 import Foundation
 import AppKit
+import ApplicationServices
 
 public enum ClipboardAnnouncer {
     /// Called on the keyboard thread for every key down, before the key reaches the application.
@@ -50,5 +51,41 @@ public enum ClipboardAnnouncer {
         guard let text = NSPasteboard.general.string(forType: .string)?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty else { return spoken("pasted") }
         if text.count <= 400 { return String(localized: "pasted, \(text)", comment: "Pasted text: the text") }
         return String(localized: "pasted, \(String(text.prefix(200))), and \(String(text.count - 200)) more characters", comment: "Pasted text: its start, then how many characters more")
+    }
+}
+
+/// Command+S says "saved". TextEdit and the other document apps show nothing a reader can see (probed 9 Nov 2026,
+/// macOS 27: no accessibility event, the window's edited flag stays 0), so the key itself is the news, as the
+/// clipboard keys are. Only where the app's menus have a Save for the key, and only if no Save panel (a sheet or
+/// dialog) came up, which announces itself.
+public enum SaveAnnouncer {
+    static func keyDown(_ g: KeyboardGesture) {
+        guard !g.isTurnOverModifier, !g.isRepeat, g.keyName == "s", g.modifiers == [.command],
+              let pid = NSWorkspace.shared.frontmostApplication?.processIdentifier else { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            guard hasSaveMenuItem(pid), !savePanelIsUp(pid) else { return }
+            Speech.speakMessage(String(localized: "saved", comment: "Command S pressed, and the document was saved"), remember: false)
+        }
+    }
+
+    /// A menu item with the shortcut Command S, in any of the menu bar's menus.
+    static func hasSaveMenuItem(_ pid: pid_t) -> Bool {
+        let app = AXUIElementCreateApplication(pid)
+        guard let bar = app.element(kAXMenuBarAttribute) else { return false }
+        for top in bar.elements(kAXChildrenAttribute) {
+            guard let menu = top.elements(kAXChildrenAttribute).first else { continue }
+            for item in menu.elements(kAXChildrenAttribute) where item.string("AXMenuItemCmdChar")?.lowercased() == "s" && (item.int("AXMenuItemCmdModifiers") ?? 0) == 0 {
+                return true
+            }
+        }
+        return false
+    }
+
+    static func savePanelIsUp(_ pid: pid_t) -> Bool {
+        let app = AXUIElementCreateApplication(pid)
+        guard let w = app.element(kAXFocusedWindowAttribute) else { return false }
+        if ["AXDialog", "AXSystemDialog", "AXFloatingWindow"].contains(w.string(kAXSubroleAttribute) ?? "") { return true }
+        if (w.int("AXModal") ?? 0) != 0 { return true }
+        return w.elements(kAXChildrenAttribute).contains { $0.role == "AXSheet" }
     }
 }

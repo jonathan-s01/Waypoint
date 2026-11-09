@@ -93,6 +93,7 @@ public enum InputManager {
 
     public static func handleKeyDown(_ gesture: KeyboardGesture) -> Bool {
         Hints.cancel()
+        if gesture.isTurnOverModifier { DispatchQueue.main.async { LetterJump.reset() } }
         ObjectNavigator.shared.cancelWindowSearch()
         FormattingFeedback.shared.cancel()
         lastKeyDownAt = Date()
@@ -168,6 +169,7 @@ public enum InputManager {
             return true
         }
         if TurnOverMenu.shared.isOpen {
+            if let hook = TurnOverMenu.shared.keyHook, hook(gesture) { return true }
             // A Command key (Command Tab, Command Space): the menu closes and the key does what it always does
             // (Command Tab stayed in the menu, 6 Oct 2026).
             if gesture.modifiers.contains(.command) {
@@ -201,9 +203,11 @@ public enum InputManager {
         }
         // A clipboard key going to the application: say what it did (TurnOver's own copy speaks for itself).
         ClipboardAnnouncer.keyDown(gesture)
+        SaveAnnouncer.keyDown(gesture)
         FormattingFeedback.shared.keyWillPassThrough(gesture)
         DispatchQueue.main.async {
             ScriptHandler.clearLastScript()
+            LetterJump.noteKey(gesture)
             onPassThrough?(gesture)
             for w in passThroughWatchers { w(gesture) }
             if let c = gesture.typedCharacter, let focus = API.focusObject {

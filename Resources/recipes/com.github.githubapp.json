@@ -1,0 +1,35 @@
+{
+  "bundle": "com.github.githubapp",
+  "name": "GitHub Copilot",
+  "view": {
+    "kind": "panes",
+    "panes": {
+      "parts": [
+        {
+          "name": "Quick links",
+          "match": { "subrole": "AXLandmarkNavigation", "description": "Quick links" }
+        },
+        {
+          "name": "Projects",
+          "match": { "role": "AXOutline", "description": "Projects" },
+          "hint": "Up and Down choose a project."
+        },
+        {
+          "name": "Sessions",
+          "match": { "role": "AXOutline", "description": "Sessions" },
+          "hint": "Up and Down choose a session."
+        },
+        {
+          "name": "Conversation",
+          "match": { "subrole": "AXLandmarkRegion", "description": "Conversation transcript" },
+          "read": "document",
+          "hint": "Arrows read the conversation. H and Shift H move by heading."
+        },
+        {
+          "name": "Message box",
+          "match": { "role": "AXTextArea", "description": "Message" }
+        }
+      ]
+    }
+  }
+}

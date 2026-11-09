@@ -53,6 +53,8 @@ extension AXHandler {
     ]}
 
     public func focusChanged(_ element: AXUIElement, pid: pid_t) {
+        // The actions menu (VO-Command-Space) reading an app's menu in the background: its focus is not the user's.
+        if ItemActions.isQuiet(pid) { Log.debug("focus in a menu read for the actions list; not followed"); return }
         let module = AppModuleHandler.shared.appModule(for: pid)
         var target = module.redirectFocus(element) ?? element
         for (name, rule) in focusRules {
@@ -509,6 +511,7 @@ extension AXHandler {
 
     /// The focus is `target`: the ancestors newly entered, then the focus itself, as events.
     func present(_ target: AXUIElement, pid: pid_t) {
+        FocusMemory.note(target, pid: pid)   // Waypoint: a reference only; fingerprinted when the app leaves the front
         let (obj, ancestors): (TurnOverObject, [TurnOverObject]) = {
             if let m = madeForFocus, m.element.isSame(target) { return (m.obj, m.ancestors) }
             let o = ObjectFactory.make(target); return (o, o.ancestors)

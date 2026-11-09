@@ -23,6 +23,7 @@ final class PanesAppModule: AppModule {
         for (i, part) in panes.parts.prefix(9).enumerated() {
             script("panes_part\(i + 1)", String(localized: "Straight to \(part.name)", comment: "A command: %@ is a part of the window"), gestures: ["kb:control+command+\(i + 1)"], category: cat) { [weak self] _ in self?.view.go(to: i) }.isAvailable = active
         }
+        script("panes_returnToPlace", String(localized: "Back to where you were in this part of the window, when you last left it", comment: "A command, as the key list and keyboard help say it"), gestures: [], category: cat) { [weak self] _ in self?.view.returnToPlace() }.isAvailable = active
         // (No key of its own: VO Shift W is VoiceOver's "read window" in the Mac style; it is in the shortcuts list.)
         script("panes_where", String(localized: "Says which part of the window you are in", comment: "A command, as the key list and keyboard help say it"), gestures: [], category: cat) { [weak self] _ in
             guard let self else { return }

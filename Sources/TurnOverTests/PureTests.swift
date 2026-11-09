@@ -973,8 +973,12 @@ func pureTests() {
     test("recipes: the panes shape validates and loads (Notes)") {
         let repo = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
         Recipes.load(builtIn: repo.appendingPathComponent("Resources/recipes"), plugins: [])
-        expect(Recipes.bundles(kind: "panes"), ["com.apple.Notes"])
+        expect(Recipes.bundles(kind: "panes"), ["com.apple.Notes", "com.github.githubapp", "com.microsoft.teams2"])
         expect(Recipes.recipe(for: "com.apple.Notes")?.view.panes?.parts.map(\.name), ["Folders", "Notes list", "Note"])
+        expect(Recipes.recipe(for: "com.microsoft.teams2")?.view.panes?.parts.first?.name, "Search")
+        expect(Recipes.recipe(for: "com.github.githubapp")?.view.panes?.parts.map(\.name), ["Quick links", "Projects", "Sessions", "Conversation", "Message box"])
+        expect(Recipes.recipe(for: "com.github.githubapp")?.view.panes?.parts.filter { $0.read == "document" }.map(\.name), ["Conversation"])
+        expect(Recipes.recipe(for: "com.microsoft.teams2")?.view.panes?.parts.filter { $0.read == "document" }.map(\.name), ["Messages"])
         var v = RecipeView(kind: "panes", chat: nil, panes: RecipeView.Panes(parts: []))
         check((try? v.validate()) == nil, "no parts is refused")
         v.panes = RecipeView.Panes(parts: [.init(name: "A", match: ElementMatch(), hint: nil)])
@@ -1483,6 +1487,38 @@ func browseTextNavTests() {
         expect(vo["l"], "Link"); expect(vo["x"], "List"); expect(vo["c"], "CheckBox"); expect(vo["d"], "DifferentItem")
         expect(vo["f"], "TextField"); expect(vo["j"], "Control"); expect(vo["m"], "SameLevelHeading"); expect(vo["n"], "Landmark")
         expect(vo["r"], "RadioGroup"); expect(vo["h"], "Heading"); expect(vo["k"], nil, "K isn't VoiceOver's")
+        expect(vo["a"], nil, "A is Waypoint's say all in reading mode")
+        expect(MenuBarList.shortcut(char: "N", modifiers: 1), "shift command N")
+        expect(MenuBarList.shortcut(char: "s", modifiers: 0), "command S")
+        expect(MenuBarList.shortcut(char: "f", modifiers: 4 | 2), "control option command F")
+        expect(MenuBarList.shortcut(char: "", modifiers: 0), nil, "no command character: no shortcut")
+        expect(MenuBarList.markWord("✓"), "checked", "a ticked menu item")
+        expect(MenuBarList.markWord("•"), "selected", "the chosen item of a group")
+        expect(MenuBarList.markWord("-"), "mixed", "a mixed menu item")
+        expect(MenuBarList.markWord(""), nil, "no mark")
+        expect(MenuBarList.markWord(nil), nil, "no mark attribute")
+    }
+    test("letter jump: first letters cycle, prefixes narrow, any order") {
+        // Names in the order a list is sorted by date, not by name.
+        let names = ["Zebra.txt", "apple.txt", "Résumé.pdf", "Apricot.txt", "banana.txt", "Archive.zip"]
+        func go(_ current: Int?, _ text: String, cycling: Bool) -> Int? { LetterJump.target(count: names.count, current: current, text: text, cycling: cycling, name: { names[$0] }) }
+        expect(go(nil, "a", cycling: true), 1, "nothing selected: the first A")
+        expect(go(1, "a", cycling: true), 3, "A again: the next one")
+        expect(go(5, "a", cycling: true), 1, "past the last A: round to the first")
+        expect(go(0, "r", cycling: true), 2, "accents and case do not matter")
+        expect(go(0, "q", cycling: true), nil, "nothing starts with Q")
+        expect(go(1, "ap", cycling: false), 1, "a longer prefix stays where it already fits")
+        expect(go(1, "apr", cycling: false), 3, "and moves on when the current item no longer fits")
+        expect(go(nil, "ar", cycling: false), 5, "a prefix from the start")
+        let one = LetterJump.query(typed: "", key: "d", within: false)
+        check(one.text == "d" && one.cycling, "one letter cycles")
+        let two = LetterJump.query(typed: "d", key: "o", within: true)
+        check(two.text == "do" && !two.cycling, "two different letters are a prefix")
+        let same = LetterJump.query(typed: "d", key: "d", within: true)
+        check(same.text == "d" && same.cycling, "the same letter again cycles")
+        let late = LetterJump.query(typed: "d", key: "o", within: false)
+        check(late.text == "o" && late.cycling, "after a pause it starts again")
+        check(go(1, "a", cycling: true) != nil && LetterJump.target(count: 0, current: nil, text: "a", cycling: true, name: { _ in "" }) == nil, "an empty list finds nothing")
     }
     let t = "Home News Sport\nThe big story\nA lot happened today, and here it is.\nMore Next Previous\nThat was the news.\n" as NSString
     func r(_ s: String) -> NSRange { t.range(of: s) }
@@ -1512,5 +1548,77 @@ func browseTextNavTests() {
         check(!AXHandler.servesPanel(helperBundle: "com.apple.TextInputUI.xpc.CursorUIViewService", helperName: "Cursor (TextEdit)", frontName: "TextEdit"), "any other service stays ignored")
         check(!AXHandler.servesPanel(helperBundle: svc, helperName: nil, frontName: "TextEdit"), "a service without a name")
         check(!AXHandler.servesPanel(helperBundle: svc, helperName: "Open and Save Panel Service ()", frontName: ""), "no app in front")
+    }
+}
+
+/// A window holding a table of rows named by `names`, in that order; row k's node id is 10 + 3k.
+func memoryFixture(names: [String]) -> AXFixture {
+    var nodes: [AXFixture.Node] = []
+    var rowIds: [Int] = []
+    for (k, name) in names.enumerated() {
+        let row = 10 + 3 * k, cell = row + 1, text = row + 2
+        rowIds.append(row)
+        nodes.append(.init(id: row, attrs: ["AXRole": .string("AXRow"), "AXParent": .element(2), "AXChildren": .elements([cell])]))
+        nodes.append(.init(id: cell, attrs: ["AXRole": .string("AXCell"), "AXParent": .element(row), "AXChildren": .elements([text])]))
+        nodes.append(.init(id: text, attrs: ["AXRole": .string("AXStaticText"), "AXParent": .element(cell), "AXValue": .string(name)]))
+    }
+    nodes.append(.init(id: 0, attrs: ["AXRole": .string("AXWindow"), "AXTitle": .string("Mail"), "AXParent": .element(9), "AXChildren": .elements([2])]))
+    nodes.append(.init(id: 2, attrs: ["AXRole": .string("AXTable"), "AXParent": .element(0), "AXChildren": .elements(rowIds), "AXRows": .elements(rowIds)]))
+    nodes.append(.init(id: 9, attrs: ["AXRole": .string("AXApplication"), "AXWindows": .elements([0]), "AXFocusedWindow": .element(0)]))
+    return AXFixture(app: "Mem", bundle: "mem", recorded: "", root: 0, application: 9, focus: 2, nodes: nodes)
+}
+
+func focusMemoryTests() {
+    test("focus memory: scoring needs the role, and at the leaf the words or identifier") {
+        let want = FocusNode(role: "AXRow", id: "", text: "Lunch on Friday?", index: 4)
+        check(FocusMemory.score(want, FocusNode(role: "AXRow", text: "  lunch   on friday? ", index: 4), isLeaf: true) != nil, "same words, spacing and case aside")
+        check(FocusMemory.score(want, FocusNode(role: "AXCell", text: "Lunch on Friday?", index: 4), isLeaf: true) == nil, "another role")
+        check(FocusMemory.score(want, FocusNode(role: "AXRow", text: "Dinner on Friday?", index: 4), isLeaf: true) == nil, "other words at the leaf")
+        check(FocusMemory.score(want, FocusNode(role: "AXRow", text: "Dinner on Friday?", index: 4), isLeaf: false) != nil, "a retitled container on the way down")
+        let withId = FocusNode(role: "AXTextField", id: "search", text: "", index: 0)
+        check(FocusMemory.score(withId, FocusNode(role: "AXTextField", id: "other", text: "", index: 0), isLeaf: true) == nil, "another identifier at the leaf")
+        check(FocusMemory.score(withId, FocusNode(role: "AXTextField", id: "search", text: "", index: 3), isLeaf: true) != nil, "the same identifier, moved")
+        let near = FocusMemory.score(want, FocusNode(role: "AXRow", text: "Lunch on Friday?", index: 5), isLeaf: true) ?? 0
+        let far = FocusMemory.score(want, FocusNode(role: "AXRow", text: "Lunch on Friday?", index: 40), isLeaf: true) ?? 0
+        check(near > far, "the nearer place wins between two with the same words")
+        check(FocusMemory.score(FocusNode(role: "AXRow", index: 2), FocusNode(role: "AXRow", index: 2), isLeaf: true) != nil, "a leaf recorded with nothing to compare has no evidence either way; the fingerprint refuses it earlier")
+    }
+    test("focus memory: a fingerprint without an identifier or words at the leaf is not usable") {
+        check(!FocusFingerprint(windowTitle: "w", nodes: [FocusNode(role: "AXRow")]).isUsable, "nothing to find it by")
+        check(FocusFingerprint(windowTitle: "w", nodes: [FocusNode(role: "AXRow", text: "x")]).isUsable, "words")
+        check(!FocusFingerprint(windowTitle: "w", nodes: []).isUsable, "no nodes")
+    }
+    test("focus memory: siblings are looked at nearest the old place first") {
+        expect(FocusMemory.order(count: 6, around: 2), [2, 1, 3, 0, 4, 5])
+        expect(FocusMemory.order(count: 3, around: 9), [2, 1, 0])
+        expect(FocusMemory.order(count: 0, around: 0), [])
+    }
+    test("focus memory: only an empty focus is replaced; a menu or a control is not") {
+        check(FocusMemory.isGeneric(role: "AXWebArea", title: "", description: ""), "a page")
+        check(FocusMemory.isGeneric(role: "AXGroup", title: " ", description: ""), "an unnamed group")
+        check(!FocusMemory.isGeneric(role: "AXGroup", title: "Messages", description: ""), "a named group")
+        check(!FocusMemory.isGeneric(role: "AXTextField", title: "", description: ""), "a field")
+        check(FocusMemory.isMenuRole("AXMenuItem"), "a menu item")
+    }
+    test("focus memory: a row is found again after the list was rebuilt in another order") {
+        let names = (0..<30).map { "Message \($0)" }
+        AXReplay.load(memoryFixture(names: names))
+        guard let fp = FocusMemory.fingerprint(of: AXReplay.element(10 + 3 * 17), root: nil) else { AXReplay.unload(); check(false, "no fingerprint"); return }
+        AXReplay.unload()
+        expect(fp.windowTitle, "mail")
+        check(fp.isUsable, "usable")
+        AXReplay.load(memoryFixture(names: Array(names.reversed())))
+        defer { AXReplay.unload() }
+        let hit = FocusMemory.find(fp, under: AXReplay.element(0))
+        expect(hit.flatMap(AXReplay.id(of:)), 10 + 3 * (29 - 17), "the row named Message 17, now at index 12")
+    }
+    test("focus memory: a row that is gone is not replaced by another") {
+        let names = (0..<30).map { "Message \($0)" }
+        AXReplay.load(memoryFixture(names: names))
+        guard let fp = FocusMemory.fingerprint(of: AXReplay.element(10 + 3 * 17), root: nil) else { AXReplay.unload(); check(false, "no fingerprint"); return }
+        AXReplay.unload()
+        AXReplay.load(memoryFixture(names: names.filter { $0 != "Message 17" }))
+        defer { AXReplay.unload() }
+        check(FocusMemory.find(fp, under: AXReplay.element(0)) == nil, "no confident match: nil")
     }
 }

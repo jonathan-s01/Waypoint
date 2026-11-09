@@ -33,6 +33,10 @@ extension AXHandler {
             openMenus.removeAll { $0.pid == old }
         }
         ProfileStore.shared.reload()   // a plugin just written or edited applies on the next visit to its app
+        // Waypoint's focus memory: the app that left the front remembers its place, a moment after (it is still there to ask).
+        let activatedAt = Date()
+        if old != 0 { DispatchQueue.main.async { FocusMemory.leaving(pid: old) } }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) { FocusMemory.returned(pid: pid, activatedAt: activatedAt) }
         observe(pid)
         let module = AppModuleHandler.shared.appModule(for: pid)
         if old != 0, let oldModule = observers[old].map({ _ in AppModuleHandler.shared.appModule(for: old) }) { oldModule.event_appModuleLoseFocus() }
@@ -111,6 +115,7 @@ extension AXHandler {
         ForeignChildren.forget(pid)
         AppModuleHandler.shared.remove(pid: pid)
         BrowseModeHandler.shared.forget(pid: pid)
+        FocusMemory.forget(pid: pid)
         if API.focusObject?.pid == pid { API.setFocusObject(nil, ancestors: []) }
         if activePid == pid { activePid = 0 }
     }
