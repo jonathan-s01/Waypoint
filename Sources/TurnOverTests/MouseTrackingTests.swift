@@ -101,4 +101,10 @@ func mouseTrackingTests() {
         check(!typed("hi ").contains("space"), "off: the word was the echo of the space")
         check(typed(" ").contains("space"), "off: a space on its own is still said")
     }
+    test("typing: right-to-left text is told from left-to-right, so only the latter bumps at once at an edge") {
+        check(!EditableText.hasRightToLeft("Hello, world 123"), "English")
+        check(EditableText.hasRightToLeft("שלום"), "Hebrew")
+        check(EditableText.hasRightToLeft("hello مرحبا"), "Arabic in a line of English")
+        check(!EditableText.hasRightToLeft(""), "nothing")
+    }
 }
