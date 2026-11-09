@@ -68,7 +68,7 @@ public enum FocusMemory {
         let w = normalise(want.text), h = normalise(have.text)
         if !w.isEmpty {
             if w == h { s += 60 }
-            else if !h.isEmpty, min(w.count, h.count) >= 8, w.hasPrefix(h) || h.hasPrefix(w) { s += 40 }
+            else if !h.isEmpty, min(w.count, h.count) >= 20, min(w.count, h.count) * 10 >= max(w.count, h.count) * 8, w.hasPrefix(h) || h.hasPrefix(w) { s += 40 }
             else if !h.isEmpty { if isLeaf { return nil }; s -= 30 }
         }
         if isLeaf, (!want.id.isEmpty || !w.isEmpty), s <= 0 { return nil }
