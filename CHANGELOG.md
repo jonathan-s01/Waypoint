@@ -2,6 +2,20 @@
 
 The newest build is first. "Reported by a tester" marks a fix for something a tester sent in. Thank you.
 
+## Waypoint, since build 24.1
+
+Changes made in the Waypoint fork, on top of TurnOver 2.0, build 24.1.
+
+### Fixed
+
+- Typing: Left and Right bump at once at the edge of left-to-right text fields, where they used to wait for the
+  caret first (300 ms in web content). Not used where the line has right-to-left text, with a selection, or in a
+  table cell.
+- Mouse tracking: a look's watchdog gives up only on its own look. A watchdog left over from an earlier look could
+  drop a later look that was on its way, and the pointer resting there said nothing.
+- Mouse tracking: a group under the pointer is counted for at most 80 ms. Counting a long group, such as a chat
+  window, held up the next item, and the group's speech was cut short; now it is said without the count.
+
 ## 2.0, build 24.1
 
 ### Fixed
