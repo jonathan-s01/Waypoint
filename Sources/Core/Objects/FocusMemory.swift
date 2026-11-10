@@ -201,11 +201,16 @@ public enum FocusMemory {
         let title = trimmed(e.string(kAXTitleAttribute)), description = trimmed(e.string(kAXDescriptionAttribute))
         if isMenuRole(role) { return }
         if isGeneric(role: role, title: title, description: description) {
-            if let w = e.element(kAXWindowAttribute) ?? (role == "AXWindow" ? e : nil) { places[pid]?[normalise(trimmed(w.string(kAXTitleAttribute)))] = nil }
+            if let w = e.element(kAXWindowAttribute) ?? (role == "AXWindow" ? e : nil) {
+                let key = normalise(trimmed(w.string(kAXTitleAttribute)))
+                places[pid]?[key] = nil
+                FocusMemoryStore.clearApp(pid: pid, windowTitle: key)
+            }
             return
         }
         guard let fp = fingerprint(of: e, root: nil), fp.isUsable else { Log.io("focus memory: no usable fingerprint for \(role) in pid \(pid)"); return }
         places[pid, default: [:]][fp.windowTitle] = fp
+        FocusMemoryStore.saveApp(pid: pid, fp)
         if (places[pid]?.count ?? 0) > 8 { places[pid] = [fp.windowTitle: fp] }
         Log.io("focus memory: remembered \(role) \"\(Log.words(fp.nodes.last?.text ?? ""))\" in window \"\(Log.words(fp.windowTitle))\" of pid \(pid), \(fp.nodes.count) levels")
     }
@@ -213,7 +218,9 @@ public enum FocusMemory {
     /// An application came to the front a moment ago. If it did not restore a place of its own (its focus is a window,
     /// a page or an empty group), and the user has not pressed a key or opened a dialog, the remembered element gets the focus.
     static func returned(pid: pid_t, activatedAt: Date) {
-        guard appEnabled, AXHandler.shared.activePid == pid, !Places.holdsFocus(pid: pid), let known = places[pid], !known.isEmpty else { return }
+        guard appEnabled, AXHandler.shared.activePid == pid, !Places.holdsFocus(pid: pid) else { return }
+        let known = places[pid].flatMap { $0.isEmpty ? nil : $0 } ?? FocusMemoryStore.apps(pid: pid)
+        guard !known.isEmpty else { return }
         guard InputManager.lastKeyDownAt < activatedAt, !AXHandler.modalInFront(pid: pid), !AXHandler.shared.isMenuOpen else { return }
         let app = AXUIElementCreateApplication(pid)
         guard let window = app.element(kAXFocusedWindowAttribute) else { return }
@@ -255,8 +262,12 @@ public enum FocusMemory {
 
     // MARK: Per region (PanesView)
 
-    static func remember(region name: String, pid: pid_t, _ place: FocusPlace) { regions["\(pid)|\(name)"] = (place, Date()) }
-    static func recall(region name: String, pid: pid_t) -> (place: FocusPlace, at: Date)? { regions["\(pid)|\(name)"] }
+    static func remember(region name: String, pid: pid_t, _ place: FocusPlace) {
+        let now = Date()
+        regions["\(pid)|\(name)"] = (place, now)
+        FocusMemoryStore.saveRegion(name: name, pid: pid, place, at: now)
+    }
+    static func recall(region name: String, pid: pid_t) -> (place: FocusPlace, at: Date)? { regions["\(pid)|\(name)"] ?? FocusMemoryStore.region(name: name, pid: pid) }
     static func forget(pid: pid_t) { WhatChanged.forget(pid: pid); lastFocus[pid] = nil; places[pid] = nil; regions = regions.filter { !$0.key.hasPrefix("\(pid)|") } }
 }
 
@@ -272,5 +283,15 @@ final class FocusMemoryPlugin: GlobalPlugin {
             FocusMemory.regionsEnabled.toggle()
             Speech.speakMessage(FocusMemory.regionsEnabled ? String(localized: "part focus memory on", comment: "Spoken message") : String(localized: "part focus memory off", comment: "Spoken message"))
         }
+        script("focusMemoryPersist", String(localized: "Turns keeping your places across restarts of an app or of Waypoint on or off", comment: "A command, as the key list and keyboard help say it"), category: "Waypoint") { _ in
+            FocusMemoryStore.enabled.toggle()
+            Speech.speakMessage(FocusMemoryStore.enabled ? String(localized: "saved places on", comment: "Spoken message") : String(localized: "saved places off", comment: "Spoken message"))
+        }
+        script("focusMemoryForget", String(localized: "Forgets every place saved across restarts", comment: "A command, as the key list and keyboard help say it"), category: "Waypoint") { _ in
+            FocusMemoryStore.forgetAll()
+            Speech.speakMessage(String(localized: "saved places forgotten", comment: "Spoken message"))
+        }
     }
+
+    override func terminate() { FocusMemoryStore.flushActive() }
 }
