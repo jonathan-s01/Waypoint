@@ -189,7 +189,7 @@ public enum FocusMemory {
     private static var regions: [String: (place: FocusPlace, at: Date)] = [:]
 
     /// The focus is `e` (AXHandler.present): cheap, called for every focus change.
-    public static func note(_ e: AXUIElement, pid: pid_t) { lastFocus[pid] = e }
+    public static func note(_ e: AXUIElement, pid: pid_t) { lastFocus[pid] = e; Places.noted(e, pid: pid) }
 
     /// An application has gone out of the front: its last focus is fingerprinted, unless it was a menu or said nothing
     /// (a window, a page), which also forgets what was remembered for that window.
@@ -213,7 +213,7 @@ public enum FocusMemory {
     /// An application came to the front a moment ago. If it did not restore a place of its own (its focus is a window,
     /// a page or an empty group), and the user has not pressed a key or opened a dialog, the remembered element gets the focus.
     static func returned(pid: pid_t, activatedAt: Date) {
-        guard appEnabled, AXHandler.shared.activePid == pid, let known = places[pid], !known.isEmpty else { return }
+        guard appEnabled, AXHandler.shared.activePid == pid, !Places.holdsFocus(pid: pid), let known = places[pid], !known.isEmpty else { return }
         guard InputManager.lastKeyDownAt < activatedAt, !AXHandler.modalInFront(pid: pid), !AXHandler.shared.isMenuOpen else { return }
         let app = AXUIElementCreateApplication(pid)
         guard let window = app.element(kAXFocusedWindowAttribute) else { return }
