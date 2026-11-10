@@ -379,6 +379,7 @@ nonisolated final class KeyboardHandler: @unchecked Sendable {
         }
         if type == .tapDisabledByTimeout || type == .tapDisabledByUserInput {
             Log.warning("keyboard: tap disabled (\(type.rawValue)), re-enabling")
+            onMain { Launcher.stopRepeating("the keyboard tap was switched off by the system") }   // a held launcher key may have been let go unseen
             if let t = tap { CGEvent.tapEnable(tap: t, enable: true) }
             guard let t = tap, CGEvent.tapIsEnabled(tap: t) else {
                 Log.error("keyboard: tap could not be re-enabled; handing input back")

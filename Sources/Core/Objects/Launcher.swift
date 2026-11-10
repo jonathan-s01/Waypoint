@@ -25,7 +25,10 @@ public enum Launcher {
 
     /// On unless switched off: it is a held chord, so it cannot get stuck.
     public static var enabled: Bool = UserDefaults.standard.object(forKey: enabledKey) as? Bool ?? true {
-        didSet { UserDefaults.standard.set(enabled, forKey: enabledKey) }
+        didSet {
+            UserDefaults.standard.set(enabled, forKey: enabledKey)
+            if !enabled { stopRepeating("the launcher was switched off") }
+        }
     }
 
     public static var holds: LauncherLogic.Holds = {
@@ -51,13 +54,31 @@ public enum Launcher {
         return LauncherLogic.match(flags: flags, keyName: g.keyName, turnOverKey: turnOver, holds: h, table: s.table)
     }
 
+    /// True when the key is a launcher key that leaves speech playing (the volume keys); any other key cuts speech.
+    public static func keepsSpeech(_ g: KeyboardGesture, store: LauncherStore? = nil, holds: LauncherLogic.Holds? = nil, enabled: Bool? = nil) -> Bool {
+        decision(for: g, store: store, holds: holds, enabled: enabled)?.binding.keepSpeech ?? false
+    }
+
     // MARK: Running a key
 
-    /// The script for a taken key. A key held down repeats: it stays taken, and does not run again.
-    public static func run(_ g: KeyboardGesture, store: LauncherStore? = nil, holds: LauncherLogic.Holds? = nil, enabled: Bool? = nil, executor: LauncherExecutor? = nil) {
+    /// The script for a taken key. A key held down repeats: it stays taken, and does not run again here (a binding
+    /// with a repeat rate is repeated by the repeater, on its own clock, until the key is let go).
+    public static func run(_ g: KeyboardGesture, store: LauncherStore? = nil, holds: LauncherLogic.Holds? = nil, enabled: Bool? = nil, executor: LauncherExecutor? = nil, repeater: LauncherRepeater? = nil) {
         guard !g.isRepeat, let match = decision(for: g, store: store, holds: holds, enabled: enabled) else { return }
         Log.io("launcher: layer \(match.layer) \(match.binding.key) → \(match.binding.kind.rawValue) \(match.binding.label)")
-        dispatch(match.binding, executor: executor ?? Launcher.executor, gesture: g)
+        let exec = executor ?? Launcher.executor
+        dispatch(match.binding, executor: exec, gesture: g)
+        if LauncherLogic.repeatTiming(for: match.binding) != nil {
+            let chord = UInt(g.flags.rawValue) & LauncherLogic.Device.all
+            (repeater ?? LauncherRepeater.shared).begin(keyCode: g.keyCode, chord: chord, binding: match.binding) {
+                dispatch(match.binding, executor: exec, gesture: g)
+            }
+        }
+    }
+
+    /// Stops any key repeating (the launcher switched off, the keyboard's tap restarted).
+    public static func stopRepeating(_ why: String) {
+        LauncherRepeater.shared.stop(why)
     }
 
     public static func dispatch(_ b: LauncherLogic.Binding, executor: LauncherExecutor, gesture: KeyboardGesture) {
@@ -102,6 +123,7 @@ public enum Launcher {
     }
 
     public static func setHolds(_ h: LauncherLogic.Holds) {
+        stopRepeating("the held keys changed")
         holds = h
         let d = UserDefaults.standard
         d.set(NSNumber(value: h.hold1), forKey: hold1Key)
@@ -115,6 +137,7 @@ public enum Launcher {
     }
 
     static func reload() {
+        stopRepeating("the file was read again")
         store.reload()
         switch store.status {
         case .corrupt:

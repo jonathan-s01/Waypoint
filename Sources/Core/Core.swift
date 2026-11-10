@@ -121,6 +121,7 @@ public enum Core {
         GlobalPluginHandler.shared.register(MenuNavigationPlugin.self)
         GlobalPluginHandler.shared.register(ReviewLayerPlugin.self)   // before the plugins that claim the arrows
         GlobalPluginHandler.shared.register(LauncherPlugin.self)   // a held chord, before the plugins that take Command keys
+        GlobalPluginHandler.shared.register(VolumePlugin.self)
         GlobalPluginHandler.shared.register(PointerPlacePlugin.self)
         GlobalPluginHandler.shared.register(ReadWhileTypingPlugin.self)
         GlobalPluginHandler.shared.register(SkimModePlugin.self)   // also before the plugins that claim the arrows

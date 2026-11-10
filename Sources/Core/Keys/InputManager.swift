@@ -91,6 +91,11 @@ public enum InputManager {
     }
     private static var _lastKeyIdentifier = ""
 
+    /// Whether a key must leave speech playing (main thread). Replaceable so tests need no running Core.
+    public static var keepsSpeechForKey: (KeyboardGesture) -> Bool = { Core.active && Launcher.keepsSpeech($0) }
+    /// Called when a key has cut speech (main thread); tests count it.
+    public static var speechCutObserver: (() -> Void)?
+
     public static func handleKeyDown(_ gesture: KeyboardGesture) -> Bool {
         Hints.cancel()
         if gesture.isTurnOverModifier { DispatchQueue.main.async { LetterJump.reset() } }
@@ -118,8 +123,10 @@ public enum InputManager {
         // buffer): "Higgs", Escape, then "en." was echoed as "Higgsen".
         let endsWord = !typing && gesture.keyName != "backspace"
         let saysWord = ["enter", "numpadEnter", "tab"].contains(gesture.keyName) && gesture.modifiers.isEmpty
-        SayAll.keyArrivedDuringSayAll.value = SayAll.isRunning
-        DispatchQueue.main.async {
+        // A launcher key that asks to (the volume keys) leaves what is being said alone, like VoiceOver's volume keys.
+        let keepsSpeech = keepsSpeechForKey(gesture)
+        SayAll.keyArrivedDuringSayAll.value = SayAll.isRunning && !keepsSpeech
+        if !keepsSpeech { DispatchQueue.main.async {
             // Where say all had got to, before the cancel forgets it (the caret goes to that word: 18 Oct 2026).
             SayAll.noteStopPoint()
             // NVDA's "interrupt speech for typed characters": every key cuts what is being said, so the echo keeps
@@ -127,7 +134,8 @@ public enum InputManager {
             Speech.cancel()
             if saysWord { Speech.finishTypedWord() } else if endsWord { Speech.clearTypedWordBuffer() }
             SayAll.stop(byGesture: true)
-        }
+            speechCutObserver?()
+        } }
         // On the main thread since Swift 6 (10 Oct 2026): the keyboard thread waits for this answer, bounded
         // (ScriptHandler.askMain), so the availability checks may talk to the application freely.
         let script = ScriptHandler.findScript(for: gesture)

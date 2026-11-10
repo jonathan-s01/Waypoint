@@ -8,6 +8,9 @@ public enum LauncherSettings {
     private static func dict(_ b: LauncherLogic.Binding) -> [String: Any] {
         var d: [String: Any] = ["key": b.key, "kind": b.kind.rawValue, "name": b.name, "bundle": b.bundle, "target": b.target]
         if let t = b.timeout { d["timeout"] = t }
+        if let r = b.repeatRate { d["repeatRate"] = r }
+        if let r = b.repeatDelay { d["repeatDelay"] = r }
+        if b.keepSpeech { d["keepSpeech"] = true }
         if b.kind == .app { d["installed"] = LauncherApps.resolve(bundle: b.bundle, name: b.name) != nil }
         return d
     }
@@ -29,6 +32,8 @@ public enum LauncherSettings {
             "status": status,
             "skipped": store.skipped,
             "file": store.url.path,
+            "volumeStepPercent": Volume.step * 100,
+            "volumeFeedback": VolumeFeedback.enabled,
         ]
     }
 
@@ -61,6 +66,10 @@ public enum LauncherSettings {
             Launcher.capture(layer: layer)
         case "resetHolds":
             Launcher.resetKeys()
+        case "volumeStep":
+            if let percent = (patch["value"] as? NSNumber)?.doubleValue { Volume.step = percent / 100 }
+        case "volumeFeedback":
+            if let on = patch["value"] as? Bool { VolumeFeedback.enabled = on }
         default:
             break
         }
@@ -73,6 +82,11 @@ public enum LauncherSettings {
         func text(_ k: String) -> String { (d[k] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "" }
         var b = LauncherLogic.Binding(key: key, kind: kind, name: text("name"), bundle: text("bundle"), target: kind == .shell ? ((d["target"] as? String) ?? "") : text("target"))
         if kind == .shell, let t = (d["timeout"] as? NSNumber)?.doubleValue, t > 0 { b.timeout = t }
+        if let rate = LauncherLogic.clampedRate((d["repeatRate"] as? NSNumber)?.doubleValue) {
+            b.repeatRate = rate
+            b.repeatDelay = LauncherLogic.clampedDelay((d["repeatDelay"] as? NSNumber)?.doubleValue)
+        }
+        b.keepSpeech = (d["keepSpeech"] as? NSNumber)?.boolValue ?? false
         return b.isValid ? b : nil
     }
 }

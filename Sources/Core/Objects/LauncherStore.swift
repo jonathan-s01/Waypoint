@@ -25,6 +25,10 @@ nonisolated public enum LauncherLogic {
     public static let defaultHold2: UInt = Device.rightCommand | Device.rightOption
     public static let defaultTimeout: Double = 30
     public static let maximumTimeout: Double = 300
+    /// Hold to repeat: the wait before the first repeat, and the repeats a second, are kept within these.
+    public static let delayRange: ClosedRange<Double> = 0.2...5
+    public static let rateRange: ClosedRange<Double> = 1...30
+    public static let defaultRepeatDelay: Double = 1.0
 
     public enum Kind: String, CaseIterable, Sendable {
         case app, shell, open, command
@@ -42,9 +46,16 @@ nonisolated public enum LauncherLogic {
         public var target: String
         /// Seconds a shell command may run; nil means the default.
         public var timeout: Double?
+        /// Seconds a held key waits before it starts repeating; nil means the default. Only used with a `repeatRate`.
+        public var repeatDelay: Double?
+        /// Actions a second while the key stays held; nil means the action runs once, as the key goes down.
+        public var repeatRate: Double?
+        /// True when the key leaves speech that is playing alone (a volume key); every other key cuts it off.
+        public var keepSpeech: Bool
 
-        public init(key: String, kind: Kind, name: String = "", bundle: String = "", target: String = "", timeout: Double? = nil) {
+        public init(key: String, kind: Kind, name: String = "", bundle: String = "", target: String = "", timeout: Double? = nil, repeatDelay: Double? = nil, repeatRate: Double? = nil, keepSpeech: Bool = false) {
             self.key = key; self.kind = kind; self.name = name; self.bundle = bundle; self.target = target; self.timeout = timeout
+            self.repeatDelay = repeatDelay; self.repeatRate = repeatRate; self.keepSpeech = keepSpeech
         }
 
         public static func app(_ key: String, _ name: String, bundle: String) -> Binding { Binding(key: key, kind: .app, name: name, bundle: bundle) }
@@ -128,6 +139,8 @@ nonisolated public enum LauncherLogic {
             .app("z", "Terminal", bundle: "com.apple.Terminal"),
             .app("c", "Colour Contrast Analyser", bundle: "com.electron.cca"),
             .app("t", "TextEdit", bundle: "com.apple.TextEdit"),
+            Binding(key: "=", kind: .command, name: "Volume up", target: "volumeUp", repeatDelay: defaultRepeatDelay, repeatRate: 15, keepSpeech: true),
+            Binding(key: "-", kind: .command, name: "Volume down", target: "volumeDown", repeatDelay: defaultRepeatDelay, repeatRate: 15, keepSpeech: true),
         ], layer2: [])
     }
 
@@ -189,6 +202,25 @@ nonisolated public enum LauncherLogic {
         return min(t, maximumTimeout)
     }
 
+    /// A rate within 1...30 a second, nil when there is none (absent, zero, negative or not a number): no repeating.
+    public static func clampedRate(_ r: Double?) -> Double? {
+        guard let r, r.isFinite, r > 0 else { return nil }
+        return min(max(r, rateRange.lowerBound), rateRange.upperBound)
+    }
+
+    /// A delay within 0.2...5 seconds; the default when absent or not a number.
+    public static func clampedDelay(_ d: Double?) -> Double {
+        guard let d, d.isFinite else { return defaultRepeatDelay }
+        return min(max(d, delayRange.lowerBound), delayRange.upperBound)
+    }
+
+    /// How a held key repeats: the wait before the first repeat and the time between repeats, in seconds. Nil for a
+    /// binding with no repeat rate, which runs once as the key goes down.
+    public static func repeatTiming(for b: Binding) -> (delay: Double, interval: Double)? {
+        guard let rate = clampedRate(b.repeatRate) else { return nil }
+        return (clampedDelay(b.repeatDelay), 1 / rate)
+    }
+
     /// The window to bring forward when the app is already in front. The windows come front to back, so the back one
     /// is the one Command Grave Accent brings round, and each press goes one further. Nil when there is no other window.
     public static func nextWindowIndex(count: Int, current: Int?) -> Int? {
@@ -222,11 +254,16 @@ nonisolated public enum LauncherLogic {
             if !b.bundle.isEmpty { d["bundle"] = b.bundle }
             if !b.target.isEmpty { d["target"] = b.target }
             if let t = b.timeout, b.kind == .shell { d["timeout"] = t }
+            if let r = b.repeatRate {
+                d["repeatRate"] = r
+                if let delay = b.repeatDelay { d["repeatDelay"] = delay }
+            }
+            if b.keepSpeech { d["keepSpeech"] = true }
             return d
         }
         let root: [String: Any] = [
             "version": currentVersion,
-            "about": "Waypoint launcher keys. layer1: hold Right Command and press the key. layer2: hold Right Command and Right Option. kind is app, shell, open or command. Edit freely, then use the launcherReload command.",
+            "about": "Waypoint launcher keys. layer1: hold Right Command and press the key. layer2: hold Right Command and Right Option. kind is app, shell, open or command. Optional repeatRate (1-30 a second) and repeatDelay (0.2-5 seconds) repeat a held key. Optional keepSpeech (true) leaves speech that is playing alone. Edit freely, then use the launcherReload command.",
             "layer1": table.layer1.map(entry),
             "layer2": table.layer2.map(entry),
         ]
@@ -254,6 +291,11 @@ nonisolated public enum LauncherLogic {
                 func text(_ k: String) -> String { (d[k] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "" }
                 var b = Binding(key: key, kind: kind, name: text("name"), bundle: text("bundle"), target: kind == .shell ? ((d["target"] as? String) ?? "") : text("target"))
                 if let t = d["timeout"] as? NSNumber { b.timeout = t.doubleValue }
+                if let rate = clampedRate((d["repeatRate"] as? NSNumber)?.doubleValue) {
+                    b.repeatRate = rate
+                    b.repeatDelay = clampedDelay((d["repeatDelay"] as? NSNumber)?.doubleValue)
+                }
+                b.keepSpeech = (d["keepSpeech"] as? NSNumber)?.boolValue ?? false
                 guard b.isValid else { skipped.append("\(where_) (\(key)): nothing to \(kind.rawValue)"); continue }
                 guard !out.contains(where: { $0.key == key }) else { skipped.append("\(where_) (\(key)): the key is used twice"); continue }
                 out.append(b)

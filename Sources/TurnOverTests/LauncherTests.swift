@@ -53,11 +53,21 @@ private let everyKind = LauncherLogic.Table(
 func launcherTests() {
     // MARK: The table
 
-    test("launcher: the shipped layer 1 has the eleven apps, each with a bundle identifier; layer 2 is empty") {
+    test("launcher: the shipped layer 1 has the eleven apps, each with a bundle identifier, and the volume keys; layer 2 is empty") {
         let t = LauncherLogic.Table.defaults
-        expect(t.layer1.map(\.key), ["g", "h", "o", "m", "s", "f", "i", "x", "z", "c", "t"])
+        expect(t.layer1.map(\.key), ["g", "h", "o", "m", "s", "f", "i", "x", "z", "c", "t", "=", "-"])
         check(t.layer2.isEmpty, "layer 2 starts empty")
-        check(t.layer1.allSatisfy { $0.kind == .app && $0.isValid && !$0.bundle.isEmpty && !$0.name.isEmpty }, "every default is an app with a name and a bundle")
+        let apps = t.layer1.filter { $0.kind == .app }
+        expect(apps.count, 11)
+        check(apps.allSatisfy { $0.isValid && !$0.bundle.isEmpty && !$0.name.isEmpty }, "every default app has a name and a bundle")
+        expect(t.binding(layer: 1, key: "=")?.kind, .command)
+        expect(t.binding(layer: 1, key: "=")?.target, "volumeUp")
+        expect(t.binding(layer: 1, key: "-")?.target, "volumeDown")
+        for key in ["=", "-"] {
+            expect(t.binding(layer: 1, key: key)?.repeatDelay, 1.0)
+            expect(t.binding(layer: 1, key: key)?.repeatRate, 15.0)
+        }
+        check(apps.allSatisfy { $0.repeatRate == nil }, "no app repeats")
         expect(t.binding(layer: 1, key: "g")?.bundle, "com.google.Chrome")
         expect(t.binding(layer: 1, key: "c")?.name, "Colour Contrast Analyser")
         expect(t.binding(layer: 1, key: "t")?.bundle, "com.apple.TextEdit")
@@ -83,14 +93,14 @@ func launcherTests() {
     test("launcher: setting a key adds it or replaces the one on that key; removing takes it out") {
         var t = LauncherLogic.Table.defaults
         t.set(Binding(key: "G", kind: .shell, target: "true"), layer: 1)
-        expect(t.layer1.count, 11)
+        expect(t.layer1.count, 13)
         expect(t.binding(layer: 1, key: "g")?.kind, .shell)
         t.set(Binding(key: "w", kind: .app, name: "Word"), layer: 2)
         expect(t.layer2.map(\.key), ["w"])
         check(t.remove(key: "g", layer: 1), "removed")
         check(!t.remove(key: "g", layer: 1), "nothing left to remove")
         check(t.binding(layer: 1, key: "g") == nil, "gone")
-        expect(t.layer1.count, 10)
+        expect(t.layer1.count, 12)
     }
     test("launcher: a binding with nothing to run is not valid, and a key with one is not the launcher's") {
         check(!Binding(key: "a", kind: .app).isValid, "an app needs a name or a bundle")

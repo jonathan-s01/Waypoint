@@ -19,6 +19,9 @@ struct LauncherBinding: Identifiable, Equatable {
     var bundle: String
     var target: String
     var timeout: Double?
+    var repeatRate: Double?
+    var repeatDelay: Double?
+    var keepSpeech: Bool
     var installed: Bool
     var id: String { key }
 
@@ -29,11 +32,14 @@ struct LauncherBinding: Identifiable, Equatable {
         bundle = d["bundle"] as? String ?? ""
         target = d["target"] as? String ?? ""
         timeout = (d["timeout"] as? NSNumber)?.doubleValue
+        repeatRate = (d["repeatRate"] as? NSNumber)?.doubleValue
+        repeatDelay = (d["repeatDelay"] as? NSNumber)?.doubleValue
+        keepSpeech = d["keepSpeech"] as? Bool ?? false
         installed = d["installed"] as? Bool ?? true
     }
 
     init(key: String = "", kind: String = "app") {
-        self.key = key; self.kind = kind; name = ""; bundle = ""; target = ""; timeout = nil; installed = true
+        self.key = key; self.kind = kind; name = ""; bundle = ""; target = ""; timeout = nil; repeatRate = nil; repeatDelay = nil; keepSpeech = false; installed = true
     }
 
     /// What the binding is called when read out.
@@ -52,12 +58,18 @@ struct LauncherBinding: Identifiable, Equatable {
     var spoken: String {
         var s = "\(key.uppercased()), \(label), \(kindName)"
         if kind == "app", !installed { s += ", " + String(localized: "not installed", comment: "Launcher: the app is not on this Mac") }
+        if let rate = repeatRate, rate > 0 { s += ", " + String(localized: "repeats while held", comment: "Launcher: a key that runs again and again while it is held down") }
         return s
     }
 
     var payload: [String: Any] {
         var d: [String: Any] = ["key": key, "kind": kind, "name": name, "bundle": bundle, "target": target]
         if kind == "shell", let timeout { d["timeout"] = timeout }
+        if let repeatRate, repeatRate > 0 {
+            d["repeatRate"] = repeatRate
+            if let repeatDelay { d["repeatDelay"] = repeatDelay }
+        }
+        if keepSpeech { d["keepSpeech"] = true }
         return d
     }
 
@@ -86,6 +98,11 @@ struct LauncherView: View {
     private var launcher: [String: Any] { model.special("_launcher") as? [String: Any] ?? [:] }
     private func bindings(_ layer: Int) -> [LauncherBinding] { (launcher["layer\(layer)"] as? [[String: Any]] ?? []).map(LauncherBinding.init) }
     private func hold(_ layer: Int) -> String { launcher["hold\(layer)"] as? String ?? "" }
+    private var volumeStepChoice: Double { ((launcher["volumeStepPercent"] as? NSNumber)?.doubleValue ?? 1) }
+    private var volumeStepChoices: [Double] {
+        let now = (volumeStepChoice * 1000).rounded() / 1000
+        return Array(Set([0.5, 1, 2, 5, 10, now])).sorted()
+    }
 
     var body: some View {
         Form {
@@ -95,6 +112,14 @@ struct LauncherView: View {
             }
             layerSection(1)
             layerSection(2)
+            Section("Volume") {
+                Picker("Volume up and down step", selection: Binding(get: { volumeStepChoice }, set: { model.sendLauncher(["op": "volumeStep", "value": $0]) })) {
+                    ForEach(volumeStepChoices, id: \.self) { Text(verbatim: String(localized: "\(String(format: "%g", $0)) percent a press", comment: "Launcher: how much one volume key press changes the volume; %@ is a number")).tag($0) }
+                }
+                Toggle("Play the volume sound when the volume changes", isOn: Binding(get: { launcher["volumeFeedback"] as? Bool ?? true }, set: { model.sendLauncher(["op": "volumeFeedback", "value": $0]) }))
+                Text("The pop macOS plays for the volume keys. It also follows the system setting Play feedback when volume is changed in Sound settings.").font(.caption)
+                Text("The volume commands (volumeUp and volumeDown, on the equals and minus keys by default) change the sound device's volume by this much, and repeat while the key is held.").font(.caption)
+            }
             Section("Held keys") {
                 LabeledContent("Layer 1") { Text(verbatim: hold(1)) }
                 Button("Change layer 1 keys…") { model.sendLauncher(["op": "capture", "layer": 1]) }
@@ -176,11 +201,15 @@ struct LauncherEditor: View {
     let save: (LauncherBinding) -> Void
     let cancel: () -> Void
     @State private var timeoutText: String
+    @State private var rateText: String
+    @State private var delayText: String
 
     init(edit: LauncherEdit, taken: Set<String>, save: @escaping (LauncherBinding) -> Void, cancel: @escaping () -> Void) {
         _edit = State(initialValue: edit)
         self.taken = taken; self.save = save; self.cancel = cancel
         _timeoutText = State(initialValue: edit.binding.timeout.map { String(Int($0)) } ?? "")
+        _rateText = State(initialValue: edit.binding.repeatRate.map { String(format: "%g", $0) } ?? "")
+        _delayText = State(initialValue: edit.binding.repeatDelay.map { String(format: "%g", $0) } ?? "")
     }
 
     private var b: Binding<LauncherBinding> { $edit.binding }
@@ -221,12 +250,21 @@ struct LauncherEditor: View {
                     Text("A command as the key list names it, for example reviewLayerEnable or launcherList.").font(.caption)
                 }
             }
+            Section {
+                TextField("Repeats a second while held (1 to 30, empty for once)", text: $rateText)
+                TextField("Seconds held before repeating (0.2 to 5, default 1)", text: $delayText)
+                Text("With repeats set, the key runs once as it goes down, then again and again while it is still held, until you let go. Good for volume up and down.").font(.caption)
+                Toggle("Keep speech playing when this key is pressed", isOn: b.keepSpeech)
+                Text("Every key normally stops what is being said. Turn this on for a key that should leave speech alone, such as volume.").font(.caption)
+            }
             HStack {
                 Button("Cancel", role: .cancel) { cancel() }.keyboardShortcut(.cancelAction)
                 Spacer()
                 Button("Save") {
                     var saved = edit.binding
                     saved.timeout = saved.kind == "shell" ? Double(timeoutText.trimmingCharacters(in: .whitespaces)) : nil
+                    saved.repeatRate = Double(rateText.trimmingCharacters(in: .whitespaces).replacingOccurrences(of: ",", with: "."))
+                    saved.repeatDelay = Double(delayText.trimmingCharacters(in: .whitespaces).replacingOccurrences(of: ",", with: "."))
                     save(saved)
                 }
                 .keyboardShortcut(.defaultAction)

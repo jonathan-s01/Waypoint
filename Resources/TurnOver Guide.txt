@@ -2664,6 +2664,29 @@ The keys that come with it (layer 1)
 G Google Chrome, H GitHub Copilot, O Microsoft Outlook, M Microsoft Teams, S Safari, F Finder, I Messages,
 X Microsoft Excel, Z Terminal, C Colour Contrast Analyser, T TextEdit.
 
+Equals raises the volume and Minus lowers it, one step a press, and repeating after a second's hold (see
+Volume below).
+
+Volume
+
+The commands volumeUp and volumeDown change the volume of the current sound output device, the way the keyboard's
+volume keys do, by one step: one percent unless you choose another. Each press reads the volume the device has at that
+moment, so changes made elsewhere are respected; raising it from mute switches the mute off. Nothing is spoken on a
+normal press. If there is no sound device, or it has no volume that can be set, Waypoint says so (at most once a
+second). volumeSetStep lists the step sizes, half a percent to ten; the Launcher pane has the same choice, and the
+setting is `waypoint.volume.step`.
+
+Speech that is playing carries on when a volume key is pressed or held, as with VoiceOver's volume keys. That is a
+launcher setting of the binding, `keepSpeech` (below), on for the two shipped volume keys; every other key still stops
+speech.
+
+After each change Waypoint plays the volume sound macOS plays for its own volume keys (at the new volume, on the
+current output device, without stopping or lowering speech), at most about ten times a second while a key is held. It
+is not played when the volume was already at its top or bottom, and it is played when raising the volume from mute. It
+follows the system setting Play feedback when volume is changed (Sound settings; on if never set) and Waypoint's own
+switch: the command volumeFeedbackEnable toggles it, there is a checkbox in the Launcher pane, and the setting is
+`waypoint.volume.feedback`.
+
 These take over from the usual shortcuts. Right Command with C, X, Z, S, F, T, H or M used to be Copy, Cut, Undo,
 Save, Find, New Tab, Hide or Minimise. Left Command still does all of those. Delete or change a binding to get a
 shortcut back.
@@ -2700,6 +2723,14 @@ The file
   seconds (30 if missing, 300 at most). Its output is thrown away. If it fails, Waypoint says so.
 - open: `target` is a web address or a file or folder path (a leading `~` is your home folder).
 - command: `target` is the name of a Waypoint command, as in the key lists.
+- Hold to repeat (any kind): `repeatRate` is how many times a second to run it while the key stays held, 1 to 30;
+  `repeatDelay` is how many seconds to hold before it starts, 0.2 to 5 (1 if missing). The action runs once as the key
+  goes down, then repeats until you let go of the key or Right Command, switch the launcher off, or Waypoint hands
+  over. Without `repeatRate` the action runs once. Example:
+  `{"key": "=", "kind": "command", "target": "volumeUp", "repeatDelay": 1, "repeatRate": 15}`.
+- Keep speech (any kind): `"keepSpeech": true` leaves speech that is playing alone when the key is pressed or held;
+  without it (the usual) the key stops speech like any other. Example:
+  `{"key": "=", "kind": "command", "target": "volumeUp", "repeatRate": 15, "keepSpeech": true}`.
 - `key` is a letter, a digit, or a key name from the key lists, such as `upArrow` or `f5`.
 - Unknown fields are kept out of the way, and an entry that can't work is skipped and logged; the rest load.
 
@@ -2711,4 +2742,6 @@ Limits
 
 - Cycling windows brings the back window of the app forward. For an app that lists its windows in a fixed order, two
   windows may swap places rather than rotate.
-- Repeating a held key doesn't run the action again.
+- Repeating a held key does not run most actions again: only a binding with `repeatRate` repeats (see above). The
+  system's own key repeat is swallowed with the key.
+- A sound device whose volume moves in coarse hardware steps may round a step smaller than its own.
