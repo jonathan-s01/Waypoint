@@ -48,7 +48,9 @@ func readWhileTypingTests() {
         check(chord("end", extra: Layer.Device.leftShift) == nil, "Shift End is the field's")
         expect(chord("enter"), .activate)
         check(chord("enter", extra: Layer.Device.leftShift) == nil, "Shift Return is the field's")
-        for key in ["tab", "space", "escape", "delete", "f1", "-"] { check(chord(key) == nil, "\(key) goes to the application") }
+        for key in ["space", "escape", "delete", "f1", "-"] { check(chord(key) == nil, "\(key) goes to the application") }
+        expect(chord("tab"), .review("kb:tab"))
+        expect(chord("tab", extra: Layer.Device.leftShift), .review("kb:shift+tab"))
     }
 
     test("review layer: another modifier or a TurnOver key is some other command") {
@@ -76,7 +78,7 @@ func readWhileTypingTests() {
         expect(armed("escape"), .off)
         check(armed("h", Layer.Generic.command) == nil, "Command-H is the application's")
         check(armed("h", Layer.Generic.control) == nil, "Control-H is the application's")
-        check(armed("tab") == nil, "Tab")
+        expect(armed("tab", Layer.Generic.shift), .review("kb:shift+tab"))
     }
 
     test("review layer: only the document's reading scripts may run") {

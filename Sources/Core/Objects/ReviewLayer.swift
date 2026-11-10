@@ -77,6 +77,8 @@ nonisolated public enum ReviewLayerLogic {
         }
         if positionKeys.contains(keyName) { return shift || option ? nil : .review("kb:" + keyName) }
         if keyName == "enter" || keyName == "numpadEnter" { return shift || option ? nil : .activate }
+        // Tab is whatever plain Tab is here (the window's parts in a recipe app); Left Shift reverses it.
+        if keyName == "tab" { return option ? nil : .review(shift ? "kb:shift+tab" : "kb:tab") }
         // Letters and digits as the document's quick keys; the comma is its container key.
         if keyName.count == 1, let c = keyName.first, (c.isLetter && c.isASCII) || c.isNumber || c == "," {
             return .review("kb:" + (shift ? "shift+" : "") + keyName)
@@ -265,6 +267,11 @@ enum ReviewLayer {
         case .script(let s)?: s.handler(base); return
         case .removed?: return
         case nil: break
+        }
+        // Tab: what plain Tab does here (an app's parts, a held list), else Tab itself, as before.
+        if id.hasSuffix("tab") {
+            if let s = ScriptHandler.findScript(for: base) { s.handler(base) } else { base.send() }
+            return
         }
         guard let doc = document() else { fallback(id); return }
         guard let script = doc.layerScript(for: base), ReviewLayerLogic.isAllowed(script: script.name) else {
