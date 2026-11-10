@@ -698,8 +698,9 @@ public enum Speech {
         }
         let mode = config.keyboard.speakTypedCharacters
         guard ch >= " " else { return }
-        // The word just said already marked the space.
-        if ch == " ", wordEchoed, !config.keyboard.speakSpaceAfterWord { return }
+        // VoiceOver's keys: the word said as the space is typed already marks it, so "space" is not said after it.
+        // NVDA's and JAWS's keys say both. A space typed on its own is still said.
+        if ch == " ", wordEchoed, !config.general.windowsKeys { return }
         if mode == .always || (mode == .editControls && editable) { echo(Symbols.name(of: ch, locale: Symbols.typingLocale)); return }
         // Typed words only: a symbol is never part of a word, so it would never be heard. Say it as it is typed
         // (` grave, § section, / slash), as a word is said when it ends.

@@ -8,9 +8,6 @@ Changes made in the Waypoint fork, on top of TurnOver 2.0, build 24.1.
 
 ### Fixed
 
-- Typing: Left and Right bump at once at the edge of left-to-right text fields, where they used to wait for the
-  caret first (300 ms in web content). Not used where the line has right-to-left text, with a selection, or in a
-  table cell.
 - Mouse tracking: a look's watchdog gives up only on its own look. A watchdog left over from an earlier look could
   drop a later look that was on its way, and the pointer resting there said nothing.
 - Mouse tracking: a group under the pointer is counted for at most 80 ms. Counting a long group, such as a chat
@@ -29,6 +26,8 @@ Changes made in the Waypoint fork, on top of TurnOver 2.0, build 24.1.
 - Typing: Left and Right bump at once at the edge of a text field with left-to-right text, where they used to wait
   for the caret first (over 300 ms in a web field). Not used where the line has right-to-left text, with a
   selection, with a modifier key or in a table cell.
+- Typing, VoiceOver's keys: with words spoken as you type, the word said as the space is typed is no longer followed by
+  "space", as in VoiceOver. A space typed on its own is still said, and NVDA's and JAWS's keys say both.
 - "Nothing in this window can be read", with the keys for screen recognition, is a hint now: turning off Hints after
   a pause turns it off too. It is no longer said in Steam's Big Picture while TurnOver is reading it.
 
@@ -102,8 +101,6 @@ Features wait for a whole build; point releases carry fixes only (27 Oct 2026).
   pointer is read again ("Mouse tracking: give up on a stuck lookup", on by default). Off by default.
 - Deleted text by pitch: Settings, Speech, "Lower the pitch for deleted text, instead of saying deleted" says a
   deleted character or word lower, as VoiceOver does, without the word "deleted". Off by default.
-- Typing: Settings, Keyboard, "Say space after a typed word" (on by default) turns off the "space" that followed a
-  word already said as the space was typed. A space typed on its own is still said.
 - Searching in the App Store, Music and Podcasts: Return in the search field reads the results as a plain list, from
   Apple's public catalog, and Return on one opens its page. The App Store's own results page couldn't be read reliably
   on macOS 27.2. When the catalog can't answer, the page is read instead. TV keeps its own page, as Apple TV+ isn't in
