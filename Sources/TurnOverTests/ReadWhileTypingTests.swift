@@ -60,6 +60,17 @@ func readWhileTypingTests() {
         check(chord("h", extra: Layer.Device.rightControl) == nil, "with Right Control")
     }
 
+    test("pointer place: the TurnOver key, the layer's keys or chosen keys make a click place the cursor") {
+        typealias P = PointerPlaceLogic
+        let layer = held
+        check(P.captures(flags: 0, turnOverHeld: true, layerHold: layer, extraHold: 0), "the TurnOver key")
+        check(P.captures(flags: held, turnOverHeld: false, layerHold: layer, extraHold: 0), "the layer's keys")
+        check(!P.captures(flags: Layer.Device.leftOption, turnOverHeld: false, layerHold: layer, extraHold: 0), "half the chord is not enough")
+        check(!P.captures(flags: held, turnOverHeld: false, layerHold: 0, extraHold: 0), "layer off: its keys are nothing")
+        check(P.captures(flags: Layer.Device.rightControl, turnOverHeld: false, layerHold: layer, extraHold: Layer.Device.rightControl), "chosen keys")
+        check(!P.captures(flags: 0, turnOverHeld: false, layerHold: layer, extraHold: Layer.Device.rightControl), "a plain click is the app's")
+    }
+
     test("review layer: the chord can be changed") {
         let mine = Layer.Chord(hold: Layer.Device.rightControl, reverse: Layer.Device.leftShift, word: Layer.Device.leftOption)
         expect(Layer.decide(flags: Layer.Device.rightControl, keyName: "h", chord: mine, armed: false, turnOverKey: false), .review("kb:h"))

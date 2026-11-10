@@ -120,6 +120,7 @@ public enum Core {
         if Edition.includesPlugins { GlobalPluginHandler.shared.register(ProfilesPlugin.self) }   // first: the user's own fixes
         GlobalPluginHandler.shared.register(MenuNavigationPlugin.self)
         GlobalPluginHandler.shared.register(ReviewLayerPlugin.self)   // before the plugins that claim the arrows
+        GlobalPluginHandler.shared.register(PointerPlacePlugin.self)
         GlobalPluginHandler.shared.register(ReadWhileTypingPlugin.self)
         GlobalPluginHandler.shared.register(SkimModePlugin.self)   // also before the plugins that claim the arrows
         GlobalPluginHandler.shared.register(VoiceOverKeysPlugin.self)
@@ -151,6 +152,7 @@ public enum Core {
         SpeechPort.shared.start(port: config.games.bridgePort)   // apps that speak through TurnOver, with the user's say-so
         InputSourceAnnouncer.start()   // the keyboard input source said as it changes ()
         MouseTracking.refresh()   // the pointer read as it moves, where the Mouse tracking setting is on
+        PointerPlace.refresh()   // a click with the TurnOver key held puts the cursor there instead
         SettingsProfiles.start()   // VO-X Activities / NVDA's configuration profiles, by app
         PluginLibrary.startDailyChecks()   // the withdrawn line acted on (once per run, however often TurnOver activates)
     }
@@ -162,6 +164,7 @@ public enum Core {
         guard active else { return }
         active = false
         MouseTracking.refresh()   // stops watching the pointer: VoiceOver reads now
+        PointerPlace.refresh()
         InputManager.isInputHelpActive = false
         SayAll.stop()
         AXHandler.shared.stop()

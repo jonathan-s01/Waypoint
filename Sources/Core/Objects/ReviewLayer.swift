@@ -119,6 +119,7 @@ enum ReviewLayer {
     private static var armedAt = Date.distantPast
     private(set) static var lastUsed = Date.distantPast
     private static var syncedFocus: AXUIElement?
+    private static var placedAt = Date.distantPast
     private static var syncedDocument: ObjectIdentifier?
     private static var windowDocuments: Set<ObjectIdentifier> = []
 
@@ -184,6 +185,7 @@ enum ReviewLayer {
     static func toggleEnabled() {
         enabled.toggle()
         if !enabled { end(speaking: false) }
+        PointerPlace.refresh()
         Speech.speakMessage(enabled ? String(localized: "review layer enabled", comment: "Spoken message") : String(localized: "review layer disabled", comment: "Spoken message"))
     }
 
@@ -232,6 +234,7 @@ enum ReviewLayer {
         d.set(NSNumber(value: c.hold), forKey: holdKey)
         d.set(NSNumber(value: c.reverse), forKey: reverseKey)
         d.set(NSNumber(value: c.word), forKey: wordKey)
+        PointerPlace.refresh()
         Log.io("review layer: chord hold \(c.hold) reverse \(c.reverse) word \(c.word)")
     }
 
@@ -304,6 +307,41 @@ enum ReviewLayer {
         }
     }
 
+    /// The reading position to an element (the pointer's: a click that only places the cursor), so the layer's keys
+    /// read on from there. Nothing happens where the element is not in the document being read.
+    static func place(_ e: AXUIElement, at point: CGPoint) {
+        guard enabled, let doc = document() else { return }
+        var candidate: AXUIElement? = e
+        var hops = 0
+        while let c = candidate, hops < 4 {
+            if var at = doc.buffer.offset(of: c) {
+                if hops == 0, let inside = characterOffset(in: doc, of: c, segmentStart: at, point: point) { at = inside }
+                doc.position = at
+                placedAt = Date()
+                lastUsed = Date()
+                Log.io("review layer: position placed by the pointer on \(c.role) (offset \(at))")
+                return
+            }
+            candidate = c.element(kAXParentAttribute)
+            hops += 1
+        }
+        Log.io("review layer: the pointer's item (\(e.role)) is not in the document being read")
+    }
+
+    /// In a text area, the character under the pointer, only when the document's text there is the field's own text.
+    private static func characterOffset(in doc: BrowseModeDocument, of e: AXUIElement, segmentStart: Int, point: CGPoint) -> Int? {
+        guard let value = e.string(kAXValueAttribute) as NSString?, value.length > 0 else { return nil }
+        var pt = point
+        guard let v = AXValueCreate(.cgPoint, &pt), let r = e.param("AXRangeForPosition", v),
+              let range = cfRange(r), range.location >= 0, range.location < value.length else { return nil }
+        let text = doc.buffer.text
+        let n = min(12, value.length - range.location)
+        let candidate = segmentStart + range.location
+        guard n > 0, candidate + n <= text.length,
+              text.substring(with: NSRange(location: candidate, length: n)) == value.substring(with: NSRange(location: range.location, length: n)) else { return nil }
+        return candidate
+    }
+
     // MARK: The document it reads
 
     /// The page's reading document (a chat in a browser), or one over the focused window (a native app), made once.
@@ -333,7 +371,9 @@ enum ReviewLayer {
         // A new field: reading starts there. Within the same field the cursor stays where it was left.
         if let focus = API.focusObject {
             let sameDoc = syncedDocument == ObjectIdentifier(doc)
-            if !sameDoc || syncedFocus.map({ !CFEqual($0, focus.element) }) ?? true {
+            // A focus that moved just after the cursor was put somewhere on purpose (a click placing it) follows it.
+            let justPlaced = Date().timeIntervalSince(placedAt) < 2
+            if !sameDoc || (syncedFocus.map({ !CFEqual($0, focus.element) }) ?? true) && !justPlaced {
                 syncedDocument = ObjectIdentifier(doc); syncedFocus = focus.element
                 if let at = doc.buffer.offset(of: focus.element) { doc.position = at }
             }
