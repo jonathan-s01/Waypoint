@@ -459,6 +459,14 @@ struct BrailleView: View {
                 Text("Line by line").tag("line"); Text("To the text shown").tag("window"); Text("Off").tag("off")
             }
             Text("Panning on to another line moves the caret there, so the arrows carry on from what was read. Tethered to review, panning moves only the review cursor.").font(.caption)
+            Section("Cursor") {
+                Toggle("Show the cursor", isOn: model.bool("braille", "showCursor"))
+                Toggle("Blink the cursor", isOn: model.bool("braille", "blinkCursor"))
+                Text("Off, the cursor stays on.").font(.caption)
+                Picker("Cursor shape", selection: model.string("braille", "cursorShape", "78")) {
+                    Text("Dots 7 and 8").tag("78"); Text("Dot 8").tag("8"); Text("All dots").tag("all")
+                }
+            }
         }.formStyle(.grouped).navigationTitle("Braille")
     }
 }

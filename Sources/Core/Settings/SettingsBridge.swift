@@ -185,6 +185,7 @@ public enum SettingsBridge {
             }
             if before.general.keyboardStyle != next.general.keyboardStyle { GlobalCommands.setKeyboardStyle(next.general.style) }
             if before.braille.bluetooth != next.braille.bluetooth, next.braille.bluetooth { BrailleDisplays.shared.lookNow() }
+            if before.braille.showCursor != next.braille.showCursor || before.braille.blinkCursor != next.braille.blinkCursor || before.braille.cursorShape != next.braille.cursorShape { Braille.refreshSoon() }
             if before.applications.perAppReaders != next.applications.perAppReaders { TurnOverMenu.shared.leadModeChanged?() }
             if before.applications.swapWithVoiceOver != next.applications.swapWithVoiceOver { onSwapChanged?(next.applications.swapWithVoiceOver) }
             if before.presentation.mouseTracking != next.presentation.mouseTracking { MouseTracking.refresh() }
