@@ -510,8 +510,8 @@ public struct Config: Codable {
         /// With mouse tracking, whether the review cursor goes to what the pointer is over (NVDA's review cursor
         /// follows the mouse). The keyboard focus never does.
         public var mouseMovesCursor = true
-        /// With mouse tracking, the empty space sound (the trackpad explore's) when the pointer leaves an item for a blank place.
-        public var mouseEmptySound = true
+        /// With mouse tracking, the empty space sound (the trackpad explore's) when the pointer leaves an item for a blank place. Off by default: a tester found it added a lot of annoying extra noise.
+        public var mouseEmptySound = false
         /// With mouse tracking, a look at what is under the pointer that an app holds for over a second is given up
         /// and the next one made, so a stuck app cannot leave the last reading going over everything else.
         public var mouseWatchdog = true
@@ -535,7 +535,7 @@ public struct Config: Codable {
             progressBars = (try? c.decodeIfPresent(String.self, forKey: .progressBars)).flatMap { ProgressOutput.modes.contains($0) ? $0 : nil } ?? "beep"
             mouseTracking = (try? c.decodeIfPresent(Bool.self, forKey: .mouseTracking)) ?? false
             mouseMovesCursor = (try? c.decodeIfPresent(Bool.self, forKey: .mouseMovesCursor)) ?? true
-            mouseEmptySound = (try? c.decodeIfPresent(Bool.self, forKey: .mouseEmptySound)) ?? true
+            mouseEmptySound = (try? c.decodeIfPresent(Bool.self, forKey: .mouseEmptySound)) ?? false
             mouseWatchdog = (try? c.decodeIfPresent(Bool.self, forKey: .mouseWatchdog)) ?? true
         }
         public func encode(to encoder: Encoder) throws {
@@ -607,7 +607,7 @@ public struct Config: Codable {
         public var messageSeconds = 4
         /// NVDA's cursor settings: shown, blinking, how fast (ms), and its shape ("78" dots 7 and 8, "8", "all").
         public var showCursor = true
-        public var blinkCursor = true
+        public var blinkCursor = false
         public var blinkRateMs = 500
         public var cursorShape = "78"
         /// NVDA: avoid splitting words when possible (a window ends at a space, not in a word).
@@ -638,7 +638,7 @@ public struct Config: Codable {
             showMessages = (try? c.decodeIfPresent(String.self, forKey: .showMessages)) ?? "timeout"
             messageSeconds = (try? c.decodeIfPresent(Int.self, forKey: .messageSeconds)) ?? 4
             showCursor = (try? c.decodeIfPresent(Bool.self, forKey: .showCursor)) ?? true
-            blinkCursor = (try? c.decodeIfPresent(Bool.self, forKey: .blinkCursor)) ?? true
+            blinkCursor = (try? c.decodeIfPresent(Bool.self, forKey: .blinkCursor)) ?? false
             blinkRateMs = (try? c.decodeIfPresent(Int.self, forKey: .blinkRateMs)) ?? 500
             cursorShape = (try? c.decodeIfPresent(String.self, forKey: .cursorShape)) ?? "78"
             wordWrap = (try? c.decodeIfPresent(Bool.self, forKey: .wordWrap)) ?? true

@@ -8,6 +8,7 @@ Changes made in the Waypoint fork, on top of TurnOver 2.0, build 24.1.
 
 ### Fixed
 
+- Braille: the cursor no longer blinks by default (Braille, Blink turns it back on). A saved choice is kept.
 - Mouse tracking: a look's watchdog gives up only on its own look. A watchdog left over from an earlier look could
   drop a later look that was on its way, and the pointer resting there said nothing.
 - Mouse tracking: a group under the pointer is counted for at most 80 ms. Counting a long group, such as a chat
@@ -94,7 +95,7 @@ Features wait for a whole build; point releases carry fixes only (27 Oct 2026).
   keyboard style) reads each item the pointer crosses, as VoiceOver's cursor following the mouse pointer does. The
   keyboard focus never moves with the pointer. "Mouse pointer moves the review cursor" (on by default) also takes the
   cursor to the item, as NVDA's review cursor follows the mouse. A blank place (a window's background, a group with no
-  name) makes the empty space sound the trackpad's explore makes, once ("Mouse tracking: sound over blank places" turns it off), and coming back to an item reads it again.
+  name) can make the empty space sound the trackpad's explore makes, once ("Mouse tracking: sound over blank places", off by default: it added a lot of extra noise), and coming back to an item reads it again.
   What it says is private: it is not kept in the speech history, and the log holds only the kind of item and the app,
   never its words. It watches the pointer only while TurnOver is the reader, and it waits while Say All or the
   trackpad's explore is reading. If an app holds the lookup for over a second, the lookup is given up and the
