@@ -119,7 +119,8 @@ public enum Core {
         _ = GlobalCommands.shared
         if Edition.includesPlugins { GlobalPluginHandler.shared.register(ProfilesPlugin.self) }   // first: the user's own fixes
         GlobalPluginHandler.shared.register(MenuNavigationPlugin.self)
-        GlobalPluginHandler.shared.register(ReadWhileTypingPlugin.self)   // before the plugins that claim the arrows
+        GlobalPluginHandler.shared.register(ReviewLayerPlugin.self)   // before the plugins that claim the arrows
+        GlobalPluginHandler.shared.register(ReadWhileTypingPlugin.self)
         GlobalPluginHandler.shared.register(SkimModePlugin.self)   // also before the plugins that claim the arrows
         GlobalPluginHandler.shared.register(VoiceOverKeysPlugin.self)
         GlobalPluginHandler.shared.register(HeldListPlugin.self)

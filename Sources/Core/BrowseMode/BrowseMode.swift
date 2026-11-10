@@ -704,6 +704,10 @@ public final class BrowseModeDocument: ScriptableObject {
         return nil
     }
 
+    /// The script a key has here whatever the focus mode: the review layer reads the page by these keys while the
+    /// keyboard stays in a field (ReviewLayer.swift).
+    func layerScript(for gesture: KeyboardGesture) -> Script? { super.script(for: gesture) }
+
     /// The text field, text area or combo box at the reading position, if that is what is there.
     /// The element at the reading position (a picture to describe, a field to type into).
     public func elementAtPosition() -> AXUIElement? {

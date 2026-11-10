@@ -1,73 +1,91 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Read while typing (plan 4.7): which keys are claimed in which state, when the mode ends, and the stepping and
-// the text put into a field. All pure: no application, no speech, no keyboard.
+// The review layer (plan 4.7): which keys the chord takes and what each means, and the stepping and the text put
+// into a field. All pure: no application, no speech, no keyboard.
 import Foundation
 import TurnOverCore
 
 func readWhileTypingTests() {
     typealias Logic = ReadWhileTypingLogic
 
-    func state(on: Bool = true, setting: Bool = true, input: Bool = true, same: Bool = true, app: Bool = true, menu: Bool = false, idle: TimeInterval = 1) -> Logic.Situation {
-        Logic.Situation(settingEnabled: setting, isOn: on, focusIsTextInput: input, sameField: same, sameApp: app, menuOpen: menu, idleSeconds: idle)
+    typealias Layer = ReviewLayerLogic
+    let std = Layer.Chord.standard
+    let held = Layer.Device.leftOption | Layer.Device.rightShift
+    func chord(_ key: String, extra: UInt = 0, hold: UInt? = nil, turnover: Bool = false) -> Layer.Decision? {
+        Layer.decide(flags: (hold ?? held) | extra, keyName: key, chord: std, armed: false, turnOverKey: turnover)
     }
 
-    test("read while typing: only the four plain arrows are moves") {
-        expect(Logic.move(forKey: "upArrow", modifiers: []), .previousItem)
-        expect(Logic.move(forKey: "downArrow", modifiers: []), .nextItem)
-        expect(Logic.move(forKey: "leftArrow", modifiers: []), .previousPart)
-        expect(Logic.move(forKey: "rightArrow", modifiers: []), .nextPart)
-        for key in ["a", "return", "space", "tab", "escape", "home", "end", "pageUp", "delete", "1", "."] {
-            check(Logic.move(forKey: key, modifiers: []) == nil, "\(key) stays with the field")
+    test("review layer: without the chord no key is taken") {
+        for key in ["h", "a", "leftArrow", "home", "enter", "escape", "tab", "space", ","] {
+            check(Layer.decide(flags: 0, keyName: key, chord: std, armed: false, turnOverKey: false) == nil, "\(key), no keys held")
+            check(chord(key, hold: Layer.Device.leftOption) == nil, "\(key), Left Option alone")
+            check(chord(key, hold: Layer.Device.rightShift) == nil, "\(key), Right Shift alone")
+            check(chord(key, hold: Layer.Device.leftOption | Layer.Device.leftShift) == nil, "\(key), Left Option and Left Shift")
         }
     }
 
-    test("read while typing: an arrow with any modifier stays with the field") {
-        for key in ["upArrow", "downArrow", "leftArrow", "rightArrow"] {
-            for mods in [Modifiers.shift, .control, .option, .command, .turnover, [.shift, .option], [.command, .shift]] {
-                check(Logic.move(forKey: key, modifiers: mods) == nil, "\(key) with \(mods.rawValue) is not taken")
-            }
+    test("review layer: a letter is the document's quick key, Left Shift reverses it") {
+        expect(chord("h"), .review("kb:h"))
+        expect(chord("h", extra: Layer.Device.leftShift), .review("kb:shift+h"))
+        expect(chord("3"), .review("kb:3"))
+        expect(chord(","), .review("kb:,"))
+        expect(chord("h", extra: Layer.Device.rightOption), .review("kb:h"), "Right Option does not change a letter")
+    }
+
+    test("review layer: arrows read, with Right Option by word") {
+        expect(chord("downArrow"), .review("kb:downArrow"))
+        expect(chord("leftArrow", extra: Layer.Device.rightOption), .review("kb:option+leftArrow"))
+        expect(chord("upArrow", extra: Layer.Device.rightOption), .review("kb:option+upArrow"))
+    }
+
+    test("review layer: Left Shift and an arrow select in the field, with Right Option by word") {
+        expect(chord("rightArrow", extra: Layer.Device.leftShift), .select("kb:shift+rightArrow"))
+        expect(chord("leftArrow", extra: Layer.Device.leftShift | Layer.Device.rightOption), .select("kb:option+shift+leftArrow"))
+    }
+
+    test("review layer: Home, End, the page keys and Return") {
+        expect(chord("home"), .review("kb:home"))
+        expect(chord("pageDown"), .review("kb:pageDown"))
+        check(chord("end", extra: Layer.Device.leftShift) == nil, "Shift End is the field's")
+        expect(chord("enter"), .activate)
+        check(chord("enter", extra: Layer.Device.leftShift) == nil, "Shift Return is the field's")
+        for key in ["tab", "space", "escape", "delete", "f1", "-"] { check(chord(key) == nil, "\(key) goes to the application") }
+    }
+
+    test("review layer: another modifier or a TurnOver key is some other command") {
+        check(chord("h", extra: Layer.Device.leftControl) == nil, "with Control")
+        check(chord("h", extra: Layer.Device.leftCommand) == nil, "with Command")
+        check(chord("h", turnover: true) == nil, "with the TurnOver key")
+        check(chord("h", extra: Layer.Device.rightControl) == nil, "with Right Control")
+    }
+
+    test("review layer: the chord can be changed") {
+        let mine = Layer.Chord(hold: Layer.Device.rightControl, reverse: Layer.Device.leftShift, word: Layer.Device.leftOption)
+        expect(Layer.decide(flags: Layer.Device.rightControl, keyName: "h", chord: mine, armed: false, turnOverKey: false), .review("kb:h"))
+        expect(Layer.decide(flags: Layer.Device.rightControl | Layer.Device.leftOption, keyName: "leftArrow", chord: mine, armed: false, turnOverKey: false), .review("kb:option+leftArrow"))
+        check(Layer.decide(flags: held, keyName: "h", chord: mine, armed: false, turnOverKey: false) == nil, "the old chord is free")
+        let none = Layer.Chord(hold: 0, reverse: 0, word: 0)
+        check(Layer.decide(flags: 0, keyName: "h", chord: none, armed: false, turnOverKey: false) == nil, "no keys chosen: never on")
+    }
+
+    test("review layer: armed, the plain keys count and Shift and Option are the modifiers") {
+        func armed(_ key: String, _ flags: UInt = 0) -> Layer.Decision? { Layer.decide(flags: flags, keyName: key, chord: std, armed: true, turnOverKey: false) }
+        expect(armed("h"), .review("kb:h"))
+        expect(armed("h", Layer.Generic.shift), .review("kb:shift+h"))
+        expect(armed("leftArrow", Layer.Generic.option), .review("kb:option+leftArrow"))
+        expect(armed("leftArrow", Layer.Generic.shift), .select("kb:shift+leftArrow"))
+        expect(armed("escape"), .off)
+        check(armed("h", Layer.Generic.command) == nil, "Command-H is the application's")
+        check(armed("h", Layer.Generic.control) == nil, "Control-H is the application's")
+        check(armed("tab") == nil, "Tab")
+    }
+
+    test("review layer: only the document's reading scripts may run") {
+        for name in ["moveByLine_down", "moveByWord_left", "nextHeading", "previousLink", "vo_nextHeading", "startOfLine", "endOfLine", "topOfDocument", "bottomOfDocument", "sayAllFromHere", "pastEndOfContainer", "startOfContainer"] {
+            check(Layer.isAllowed(script: name), "\(name) is allowed")
         }
-    }
-
-    test("read while typing: a mode that is off claims nothing") {
-        for key in ["upArrow", "downArrow", "leftArrow", "rightArrow"] {
-            check(Logic.claim(keyName: key, modifiers: [], in: state(on: false)) == nil, "\(key), mode off")
+        for name in ["tabFromCaret", "disablePassThrough", "activatePosition", "selectCharacter_right", "elementsList", "browseModeTrap"] {
+            check(!Layer.isAllowed(script: name), "\(name) is not allowed")
         }
-    }
-
-    test("read while typing: a mode that is on and valid claims the plain arrows") {
-        expect(Logic.claim(keyName: "upArrow", modifiers: [], in: state()), .previousItem)
-        expect(Logic.claim(keyName: "rightArrow", modifiers: [], in: state()), .nextPart)
-        check(Logic.claim(keyName: "x", modifiers: [], in: state()) == nil, "a letter is typed")
-        check(Logic.claim(keyName: "upArrow", modifiers: .shift, in: state()) == nil, "Shift-Up selects in the field")
-        check(Logic.claim(keyName: "return", modifiers: [], in: state()) == nil, "Return sends")
-    }
-
-    test("read while typing: the mode ends when it may not go on") {
-        expect(Logic.offReason(state()), nil)
-        expect(Logic.offReason(state(on: false, setting: false, same: false)), nil, "nothing to end when it is not on")
-        expect(Logic.offReason(state(setting: false)), .settingOff)
-        expect(Logic.offReason(state(menu: true)), .menuOpen)
-        expect(Logic.offReason(state(app: false)), .otherApp)
-        expect(Logic.offReason(state(same: false)), .leftField)
-        expect(Logic.offReason(state(input: false)), .notTextInput)
-        expect(Logic.offReason(state(idle: Logic.idleLimit + 1)), .idle)
-        expect(Logic.offReason(state(idle: Logic.idleLimit)), nil, "at the limit it goes on")
-    }
-
-    test("read while typing: no arrow is claimed once the mode must end") {
-        let broken = [state(setting: false), state(menu: true), state(app: false), state(same: false), state(input: false), state(idle: 10_000)]
-        for s in broken {
-            for key in ["upArrow", "downArrow", "leftArrow", "rightArrow"] {
-                check(Logic.claim(keyName: key, modifiers: [], in: s) == nil, "\(key) goes to the field in \(s)")
-            }
-        }
-    }
-
-    test("read while typing: the reason that matters first is named") {
-        expect(Logic.offReason(state(setting: false, same: false, app: false, menu: true)), .settingOff)
-        expect(Logic.offReason(state(app: false, menu: true)), .menuOpen)
-        expect(Logic.offReason(state(same: false, app: false)), .otherApp)
     }
 
     test("read while typing: text fields are taken, passwords and read only fields are not") {

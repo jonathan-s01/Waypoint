@@ -101,11 +101,6 @@ enum SkimMode {
     }
 
     private static func turnOn() {
-        // Both modes claim the arrows; read while typing was registered first and would win.
-        guard !ReadWhileTyping.isOn else {
-            Speech.speakMessage(String(localized: "turn off review before skimming", comment: "Spoken message"))
-            return
-        }
         guard let start = ObjectNavigator.shared.element, let list = container(from: start) else {
             Speech.speakMessage(String(localized: "nothing to skim here", comment: "Spoken message"))
             return
