@@ -274,6 +274,7 @@ enum ReviewLayer {
         // Tab: what plain Tab does here (an app's parts, a held list), else Tab itself, as before.
         if id.hasSuffix("tab") {
             if let s = ScriptHandler.findScript(for: base) { s.handler(base) } else { base.send() }
+            followFocusAfterTab()
             return
         }
         guard let doc = document() else { fallback(id); return }
@@ -342,6 +343,32 @@ enum ReviewLayer {
         return candidate
     }
 
+    /// The element's place in the document, or its nearest parent's (a focused cell inside a row the reader has as one item).
+    private static func offsetNear(_ e: AXUIElement, in doc: BrowseModeDocument) -> Int? {
+        var candidate: AXUIElement? = e
+        var hops = 0
+        while let c = candidate, hops < 4 {
+            if let at = doc.buffer.offset(of: c) { return at }
+            candidate = c.element(kAXParentAttribute)
+            hops += 1
+        }
+        return nil
+    }
+
+    /// After Tab the focus arrives a moment later; the reading position follows it, so the next review key (H) goes on
+    /// from where Tab landed and not from where the layer was before.
+    private static func followFocusAfterTab() {
+        placedAt = .distantPast
+        syncedFocus = nil
+        for delay in [0.25, 0.7] {
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+                guard enabled, Date().timeIntervalSince(lastUsed) < 3 else { return }
+                syncedFocus = nil
+                _ = document()
+            }
+        }
+    }
+
     // MARK: The document it reads
 
     /// The page's reading document (a chat in a browser), or one over the focused window (a native app), made once.
@@ -375,7 +402,14 @@ enum ReviewLayer {
             let justPlaced = Date().timeIntervalSince(placedAt) < 2
             if !sameDoc || (syncedFocus.map({ !CFEqual($0, focus.element) }) ?? true) && !justPlaced {
                 syncedDocument = ObjectIdentifier(doc); syncedFocus = focus.element
-                if let at = doc.buffer.offset(of: focus.element) { doc.position = at }
+                if let at = offsetNear(focus.element, in: doc) {
+                    doc.position = at
+                } else if Date().timeIntervalSince(doc.buffer.builtAt) > 1 {
+                    // The focus is somewhere the copy of the window has not seen (a part that appeared, a new row).
+                    doc.rebuildKeepingPlace(anchor: focus.element)
+                    if let at = offsetNear(focus.element, in: doc) { doc.position = at }
+                    else { Log.io("review layer: the focus (\(focus.element.role)) is not in the document being read") }
+                }
             }
         }
         return doc
