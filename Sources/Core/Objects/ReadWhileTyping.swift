@@ -7,7 +7,7 @@ import ApplicationServices
 //
 // Safety first: the arrows are claimed only while the mode is on and the keyboard is still in the same text field of the
 // same app; anything else (a focus change, a menu, another app, five quiet minutes) switches the mode off and says so.
-// It is never on at start, and the whole feature is off until switched on with the "read while typing enable" command.
+// It is never on at start. The toggle key switches the feature on the first time it is pressed; the "read while typing enable" command turns it off for good.
 
 /// The decisions, pure: which keys are claimed in which state, and when the mode must end.
 nonisolated public enum ReadWhileTypingLogic {
@@ -195,10 +195,8 @@ enum ReadWhileTyping {
     // MARK: On and off
 
     static func toggle() {
-        guard enabled else {
-            Speech.speakMessage(String(localized: "read while typing is off; turn it on with the read while typing enable command in the key list", comment: "Spoken message"))
-            return
-        }
+        // Pressing the toggle key is itself the request, so it switches the feature on rather than refusing.
+        if !enabled { enabled = true }
         if isOn { turnOff() } else { turnOn() }
     }
 
