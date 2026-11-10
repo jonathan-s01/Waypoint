@@ -116,6 +116,7 @@ public enum SettingsBridge {
         dict["_outputDevices"] = SpeechPlayer.outputDevices().map { ["uid": $0.uid, "name": $0.name] }
         dict["_speechPortApps"] = SpeechPort.shared.appDecisions.map { ["id": $0.id, "name": $0.name, "allowed": $0.allowed] }
         dict["_otherLanguages"] = otherLanguagesState()
+        dict["_launcher"] = LauncherSettings.state()
         // The app the window's "For this app" means: the last ordinary app in front that isn't TurnOver's own.
         if let f = frontApp { dict["_frontApp"] = ["bundle": f.bundle, "name": f.name] }
         guard let out = try? JSONSerialization.data(withJSONObject: dict), let s = String(data: out, encoding: .utf8) else { return }
@@ -149,6 +150,7 @@ public enum SettingsBridge {
         if patch["_removeNaturalVoices"] as? Bool == true { KokoroVoice.remove() }
         if patch["_restartSteam"] as? Bool == true { Games.restartSteam() }
         if let a = patch["_speechPortAllowed"] as? [String: Any], let id = a["id"] as? String, let on = a["allowed"] as? Bool { SpeechPort.shared.setAllowed(id, on) }
+        if let l = patch["_launcher"] as? [String: Any] { LauncherSettings.apply(l) }
         if let on = patch["_coexist"] as? Bool, on != Coexist.wouldBeOn {
             UserDefaults.standard.set(on, forKey: "coexist")
             Speech.speakMessage(on ? String(localized: "CoExist on. TurnOver restarts.", comment: "Spoken message") : String(localized: "CoExist off. TurnOver restarts.", comment: "Spoken message"))

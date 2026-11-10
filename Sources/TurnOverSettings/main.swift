@@ -66,6 +66,8 @@ final class Model: ObservableObject {
         send([section: [key: value]])
     }
     func setSpecial(_ key: String, _ value: Any) { state[key] = value; send([key: value]) }
+    /// A patch sent as it is, without changing what the window shows: TurnOver answers with the new state (the Launcher pane).
+    func sendPatch(_ patch: [String: Any]) { send(patch) }
 
     private func send(_ patch: [String: Any]) {
         guard let data = try? JSONSerialization.data(withJSONObject: patch), let s = String(data: data, encoding: .utf8) else { return }
@@ -94,7 +96,7 @@ final class Model: ObservableObject {
 enum Pane: String, CaseIterable, Identifiable {
     // NVDA's order, with TurnOver's own at the end: every setting the menu offered lives here since 21 Oct 2026.
     case general = "General", speech = "Speech", sounds = "Sounds", braille = "Braille", keyboard = "Keyboard", items = "Item details", webPages = "Web pages", documents = "Documents",
-         recognition = "Screen recognition", otherApps = "Other apps' speech", readers = "Screen reader behaviour"
+         recognition = "Screen recognition", otherApps = "Other apps' speech", readers = "Screen reader behaviour", launcher = "Launcher"
     var id: String { rawValue }
     /// As the sidebar shows it. (The raw value stays English: TurnOver asks for a section by it.)
     var title: String {
@@ -110,6 +112,7 @@ enum Pane: String, CaseIterable, Identifiable {
         case .recognition: return String(localized: "Screen recognition", comment: "A section of the Settings window")
         case .otherApps: return String(localized: "Other apps' speech", comment: "A section of the Settings window")
         case .readers: return String(localized: "Screen reader behaviour", comment: "A section of the Settings window")
+        case .launcher: return String(localized: "Launcher", comment: "A section of the Settings window")
         }
     }
 }
@@ -140,6 +143,7 @@ struct ContentView: View {
                 case .recognition: RecognitionView()
                 case .otherApps: OtherAppsView()
                 case .readers: ReadersView()
+                case .launcher: LauncherView()
                 }
             }
         }

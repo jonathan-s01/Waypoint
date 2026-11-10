@@ -120,6 +120,7 @@ public enum Core {
         if Edition.includesPlugins { GlobalPluginHandler.shared.register(ProfilesPlugin.self) }   // first: the user's own fixes
         GlobalPluginHandler.shared.register(MenuNavigationPlugin.self)
         GlobalPluginHandler.shared.register(ReviewLayerPlugin.self)   // before the plugins that claim the arrows
+        GlobalPluginHandler.shared.register(LauncherPlugin.self)   // a held chord, before the plugins that take Command keys
         GlobalPluginHandler.shared.register(PointerPlacePlugin.self)
         GlobalPluginHandler.shared.register(ReadWhileTypingPlugin.self)
         GlobalPluginHandler.shared.register(SkimModePlugin.self)   // also before the plugins that claim the arrows
