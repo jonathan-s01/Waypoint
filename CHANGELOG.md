@@ -18,6 +18,12 @@ Changes made in the Waypoint fork, on top of TurnOver 2.0, build 24.1.
 
 ## 2.0, build 24.1
 
+### New to try
+
+- Deleted text by pitch: Settings, Speech, "Lower the pitch for deleted text, instead of saying deleted" says a
+  deleted character or word lower, as VoiceOver does, without the word "deleted". Off by default. A deleted capital
+  is lowered too when capitals are raised.
+
 ### Fixed
 
 - Typing: Left and Right bump at once at the edge of a text field with left-to-right text, where they used to wait

@@ -79,7 +79,7 @@ public enum Speech {
             // Raised only when the capital is the whole utterance; inside longer speech ("word A") the mark just goes.
             let plain = text.replacingOccurrences(of: capitalMark, with: "")
             if text.hasPrefix(capitalMark), !plain.contains(capitalMark), cleaned(plain).count <= 6 {
-                pitchNext = 1 + Float(config.speech.capitalPitch) / 100
+                pitchNext = capitalPitch(pending: pitchNext, percent: config.speech.capitalPitch)
             }
             return enqueue(plain, language: language, onStart: onStart, completion: completion)
         }
@@ -162,6 +162,8 @@ public enum Speech {
     private static var pitchNext: Float?
     /// Deleted text is said lower, not announced ("deleted"): VoiceOver's pitch change for deletions.
     public static var deletionByPitch: Bool { config.speech.deletedPitch > 0 }
+    /// The pitch for a capital said on its own: raised, unless a pitch is already set. A deleted capital stays lowered, as in VoiceOver.
+    public static func capitalPitch(pending: Float?, percent: Int) -> Float { pending ?? 1 + Float(percent) / 100 }
     /// Lowers the pitch of the next thing said, when the deletion is marked by pitch.
     public static func lowerForDeletion() {
         guard deletionByPitch else { return }
