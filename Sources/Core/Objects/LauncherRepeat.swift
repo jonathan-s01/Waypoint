@@ -104,11 +104,9 @@ extension LauncherRepeater {
         return LauncherRepeatHooks(
             now: { ProcessInfo.processInfo.systemUptime },
             keyDown: { CGEventSource.keyState(.hidSystemState, key: CGKeyCode($0)) },
-            heldModifiers: {
-                var bits: UInt = 0
-                for m in modifierKeys where CGEventSource.keyState(.hidSystemState, key: CGKeyCode(m.code)) { bits |= m.bit }
-                return bits
-            },
+            // The flags carry the side-specific device bits. Per-key state does not: with Right Command held, the system
+            // reports key code 55 (Left Command) as down and 54 as up (observed on macOS 27, 12 Nov 2026).
+            heldModifiers: { UInt(CGEventSource.flagsState(.hidSystemState).rawValue) & LauncherLogic.Device.all },
             allowed: { Launcher.enabled && Core.active },
             startTimer: { handler in
                 timer.value?.cancel()
