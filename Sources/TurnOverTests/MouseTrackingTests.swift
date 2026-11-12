@@ -20,6 +20,15 @@ func mouseTrackingTests() {
         expect(t.answer("Save"), .say, "back to the first is a change")
     }
 
+    test("mouse tracking: a text inside the row just said is silent, and the row is not said again for it") {
+        var t = PointerTracker<String>()
+        expect(t.answer("row A"), .say)
+        expect(t.spokenIs(in: ["row A"]), true)
+        expect(t.answer("text", insideSpoken: t.spokenIs(in: ["row A"])), .nothing, "inside the row said")
+        expect(t.answer("row A"), .nothing, "back on the row: it was never replaced")
+        expect(t.answer("text of B", insideSpoken: t.spokenIs(in: ["row B"])), .say, "inside another row")
+    }
+
     test("mouse tracking: a blank place is the empty sound once, and coming back to the item says it again") {
         var t = PointerTracker<String>()
         expect(t.answer(nil), .nothing, "blank from the start has nothing to leave")

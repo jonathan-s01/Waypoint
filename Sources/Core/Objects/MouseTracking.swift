@@ -38,9 +38,14 @@ public struct PointerTracker<Hit: Equatable> {
     /// What a look found: whether to say it. The same item again is silent. A blank place (`nil`) is the empty space
     /// sound, once, when the pointer came from an item; it is also forgotten, so coming back to the item says it
     /// again (as VoiceOver does).
-    public mutating func answer(_ hit: Hit?) -> Outcome {
+    ///
+    /// `insideSpoken`: the hit is a plain text or image inside the item last said (a conversation row, said whole, and
+    /// then the line of text in it the pointer crosses). It says nothing, and the item said stays the one remembered,
+    /// so the row is not said again when the pointer goes back to it.
+    public mutating func answer(_ hit: Hit?, insideSpoken: Bool = false) -> Outcome {
         guard let hit else { let was = spoken != nil; spoken = nil; return was ? .blank : .nothing }
         guard hit != spoken else { return .nothing }
+        if insideSpoken { return .nothing }
         spoken = hit
         return .say
     }
@@ -49,6 +54,9 @@ public struct PointerTracker<Hit: Equatable> {
     public mutating func forgetLook() { lookedAt = nil }
 
     public mutating func reset() { lookedAt = nil; spoken = nil }
+
+    /// Whether the item last said is one of `items`.
+    public func spokenIs(in items: [Hit]) -> Bool { spoken.map { items.contains($0) } ?? false }
 }
 
 public enum MouseTracking {
@@ -62,7 +70,7 @@ public enum MouseTracking {
 
     /// An element found on the lookup queue and handed to the main thread once. It is made inside the queue's block and
     /// read only after the hop to main, where the queue no longer touches it: one owner at a time.
-    private struct Found: @unchecked Sendable { let element: AXUIElement?; let blank: Bool }
+    private struct Found: @unchecked Sendable { let element: AXUIElement?; let blank: Bool; let ancestors: [AXUIElement]; let queued: Date }
 
     private static var monitor: Any?
     private static var tracker = PointerTracker<Element>()
@@ -136,12 +144,13 @@ public enum MouseTracking {
         lookInFlight = true
         lastLookAt = Date()
         lookID += 1
-        let g = generation, id = lookID
+        let g = generation, id = lookID, queued = Date()
         queue.async {
             let began = Date()
             var hit: AXUIElement?
             if AXUIElementCopyElementAtPosition(AXUIElementCreateSystemWide(), Float(p.x), Float(p.y), &hit) != .success { hit = nil }
-            let found = Found(element: hit, blank: hit.map(isBlank) ?? true)
+            let blank = hit.map(isBlank) ?? true
+            let found = Found(element: hit, blank: blank, ancestors: hit.map { blank ? [] : parents(of: $0) } ?? [], queued: queued)
             let took = Date().timeIntervalSince(began)
             if took > slowLook { Log.warning("mouse tracking: the look took \(Int(took * 1000)) ms (\(describe(hit)))") }
             onMain { arrived(found, generation: g) }
@@ -164,6 +173,19 @@ public enum MouseTracking {
         queue = DispatchQueue(label: "turnover.mouse-tracking", qos: .userInteractive)
         lookInFlight = false
         moved()
+    }
+
+    /// The few levels above a plain text or image, for the check that it is inside an item already said. Runs on the
+    /// lookup queue; any other role has none, so only these can be silenced by a row around them.
+    nonisolated static func parents(of e: AXUIElement) -> [AXUIElement] {
+        guard ["AXStaticText", "AXImage"].contains(e.role) else { return [] }
+        var up: [AXUIElement] = []
+        var cur = e
+        for _ in 0..<4 {
+            guard let p = cur.element(kAXParentAttribute), p.string(kAXRoleAttribute) != "AXWindow" else { break }
+            up.append(p); cur = p
+        }
+        return up
     }
 
     /// What a look found, for the log: the role and the app, and not a word of what it says.
@@ -195,7 +217,10 @@ public enum MouseTracking {
         // were not asked for, so its resting place is looked at now.
         defer { if isOn, Core.active, tracker.worthLooking(at: pointer()) { moved() } }
         guard isOn, Core.active else { return }
-        switch tracker.answer(found.blank ? nil : found.element.map { Element(element: $0) }) {
+        let waited = Date().timeIntervalSince(found.queued)
+        if waited > 0.15 { Log.io("mouse tracking: the look came back \(Int(waited * 1000)) ms after it was asked for (\(describe(found.element)))") }
+        let inside = found.ancestors.map { Element(element: $0) }
+        switch tracker.answer(found.blank ? nil : found.element.map { Element(element: $0) }, insideSpoken: tracker.spokenIs(in: inside)) {
         case .nothing: break
         case .blank:
             Log.io("mouse tracking: blank place (\(describe(found.element)))")
