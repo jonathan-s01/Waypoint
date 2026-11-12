@@ -77,7 +77,7 @@ nonisolated public enum ReviewLayerLogic {
         }
         if positionKeys.contains(keyName) { return shift || option ? nil : .review("kb:" + keyName) }
         if keyName == "enter" || keyName == "numpadEnter" { return shift || option ? nil : .activate }
-        // Tab is whatever plain Tab is here (the window's parts in a recipe app); Left Shift reverses it.
+        // Tab moves the review cursor to the next link or control; Left Shift reverses it. The real focus does not move.
         if keyName == "tab" { return option ? nil : .review(shift ? "kb:shift+tab" : "kb:tab") }
         // Letters and digits as the document's quick keys; the comma is its container key.
         if keyName.count == 1, let c = keyName.first, (c.isLetter && c.isASCII) || c.isNumber || c == "," {
@@ -170,6 +170,8 @@ enum ReviewLayer {
     }
 
     static func handle(_ event: Event) {
+        // Typing in the field (a message sent, a reply arriving) ends the review place: the next use starts afresh.
+        if event.kind == .typedCharacter { syncedFocus = nil }
         guard armed || latched else { return }
         switch event.kind {
         case .foreground, .menuStart, .appModuleLoseFocus:
@@ -271,10 +273,10 @@ enum ReviewLayer {
         case .removed?: return
         case nil: break
         }
-        // Tab: what plain Tab does here (an app's parts, a held list), else Tab itself, as before.
+        // Tab moves the review cursor to the next link or control; the real focus stays where it is.
         if id.hasSuffix("tab") {
-            if let s = ScriptHandler.findScript(for: base) { s.handler(base) } else { base.send() }
-            followFocusAfterTab()
+            guard let doc = document() else { Tones.edge(); return }
+            doc.reviewTab(forward: id == "kb:tab")
             return
         }
         guard let doc = document() else { fallback(id); return }
@@ -355,20 +357,6 @@ enum ReviewLayer {
         return nil
     }
 
-    /// After Tab the focus arrives a moment later; the reading position follows it, so the next review key (H) goes on
-    /// from where Tab landed and not from where the layer was before.
-    private static func followFocusAfterTab() {
-        placedAt = .distantPast
-        syncedFocus = nil
-        for delay in [0.25, 0.7] {
-            DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
-                guard enabled, Date().timeIntervalSince(lastUsed) < 3 else { return }
-                syncedFocus = nil
-                _ = document()
-            }
-        }
-    }
-
     // MARK: The document it reads
 
     /// The page's reading document (a chat in a browser), or one over the focused window (a native app), made once.
@@ -404,6 +392,10 @@ enum ReviewLayer {
                 syncedDocument = ObjectIdentifier(doc); syncedFocus = focus.element
                 if let at = offsetNear(focus.element, in: doc) {
                     doc.position = at
+                    // From a field (a chat's message box) the layer starts at the latest message, not at the field.
+                    if ["AXTextField", "AXTextArea", "AXComboBox"].contains(focus.element.role), let start = doc.lastMessageStart(before: at) {
+                        doc.position = start
+                    }
                 } else if Date().timeIntervalSince(doc.buffer.builtAt) > 1 {
                     // The focus is somewhere the copy of the window has not seen (a part that appeared, a new row).
                     doc.rebuildKeepingPlace(anchor: focus.element)

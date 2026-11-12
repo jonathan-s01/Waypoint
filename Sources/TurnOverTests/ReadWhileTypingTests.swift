@@ -163,4 +163,12 @@ func readWhileTypingTests() {
         expect(Logic.insertable(" \n\t ", quoted: true), "")
         expect(Logic.insertable(String(repeating: "a", count: Logic.insertLimit + 50), quoted: false).count, Logic.insertLimit)
     }
+
+    test("review layer: a message heading is a level 2 \"said\" heading") {
+        check(ReviewStart.isMessageHeading(title: "Copilot said: Done.", level: 2), "Copilot's reply")
+        check(ReviewStart.isMessageHeading(title: "You said: go on", level: 2), "your message")
+        check(!ReviewStart.isMessageHeading(title: "Ran git status and 2 other tool calls", level: 3), "a tool call")
+        check(!ReviewStart.isMessageHeading(title: "Copilot said: Done.", level: 3), "a said heading at another level")
+        check(!ReviewStart.isMessageHeading(title: nil, level: 2), "no title")
+    }
 }

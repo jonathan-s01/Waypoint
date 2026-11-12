@@ -300,8 +300,8 @@ public struct Config: Codable {
         public var maxLineLength = 100
         /// NVDA's "Automatic say all on page load" (on by default in NVDA): a new page is read from where it starts.
         public var autoSayAllOnPageLoad = true
-        /// Quick navigation (H, K, F…) carries on from the other end of the page, and says so (7 Oct 2026).
-        public var wrapQuickNav = true
+        /// Quick navigation (H, K, F…) carries on from the other end of the page, and says so (7 Oct 2026). Off by default in Waypoint: Start and End jump instead.
+        public var wrapQuickNav = false
         /// NVDA's "Use screen layout": links and controls flow with the text as on screen; off, each is on a line of
         /// its own (a tester, 6 Oct 2026).
         public var screenLayout = true
@@ -317,7 +317,7 @@ public struct Config: Codable {
             let c = try decoder.container(keyedBy: Keys.self)
             maxLineLength = (try? c.decodeIfPresent(Int.self, forKey: .maxLineLength)) ?? 100
             autoSayAllOnPageLoad = (try? c.decodeIfPresent(Bool.self, forKey: .autoSayAllOnPageLoad)) ?? true
-            wrapQuickNav = (try? c.decodeIfPresent(Bool.self, forKey: .wrapQuickNav)) ?? true
+            wrapQuickNav = (try? c.decodeIfPresent(Bool.self, forKey: .wrapQuickNav)) ?? false
             screenLayout = (try? c.decodeIfPresent(Bool.self, forKey: .screenLayout)) ?? true
             autoFocusMode = (try? c.decodeIfPresent(Bool.self, forKey: .autoFocusMode)) ?? true
             imageFileNames = (try? c.decodeIfPresent(Bool.self, forKey: .imageFileNames)) ?? false
