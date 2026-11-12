@@ -17,6 +17,8 @@ public enum ItemActions {
         case showMenu(AXUIElement)
         case pressButton(AXUIElement)
         case rightClick(CGPoint)
+        /// A menu the element already has in its tree (a pop-up button's): read and pressed without opening it.
+        case direct(AXUIElement)
     }
 
     struct Target {
@@ -29,7 +31,8 @@ public enum ItemActions {
         var containerSources: [MenuSource] = []
     }
 
-    struct Harvested { let title: String; let enabled: Bool; let submenu: Bool }
+    /// `children` are a submenu's own items, read while the menu was open, so choosing it can browse them.
+    struct Harvested { let title: String; let enabled: Bool; let submenu: Bool; var children: [Harvested] = [] }
 
     /// While the menu opens and closes in the background, its focus moves and menu events are not said.
     private static var quietPid: pid_t = 0
@@ -48,11 +51,13 @@ public enum ItemActions {
         }
         generation += 1
         let gen = generation
+        let started = Date()
         Log.io("actions: \(target.element.role), \(target.ownActions.count) own, \(target.buttons.count) buttons, \(target.menuSources.count) menu sources, \(target.containerSources.count) for its list")
         harvest(target.menuSources, pid: target.pid) { found, source in
             guard gen == generation else { return }
             harvest(target.containerSources, pid: target.pid) { general, generalSource in
                 guard gen == generation else { return }
+                Log.io("actions: ready after \(Int(Date().timeIntervalSince(started) * 1000)) ms")
                 show(target, menu: found, source: source, general: general, generalSource: generalSource)
             }
         }
@@ -249,6 +254,8 @@ public enum ItemActions {
         case .rightClick(let p):
             Log.io("actions: right click at (\(Int(p.x)), \(Int(p.y)))")
             GlobalCommands.rightClick(at: p)
+        case .direct:
+            break
         }
     }
 
@@ -267,15 +274,17 @@ public enum ItemActions {
     }
 
     /// The menu's items, through the groups some pages put them in; separators (no title) left out.
-    static func menuItems(_ menu: AXUIElement) -> [(element: AXUIElement, item: Harvested)] {
+    /// With `readSubmenus`, each submenu's items are read too (three levels), for a list that browses them.
+    static func menuItems(_ menu: AXUIElement, readSubmenus: Bool = false, level: Int = 0) -> [(element: AXUIElement, item: Harvested)] {
         var out: [(element: AXUIElement, item: Harvested)] = []
         func walk(_ x: AXUIElement, _ depth: Int) {
             for c in x.elements(kAXChildrenAttribute) {
                 if c.role == "AXMenuItem" {
                     let t = title(of: c)
                     guard !t.isEmpty else { continue }
-                    let submenu = c.elements(kAXChildrenAttribute).contains { $0.role == "AXMenu" }
-                    out.append((c, Harvested(title: t, enabled: (c.attr(kAXEnabledAttribute) as? Bool) ?? true, submenu: submenu)))
+                    let sub = c.elements(kAXChildrenAttribute).first { $0.role == "AXMenu" }
+                    let kids = (readSubmenus && level < 3) ? sub.map { menuItems($0, readSubmenus: true, level: level + 1).map(\.item) } ?? [] : []
+                    out.append((c, Harvested(title: t, enabled: (c.attr(kAXEnabledAttribute) as? Bool) ?? true, submenu: sub != nil, children: kids)))
                 } else if depth < 3, c.role != "AXMenu" { walk(c, depth + 1) }
             }
         }
@@ -297,6 +306,11 @@ public enum ItemActions {
     /// Opens the menu from each source in turn until one opens, reads it, and closes it. Nothing found: no menu.
     private static func harvest(_ sources: [MenuSource], pid: pid_t, _ done: @escaping ([Harvested], MenuSource?) -> Void) {
         guard let first = sources.first else { done([], nil); return }
+        // A pop-up button already has its menu in the tree: no opening, no waiting, no closing.
+        if let menu = closedMenu(of: first) {
+            let found = menuItems(menu, readSubmenus: true).map(\.item)
+            if !found.isEmpty { Log.io("actions: read \(found.count) items from the menu in the tree, nothing opened"); done(found, .direct(menu)); return }
+        }
         beQuiet(pid)
         trigger(first)
         waitForMenu(pid: pid, limit: 0.45) { menu in
@@ -307,6 +321,13 @@ public enum ItemActions {
             let found = menuItems(menu).map(\.item)
             Log.io("actions: the menu has \(found.count) items")
             close(menu, pid: pid) { endQuiet(); done(found, first) }
+        }
+    }
+
+    private static func closedMenu(of source: MenuSource) -> AXUIElement? {
+        switch source {
+        case .showMenu(let e), .pressButton(let e): return e.elements(kAXChildrenAttribute).first { $0.role == "AXMenu" }
+        case .rightClick, .direct: return nil
         }
     }
 
@@ -329,9 +350,28 @@ public enum ItemActions {
     private static func show(_ t: Target, menu: [Harvested], source: MenuSource?, general: [Harvested], generalSource: MenuSource?) {
         var items: [MenuItem] = []
         var seen = Set<String>()
-        func add(_ title: String, hint: String? = nil, _ run: @escaping () -> Void) {
+        func add(_ title: String, hint: String? = nil, kind: MenuItem.Kind) {
             guard seen.insert(title.lowercased()).inserted else { return }
-            items.append(MenuItem(verbatim: title, .action(run), hint: hint))
+            items.append(MenuItem(verbatim: title, kind, hint: hint))
+        }
+        func add(_ title: String, hint: String? = nil, _ run: @escaping () -> Void) { add(title, hint: hint, kind: .action(run)) }
+        let dimmedWord = String(localized: "dimmed", comment: "A menu item that can't be chosen now")
+        let submenuWord = String(localized: "submenu", comment: "A menu item that opens another menu")
+        // A submenu's items, listed under it so Right browses them and Left goes back to the menu they are in.
+        func nested(_ menu: [Harvested], path: [(title: String, index: Int)], source: MenuSource?) -> [MenuItem] {
+            menu.enumerated().map { i, m in
+                let here = path + [(m.title, i)]
+                var title = m.title
+                if !m.enabled { title += ", " + dimmedWord }
+                if m.submenu { title += ", " + submenuWord }
+                if m.enabled, m.submenu, !m.children.isEmpty {
+                    return MenuItem(verbatim: title, .submenu { nested(m.children, path: here, source: source) })
+                }
+                return MenuItem(verbatim: title, .action {
+                    guard m.enabled else { Speech.speakMessage(dimmedWord); return }
+                    if let source { choose(path: here, from: source, pid: t.pid) }
+                })
+            }
         }
         for a in t.ownActions { add(a.title) { _ = AXUIElementPerformAction(a.owner, a.action as CFString) } }
         for b in t.buttons { add(b.title) { _ = AXUIElementPerformAction(b.element, kAXPressAction as CFString) } }
@@ -343,9 +383,14 @@ public enum ItemActions {
                 if whole, seen.contains(title.lowercased()) { title += ", " + wholeList }
                 if !m.enabled { title += ", " + String(localized: "dimmed", comment: "A menu item that can't be chosen now") }
                 if m.submenu { title += ", " + String(localized: "submenu", comment: "A menu item that opens another menu") }
-                add(title, hint: whole ? String(localized: "From the whole list's menu", comment: "Hint on a menu item from the list's menu, not the item's") : nil) {
-                    guard m.enabled else { Speech.speakMessage(String(localized: "dimmed", comment: "A menu item that can't be chosen now")); return }
-                    if let source { choose(m.title, index: i, from: source, pid: t.pid) }
+                let hint = whole ? String(localized: "From the whole list's menu", comment: "Hint on a menu item from the list's menu, not the item's") : nil
+                if m.enabled, m.submenu, !m.children.isEmpty {
+                    add(title, hint: hint, kind: .submenu { nested(m.children, path: [(m.title, i)], source: source) })
+                    continue
+                }
+                add(title, hint: hint) {
+                    guard m.enabled else { Speech.speakMessage(dimmedWord); return }
+                    if let source { choose(path: [(m.title, i)], from: source, pid: t.pid) }
                 }
             }
         }
@@ -360,10 +405,38 @@ public enum ItemActions {
         TurnOverMenu.shared.openList("Actions", items: items)
     }
 
-    /// The menu opened again and the item with that title pressed (the one at the same place, if two share it).
-    private static func choose(_ title: String, index: Int, from source: MenuSource, pid: pid_t) {
+    /// The item at the end of `path` (a title and its place at each level), pressed: in the menu in the tree, or in
+    /// the menu opened again. Nil when it is no longer there.
+    private static func pressPath(_ path: [(title: String, index: Int)], in root: AXUIElement) -> AXError? {
+        var menu = root
+        for (n, step) in path.enumerated() {
+            let items = menuItems(menu)
+            let match = (step.index < items.count && items[step.index].item.title == step.title) ? items[step.index] : items.first { $0.item.title == step.title }
+            guard let match else { return nil }
+            if n == path.count - 1 {
+                let r = AXUIElementPerformAction(match.element, kAXPressAction as CFString)
+                Log.io("actions: pressed \"\(Log.words(step.title))\" → \(r.rawValue)")
+                return r
+            }
+            guard let sub = match.element.elements(kAXChildrenAttribute).first(where: { $0.role == "AXMenu" }) else { return nil }
+            menu = sub
+        }
+        return nil
+    }
+
+    /// The item chosen: pressed in the menu that was read from the tree, or the menu opened again first.
+    private static func choose(path: [(title: String, index: Int)], from source: MenuSource, pid: pid_t) {
         generation += 1
         let gen = generation
+        let title = path.last?.title ?? ""
+        func gone() {
+            Log.io("actions: \"\(Log.words(title))\" is no longer in the menu")
+            Speech.speakMessage(String(localized: "\(title) is no longer in the menu", comment: "Spoken message: a menu item's name"))
+        }
+        if case .direct(let menu) = source {
+            if pressPath(path, in: menu) == nil { gone() }
+            return
+        }
         // TurnOver's list has just closed, and the app's focus is coming back: let it settle first.
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
             guard gen == generation else { return }
@@ -375,16 +448,7 @@ public enum ItemActions {
                     Log.io("actions: the menu did not open again for \"\(Log.words(title))\"")
                     Speech.speakMessage(String(localized: "The menu didn't open", comment: "Spoken message")); return
                 }
-                let items = menuItems(menu)
-                let match = (index < items.count && items[index].item.title == title) ? items[index] : items.first { $0.item.title == title }
-                guard let match else {
-                    Log.io("actions: \"\(Log.words(title))\" is no longer in the menu")
-                    Speech.speakMessage(String(localized: "\(title) is no longer in the menu", comment: "Spoken message: a menu item's name"))
-                    close(menu, pid: pid) {}
-                    return
-                }
-                let r = AXUIElementPerformAction(match.element, kAXPressAction as CFString)
-                Log.io("actions: pressed \"\(Log.words(title))\" → \(r.rawValue)")
+                if pressPath(path, in: menu) == nil { gone(); close(menu, pid: pid) {} }
             }
         }
     }

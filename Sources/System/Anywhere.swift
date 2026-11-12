@@ -124,7 +124,7 @@ enum Anywhere {
     private static func menuCommands(pid: pid_t?) -> [Candidate] {
         guard let pid, let found = MenuBarList.allItems(pid: pid, budget: 1.0) else { return [] }
         let bundle = NSRunningApplication(processIdentifier: pid)?.bundleIdentifier ?? String(pid)
-        return found.map { f in
+        return found.filter { $0.reveal == nil }.map { f in
             let id = "menu:\(bundle):\(f.path.joined(separator: ">"))>\(f.title)"
             return Candidate(entry: AnywhereEntry(id: id, name: f.title, kind: .menuCommand, shortcut: f.shortcut, place: f.place, enabled: f.enabled), run: f.press)
         }

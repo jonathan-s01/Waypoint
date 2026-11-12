@@ -31,15 +31,8 @@ public enum MenuBarList {
     }
 
     static func open() {
-        guard let pid = API.focusPid, let bar = AXUIElementCreateApplication(pid).element(kAXMenuBarAttribute) else { Tones.edge(); return }
-        let menus = bar.elements(kAXChildrenAttribute)
-        guard !menus.isEmpty else { Tones.edge(); return }
-        let items: [MenuItem] = menus.enumerated().compactMap { i, m in
-            let name = barTitle(m, index: i)
-            guard let menu = m.elements(kAXChildrenAttribute).first(where: { $0.role == "AXMenu" }) else { return nil }
-            return MenuItem(verbatim: name, .submenu { entries(of: menu) })
-        }
-        TurnOverMenu.shared.openList(verbatim: String(localized: "Menu bar", comment: "Waypoint's list of the app's menus"), items: items)
+        guard let pid = API.focusPid, let items = barItems(pid: pid) else { Tones.edge(); return }
+        TurnOverMenu.shared.openList(verbatim: barListTitle, items: items)
         TurnOverMenu.shared.keyHook = { g in key(g, pid: pid) }
         Hints.schedule(String(localized: "Right opens a menu, letters jump, VO F searches every menu.", comment: "Spoken message"))
     }
@@ -59,31 +52,67 @@ public enum MenuBarList {
         return false
     }
 
+    private static var barListTitle: String { String(localized: "Menu bar", comment: "Waypoint's list of the app's menus") }
+
+    /// The app's menus as list items, nil when it has no menu bar.
+    private static func barItems(pid: pid_t) -> [MenuItem]? {
+        guard let bar = AXUIElementCreateApplication(pid).element(kAXMenuBarAttribute) else { return nil }
+        let menus = bar.elements(kAXChildrenAttribute)
+        guard !menus.isEmpty else { return nil }
+        return menus.enumerated().compactMap { i, m in
+            let name = barTitle(m, index: i)
+            guard let menu = m.elements(kAXChildrenAttribute).first(where: { $0.role == "AXMenu" }) else { return nil }
+            return MenuItem(verbatim: name, .submenu { entries(of: menu) })
+        }
+    }
+
+    private static var submenuWord: String { String(localized: "submenu", comment: "A menu item that opens another menu") }
+
     static func barTitle(_ m: AXUIElement, index: Int) -> String {
         if let t = m.string(kAXTitleAttribute), !t.isEmpty { return t }
         return index == 0 ? "Apple" : Role.menu.displayString
     }
 
-    /// A menu's items: separators left out, submenus opening as lists.
-    static func entries(of menu: AXUIElement) -> [MenuItem] {
-        menu.elements(kAXChildrenAttribute).compactMap { c -> MenuItem? in
-            guard c.role == "AXMenuItem" else { return nil }
-            let title = (c.string(kAXTitleAttribute) ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+    /// A menu item as read in one question to the app (a menu's items took about six each before, 12 Nov 2026).
+    struct Info {
+        let element: AXUIElement
+        let title: String
+        let spoken: String
+        let shortcut: String?
+        let enabled: Bool
+        let submenu: AXUIElement?
+    }
+
+    private static let itemAttributes = [kAXRoleAttribute, kAXTitleAttribute, kAXEnabledAttribute, kAXChildrenAttribute,
+                                         "AXMenuItemMarkChar", "AXMenuItemCmdChar", "AXMenuItemCmdModifiers"]
+
+    /// The items of a menu with a title; separators and empty items left out.
+    static func infos(of menu: AXUIElement) -> [Info] {
+        menu.elements(kAXChildrenAttribute).compactMap { c -> Info? in
+            let a = c.attrs(itemAttributes)
+            guard (a[kAXRoleAttribute] as? String) == "AXMenuItem" else { return nil }
+            let title = ((a[kAXTitleAttribute] as? String) ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
             guard !title.isEmpty else { return nil }
-            if let sub = c.elements(kAXChildrenAttribute).first(where: { $0.role == "AXMenu" }) {
-                return MenuItem(verbatim: title + ", " + String(localized: "submenu", comment: "A menu item that opens another menu"), .submenu { entries(of: sub) })
-            }
-            return MenuItem(verbatim: spokenTitle(c, title: title), .action { press(c, title: title) })
+            let enabled = (a[kAXEnabledAttribute] as? Bool) != false
+            let sub = ((a[kAXChildrenAttribute] as? [AXUIElement]) ?? []).first { $0.role == "AXMenu" }
+            let keys = shortcut(char: a["AXMenuItemCmdChar"] as? String, modifiers: (a["AXMenuItemCmdModifiers"] as? NSNumber)?.intValue)
+            var parts = [title]
+            if let m = markWord(a["AXMenuItemMarkChar"] as? String) { parts.append(m) }
+            if let sc = keys { parts.append(sc) }
+            if !enabled { parts.append(String(localized: "dimmed", comment: "A menu item that can't be chosen now")) }
+            return Info(element: c, title: title, spoken: parts.joined(separator: ", "), shortcut: keys, enabled: enabled, submenu: sub)
         }
     }
 
-    /// "New Folder, shift command N", and dimmed if it can't be chosen now.
-    static func spokenTitle(_ item: AXUIElement, title: String) -> String {
-        var parts = [title]
-        if let m = markWord(item.string("AXMenuItemMarkChar")) { parts.append(m) }
-        if let s = shortcut(char: item.string("AXMenuItemCmdChar"), modifiers: item.int("AXMenuItemCmdModifiers")) { parts.append(s) }
-        if (item.attr(kAXEnabledAttribute) as? Bool) == false { parts.append(String(localized: "dimmed", comment: "A menu item that can't be chosen now")) }
-        return parts.joined(separator: ", ")
+    /// A menu's items: separators left out, submenus opening as lists.
+    static func entries(of menu: AXUIElement) -> [MenuItem] {
+        let started = Date()
+        let list = infos(of: menu).map { i -> MenuItem in
+            if let sub = i.submenu { return MenuItem(verbatim: i.title + ", " + submenuWord, .submenu { entries(of: sub) }) }
+            return MenuItem(verbatim: i.spoken, .action { press(i.element, title: i.title) })
+        }
+        Log.io("menu bar: \(list.count) items read in \(Int(Date().timeIntervalSince(started) * 1000)) ms")
+        return list
     }
 
     /// A menu item's mark: a tick is checked, a bullet is the chosen one of a group, a dash is mixed.
@@ -132,6 +161,8 @@ public enum MenuBarList {
         /// The menu it is in, as the search says it after a pause.
         let place: String
         let press: () -> Void
+        /// Set for a submenu: opens the list inside its parents (a submenu has nothing to press).
+        var reveal: (() -> Void)? = nil
     }
 
     /// Every item in every menu, nil when the app has no menu bar.
@@ -140,25 +171,27 @@ public enum MenuBarList {
         var found: [Found] = []
         // A bounded walk on main (AGENTS.md): Xcode's menus are the largest seen; this stops at 4000 items or the budget.
         let deadline = Date().addingTimeInterval(budget)
-        func walk(_ menu: AXUIElement, path: [String], depth: Int) {
-            for c in menu.elements(kAXChildrenAttribute) {
+        func walk(_ menu: AXUIElement, path: [String], chain: [(title: String, menu: AXUIElement)], depth: Int) {
+            for i in infos(of: menu) {
                 guard found.count < 4000, Date() < deadline else { return }
-                guard c.role == "AXMenuItem" else { continue }
-                let title = (c.string(kAXTitleAttribute) ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
-                guard !title.isEmpty else { continue }
-                if let sub = c.elements(kAXChildrenAttribute).first(where: { $0.role == "AXMenu" }) {
-                    if depth < 4 { walk(sub, path: path + [title], depth: depth + 1) }
+                let title = i.title
+                let where_ = path.count == 1 ? String(localized: "\(path[0]) menu", comment: "Where a found menu item is: %@ is the menu (File)") : path.joined(separator: ", ")
+                if let sub = i.submenu {
+                    found.append(Found(title: title, spoken: title + ", " + submenuWord, path: path, shortcut: nil,
+                                       enabled: i.enabled, place: where_, press: {},
+                                       reveal: { reveal(pid: pid, chain: chain, title: title, menu: sub) }))
+                    if depth < 4 { walk(sub, path: path + [title], chain: chain + [(title, sub)], depth: depth + 1) }
                     continue
                 }
-                let where_ = path.count == 1 ? String(localized: "\(path[0]) menu", comment: "Where a found menu item is: %@ is the menu (File)") : path.joined(separator: ", ")
-                found.append(Found(title: title, spoken: spokenTitle(c, title: title), path: path,
-                                   shortcut: shortcut(char: c.string("AXMenuItemCmdChar"), modifiers: c.int("AXMenuItemCmdModifiers")),
-                                   enabled: (c.attr(kAXEnabledAttribute) as? Bool) != false, place: where_, press: { press(c, title: title) }))
+                let c = i.element
+                found.append(Found(title: title, spoken: i.spoken, path: path, shortcut: i.shortcut,
+                                   enabled: i.enabled, place: where_, press: { press(c, title: title) }))
             }
         }
         for (i, m) in bar.elements(kAXChildrenAttribute).enumerated() {
             guard let menu = m.elements(kAXChildrenAttribute).first(where: { $0.role == "AXMenu" }) else { continue }
-            walk(menu, path: [barTitle(m, index: i)], depth: 1)
+            let name = barTitle(m, index: i)
+            walk(menu, path: [name], chain: [(name, menu)], depth: 1)
         }
         return found
     }
@@ -166,10 +199,30 @@ public enum MenuBarList {
     /// Every item in every menu, narrowed as you type: the name and shortcut, then after a pause the menu it is in.
     private static func search(pid: pid_t) {
         guard let all = allItems(pid: pid) else { Tones.edge(); return }
-        let found = all.map { MenuItem(verbatim: $0.spoken, .action($0.press), hint: $0.place) }
+        // A submenu result opens its list inside its parents (Enter or Right) and stays in the menu; any other item runs and closes.
+        let found = all.map { f -> MenuItem in
+            var item = MenuItem(verbatim: f.spoken, f.reveal.map { MenuItem.Kind.select($0) } ?? .action(f.press), hint: f.place)
+            item.onRight = f.reveal
+            return item
+        }
         Log.io("menu bar: search over \(found.count) items")
         let hook = TurnOverMenu.shared.keyHook
         TurnOverMenu.shared.openChooser(verbatim: String(localized: "Search menus", comment: "Waypoint's search of every menu item"), items: found)
         TurnOverMenu.shared.keyHook = hook
+    }
+
+    /// A submenu found by search, opened as the menu bar list would have it: the bar, each menu down to it with the
+    /// item on its way selected, then its own items. Left goes back up through the menus it is in.
+    private static func reveal(pid: pid_t, chain: [(title: String, menu: AXUIElement)], title: String, menu: AXUIElement) {
+        guard let bar = barItems(pid: pid) else { Tones.edge(); return }
+        var levels: [(title: String, items: [MenuItem], index: Int)] = [(barListTitle, bar, bar.firstIndex { $0.title == chain[0].title } ?? 0)]
+        for (i, level) in chain.enumerated() {
+            let items = entries(of: level.menu)
+            let next = (i + 1 < chain.count ? chain[i + 1].title : title) + ", " + submenuWord
+            levels.append((level.title, items, items.firstIndex { $0.title == next } ?? 0))
+        }
+        levels.append((title, entries(of: menu), 0))
+        Log.io("menu bar: search opened the \"\(Log.words(title))\" submenu")
+        TurnOverMenu.shared.revealPath(levels)
     }
 }

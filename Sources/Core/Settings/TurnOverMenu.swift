@@ -22,6 +22,8 @@ public struct MenuItem {
     public let kind: Kind
     /// What it means, said after a pause on the item (docs/MENU-PLAN.md: names in titles, explanations after).
     public var hint: String?
+    /// What Right does on an item that is not a submenu (a search result that is one: it opens it).
+    public var onRight: (() -> Void)?
     /// TurnOver's own words, translated (Resources/Localizable.xcstrings): a literal title or hint is listed for
     /// translation as it is written. A number goes in as text ("\(String(n))"), so English reads as it did.
     public init(_ title: LocalizedStringResource, _ kind: Kind, hint: LocalizedStringResource? = nil) {
@@ -115,6 +117,17 @@ public final class TurnOverMenu {
         isOpen = true
         Speech.cancel()
         Speech.speakMessage("\(title), \(items.count)")
+        announce()
+    }
+
+    /// Replaces the open list, search results included, with a list opened inside its parents: Left goes back up
+    /// through them (Waypoint's menu search choosing a submenu). Each level says which of its items is open.
+    public func revealPath(_ levels: [(title: String, items: [MenuItem], index: Int)]) {
+        guard let last = levels.last, !last.items.isEmpty else { return }
+        filterSource = nil; filterMatcher = nil; filter = ""; browsingResults = false
+        stack = levels
+        Speech.cancel()
+        Speech.speakMessage(last.title)
         announce()
     }
 
@@ -287,7 +300,8 @@ public final class TurnOverMenu {
         case "rightArrow":
             // Right opens a submenu or steps a value, as in a menu; it never runs a command (that is Enter's job).
             let item = top.items[top.index]
-            if case .action = item.kind { Tones.edge() } else if case .select = item.kind { Tones.edge() } else { activate(item, forward: true) }
+            if let onRight = item.onRight { onRight() }
+            else if case .action = item.kind { Tones.edge() } else if case .select = item.kind { Tones.edge() } else { activate(item, forward: true) }
         case "enter", "numpadEnter", "space": activate(top.items[top.index], forward: true)
         case "leftArrow":
             // On a value (rate, a choice, a switch) Left steps it back, as Right steps it on: Right could raise the
