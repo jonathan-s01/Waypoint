@@ -132,6 +132,7 @@ public enum Core {
         GlobalPluginHandler.shared.register(FocusMemoryPlugin.self)
         GlobalPluginHandler.shared.register(DescribeAppPlugin.self)
         GlobalPluginHandler.shared.register(WhatChangedPlugin.self)
+        GlobalPluginHandler.shared.register(MarkMomentPlugin.self)
         GlobalPluginHandler.shared.register(AnywherePlugin.self)
         GlobalPluginHandler.shared.register(PlacesPlugin.self)
         started = true

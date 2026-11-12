@@ -201,8 +201,7 @@ extension VoiceOverKeysPlugin {
             add(name, String(localized: "\(what): not in TurnOver yet", comment: "A VoiceOver feature TurnOver lacks: %@ is the feature"), keys) { _ in Speech.speakMessage(String(localized: "\(what.components(separatedBy: " (").first ?? what) isn't available in TurnOver yet", comment: "A VoiceOver feature TurnOver lacks: %@ is the feature")) }
         }
         for (name, what, keys) in [("nextPageColumn", String(localized: "Next column (VO-Command-Y)", comment: "A VoiceOver feature"), ["kb:turnover+command+y"]),
-                                   ("previousPageColumn", String(localized: "Previous column (VO-Command-Shift-Y)", comment: "A VoiceOver feature"), ["kb:turnover+command+shift+y"]),
-                                   ("tableGrouping", String(localized: "Grouping in a table (VO-Command-Equals)", comment: "A VoiceOver feature"), ["kb:turnover+command+="])] {
+                                   ("previousPageColumn", String(localized: "Previous column (VO-Command-Shift-Y)", comment: "A VoiceOver feature"), ["kb:turnover+command+shift+y"])] {
             add(name, String(localized: "\(what): pages don't offer it to TurnOver", comment: "A VoiceOver feature pages don't give TurnOver: %@ is the feature"), keys) { _ in Speech.speakMessage(String(localized: "\(what.components(separatedBy: " (").first ?? what) isn't available in TurnOver", comment: "A VoiceOver feature TurnOver lacks: %@ is the feature")) }
         }
     }

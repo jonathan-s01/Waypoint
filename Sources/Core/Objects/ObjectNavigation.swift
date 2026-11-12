@@ -1397,7 +1397,8 @@ public final class ObjectNavigator {
                 parts.append(Phrases.items(Self.groupItems(e).count))
             }
             Speech.speakItem(parts.joined(separator: ", "))
-            Hints.schedule(String(localized: "VO Shift Down goes in.", comment: "Spoken message"))
+            // Not for the pointer sweeping over a window: the hint came after every group it crossed.
+            if budget == nil { Hints.schedule(String(localized: "VO Shift Down goes in.", comment: "Spoken message")) }
             return
         }
         // (Not a value that only repeats the name: the App Store's headings carry their title as both, "Discover, heading, Discover".)
