@@ -508,7 +508,7 @@ could expose what a person reads or types is best reported privately, through th
 
 VOICEOVER KEYS: EVERY KEY
 
-This page is made from TurnOver's own command tables (`turnover-coretest --keys-reference`, 3 Nov 2026), so it matches the build it came with. Don't edit it by hand.
+This page is made from TurnOver's own command tables (`turnover-coretest --keys-reference`, 12 Nov 2026), so it matches the build it came with. Don't edit it by hand.
 
 The VoiceOver keys style (the Mac style): VoiceOver's own keys, doing what they do in VoiceOver. TurnOver in a key means the TurnOver key: Control and Option together (VO), or Caps Lock. Keys VoiceOver has that aren't listed here go to VoiceOver as usual where VoiceOver reads, and do nothing special where TurnOver reads. Keyboard help (the TurnOver menu, Keys) says what any key does without doing it; Command Control Comma, then Slash, lists the keys that work where you are.
 
@@ -591,7 +591,6 @@ VoiceOver keys
   TurnOver Command E: Next spelling error (VO-Command-E)
   TurnOver Command End: The last item in the window (VO-Command-End)
   TurnOver Command Enter: Add to or remove from the selection; adds the item to the selection, or takes it out, keeping the others (VO-Command-Return)
-  TurnOver Command Equals: Grouping in a table (VO-Command-Equals): pages don't offer it to TurnOver
   TurnOver Command Escape: Closes the window (VO-Command-Escape)
   TurnOver Command F: Next frame (VO-Command-F)
   TurnOver Command F10: The caption panel (VO-Command-F10): not in TurnOver yet
@@ -768,6 +767,23 @@ Text review
   TurnOver Shift P: Reports the current paragraph
   TurnOver Shift Period: Reports the current line. Pressed twice, spells it
 
+Waypoint
+
+  Key: What it does
+  Control Command 0: Describes the app in front: its window and the parts of it; pressed twice, as a list to move to a part
+  Control Command W: Says what is new in this part of the window since you left it; pressed twice, in every part of the app
+  TurnOver Command A: Anywhere: type to find an app, a menu command, an action or a Waypoint command, and run it
+  TurnOver Command Equals: Marks this moment in the log, for a report that something just sounded wrong (VO-Command-Equals)
+  TurnOver Option B: Bookmarks the item you are on, so a key can bring you back to it
+  TurnOver Option G: Lists your bookmarks, narrowed as you type; Return goes to one, in its app
+  TurnOver Option I: After reading around a text field, puts the reviewed text into the field as it is
+  TurnOver Option N: In a list of messages, files or results, switches Up and Down to skimming the items by their key words, quickly, and back; Return reads the item in full
+  TurnOver Option P: Lists the places you stayed at recently, the one before this first; Return goes back to it
+  TurnOver Option Q: After reading around a text field, puts the reviewed text into the field as a quote
+  TurnOver Option R: Review layer: once, the next key reads around the field instead of typing; twice, the layer stays on until pressed again
+  TurnOver Option S: After reading around a text field, says where the review cursor is
+  TurnOver Option Y: After reading around a text field, copies the reviewed text
+
 IN THE APPS
 
 Keys an app's own support adds at the app level, in that app only; the keys above work there too. Some commands apply only in the relevant control or window. Keys that belong to a document inside an app (Word's headings, comments and tables, a web page's quick keys) are in The apps and Reading and say all.
@@ -897,6 +913,17 @@ Freeform
   Left arrow: The board to the left
   Right arrow: The board to the right
 
+GitHub Copilot
+
+  Key: What it does
+  Control Command 1: Straight to Quick links
+  Control Command 2: Straight to Projects
+  Control Command 3: Straight to Sessions
+  Control Command 4: Straight to Conversation
+  Control Command 5: Straight to Message box
+  Shift Tab: The previous part of the window
+  Tab: The next part of the window: Quick links, Projects, Sessions, Conversation, Message box
+
 Keynote
 
   Key: What it does
@@ -965,6 +992,20 @@ Messages
   Shift Tab: Back to the previous part
   Tab: On to the next part, in the screen's order: sections, conversations, messages, the message box
   Up arrow: Previous message or conversation
+
+Microsoft Teams
+
+  Key: What it does
+  Control Command 1: Straight to Search
+  Control Command 2: Straight to Apps
+  Control Command 3: Straight to Chat filters
+  Control Command 4: Straight to Chat list
+  Control Command 5: Straight to Chat tabs
+  Control Command 6: Straight to Chat actions
+  Control Command 7: Straight to Messages
+  Control Command 8: Straight to Message box
+  Shift Tab: The previous part of the window
+  Tab: The next part of the window: Search, Apps, Chat filters, Chat list, Chat tabs, Chat actions, Messages, Message box
 
 Music
 
@@ -1129,6 +1170,14 @@ Siri
   Shift Tab: In Spotlight: the previous control, the microphone included
   Tab: In Spotlight: the next control, the microphone included
 
+Spotify
+
+  Key: What it does
+  Command Down arrow: Sends Spotify's volume down shortcut and says quieter
+  Command Left arrow: Sends Spotify's previous track shortcut and says previous track
+  Command Right arrow: Sends Spotify's next track shortcut and says next track
+  Command Up arrow: Sends Spotify's volume up shortcut and says louder
+
 System Settings
 
   Key: What it does
@@ -1219,7 +1268,7 @@ Word
 
 NVDA KEYS: EVERY KEY
 
-This page is made from TurnOver's own command tables (`turnover-coretest --keys-reference`, 3 Nov 2026), so it matches the build it came with. Don't edit it by hand.
+This page is made from TurnOver's own command tables (`turnover-coretest --keys-reference`, 12 Nov 2026), so it matches the build it came with. Don't edit it by hand.
 
 The NVDA keys style (the Windows style): NVDA's own keys, doing what they do in NVDA. TurnOver in a key means the NVDA key: Caps Lock, or Control and Option together. NVDA's Alt is the Mac's Command key, by position. Keyboard help (the TurnOver menu, Keys) says what any key does without doing it; Command Control Comma, then Slash, lists the keys that work where you are.
 
@@ -1381,6 +1430,23 @@ Text review
   TurnOver Shift P: Reports the current paragraph
   TurnOver Shift S: Reports the selected text
 
+Waypoint
+
+  Key: What it does
+  Control Command 0: Describes the app in front: its window and the parts of it; pressed twice, as a list to move to a part
+  Control Command W: Says what is new in this part of the window since you left it; pressed twice, in every part of the app
+  TurnOver Command A: Anywhere: type to find an app, a menu command, an action or a Waypoint command, and run it
+  TurnOver Command Equals: Marks this moment in the log, for a report that something just sounded wrong (VO-Command-Equals)
+  TurnOver Option B: Bookmarks the item you are on, so a key can bring you back to it
+  TurnOver Option G: Lists your bookmarks, narrowed as you type; Return goes to one, in its app
+  TurnOver Option I: After reading around a text field, puts the reviewed text into the field as it is
+  TurnOver Option N: In a list of messages, files or results, switches Up and Down to skimming the items by their key words, quickly, and back; Return reads the item in full
+  TurnOver Option P: Lists the places you stayed at recently, the one before this first; Return goes back to it
+  TurnOver Option Q: After reading around a text field, puts the reviewed text into the field as a quote
+  TurnOver Option R: Review layer: once, the next key reads around the field instead of typing; twice, the layer stays on until pressed again
+  TurnOver Option S: After reading around a text field, says where the review cursor is
+  TurnOver Option Y: After reading around a text field, copies the reviewed text
+
 Windows keys
 
   Key: What it does
@@ -1525,6 +1591,17 @@ Freeform
   Left arrow: The board to the left
   Right arrow: The board to the right
 
+GitHub Copilot
+
+  Key: What it does
+  Control Command 1: Straight to Quick links
+  Control Command 2: Straight to Projects
+  Control Command 3: Straight to Sessions
+  Control Command 4: Straight to Conversation
+  Control Command 5: Straight to Message box
+  Shift Tab: The previous part of the window
+  Tab: The next part of the window: Quick links, Projects, Sessions, Conversation, Message box
+
 Keynote
 
   Key: What it does
@@ -1593,6 +1670,20 @@ Messages
   Shift Tab: Back to the previous part
   Tab: On to the next part, in the screen's order: sections, conversations, messages, the message box
   Up arrow: Previous message or conversation
+
+Microsoft Teams
+
+  Key: What it does
+  Control Command 1: Straight to Search
+  Control Command 2: Straight to Apps
+  Control Command 3: Straight to Chat filters
+  Control Command 4: Straight to Chat list
+  Control Command 5: Straight to Chat tabs
+  Control Command 6: Straight to Chat actions
+  Control Command 7: Straight to Messages
+  Control Command 8: Straight to Message box
+  Shift Tab: The previous part of the window
+  Tab: The next part of the window: Search, Apps, Chat filters, Chat list, Chat tabs, Chat actions, Messages, Message box
 
 Music
 
@@ -1759,6 +1850,14 @@ Siri
   Shift Tab: In Spotlight: the previous control, the microphone included
   Tab: In Spotlight: the next control, the microphone included
 
+Spotify
+
+  Key: What it does
+  Command Down arrow: Sends Spotify's volume down shortcut and says quieter
+  Command Left arrow: Sends Spotify's previous track shortcut and says previous track
+  Command Right arrow: Sends Spotify's next track shortcut and says next track
+  Command Up arrow: Sends Spotify's volume up shortcut and says louder
+
 System Settings
 
   Key: What it does
@@ -1854,7 +1953,7 @@ Word
 
 JAWS KEYS: EVERY KEY
 
-This page is made from TurnOver's own command tables (`turnover-coretest --keys-reference`, 3 Nov 2026), so it matches the build it came with. Don't edit it by hand.
+This page is made from TurnOver's own command tables (`turnover-coretest --keys-reference`, 12 Nov 2026), so it matches the build it came with. Don't edit it by hand.
 
 The JAWS keys style: JAWS's laptop layout. TurnOver in a key means the JAWS key: Caps Lock, or Control and Option together. Only the keys that differ from NVDA's are JAWS's own; every other key is NVDA's, so the NVDA keys page lists the rest. Keyboard help (the TurnOver menu, Keys) says what any key does without doing it; Command Control Comma, then Slash, lists the keys that work where you are.
 
@@ -2051,6 +2150,23 @@ Text review
   TurnOver Shift P: Reports the current paragraph
   TurnOver Shift S: Reports the selected text
 
+Waypoint
+
+  Key: What it does
+  Control Command 0: Describes the app in front: its window and the parts of it; pressed twice, as a list to move to a part
+  Control Command W: Says what is new in this part of the window since you left it; pressed twice, in every part of the app
+  TurnOver Command A: Anywhere: type to find an app, a menu command, an action or a Waypoint command, and run it
+  TurnOver Command Equals: Marks this moment in the log, for a report that something just sounded wrong (VO-Command-Equals)
+  TurnOver Option B: Bookmarks the item you are on, so a key can bring you back to it
+  TurnOver Option G: Lists your bookmarks, narrowed as you type; Return goes to one, in its app
+  TurnOver Option I: After reading around a text field, puts the reviewed text into the field as it is
+  TurnOver Option N: In a list of messages, files or results, switches Up and Down to skimming the items by their key words, quickly, and back; Return reads the item in full
+  TurnOver Option P: Lists the places you stayed at recently, the one before this first; Return goes back to it
+  TurnOver Option Q: After reading around a text field, puts the reviewed text into the field as a quote
+  TurnOver Option R: Review layer: once, the next key reads around the field instead of typing; twice, the layer stays on until pressed again
+  TurnOver Option S: After reading around a text field, says where the review cursor is
+  TurnOver Option Y: After reading around a text field, copies the reviewed text
+
 Windows keys
 
   Key: What it does
@@ -2204,6 +2320,17 @@ Freeform
   Left arrow: The board to the left
   Right arrow: The board to the right
 
+GitHub Copilot
+
+  Key: What it does
+  Control Command 1: Straight to Quick links
+  Control Command 2: Straight to Projects
+  Control Command 3: Straight to Sessions
+  Control Command 4: Straight to Conversation
+  Control Command 5: Straight to Message box
+  Shift Tab: The previous part of the window
+  Tab: The next part of the window: Quick links, Projects, Sessions, Conversation, Message box
+
 Keynote
 
   Key: What it does
@@ -2272,6 +2399,20 @@ Messages
   Shift Tab: Back to the previous part
   Tab: On to the next part, in the screen's order: sections, conversations, messages, the message box
   Up arrow: Previous message or conversation
+
+Microsoft Teams
+
+  Key: What it does
+  Control Command 1: Straight to Search
+  Control Command 2: Straight to Apps
+  Control Command 3: Straight to Chat filters
+  Control Command 4: Straight to Chat list
+  Control Command 5: Straight to Chat tabs
+  Control Command 6: Straight to Chat actions
+  Control Command 7: Straight to Messages
+  Control Command 8: Straight to Message box
+  Shift Tab: The previous part of the window
+  Tab: The next part of the window: Search, Apps, Chat filters, Chat list, Chat tabs, Chat actions, Messages, Message box
 
 Music
 
@@ -2436,6 +2577,14 @@ Siri
   Shift Tab: In Spotlight: the previous control, the microphone included
   Tab: In Spotlight: the next control, the microphone included
 
+Spotify
+
+  Key: What it does
+  Command Down arrow: Sends Spotify's volume down shortcut and says quieter
+  Command Left arrow: Sends Spotify's previous track shortcut and says previous track
+  Command Right arrow: Sends Spotify's next track shortcut and says next track
+  Command Up arrow: Sends Spotify's volume up shortcut and says louder
+
 System Settings
 
   Key: What it does
@@ -2523,8 +2672,6 @@ Word
   Shift Tab: In a sheet: the previous control, its buttons included
   Tab: In a sheet: the next control, its buttons included
   TurnOver Down arrow: In a table: the cell below, the caret at its start (NVDA's table keys; TurnOver plus the arrows)
-  TurnOver Left arrow: In a table: the previous cell in the row, the caret at its start (NVDA's table keys; TurnOver plus the arrows)
-  TurnOver Right arrow: In a table: the next cell in the row, the caret at its start (NVDA's table keys; TurnOver plus the arrows)
   TurnOver Up arrow: In a table: the cell above, the caret at its start (NVDA's table keys; TurnOver plus the arrows)
 
 
@@ -2745,3 +2892,61 @@ Limits
 - Repeating a held key does not run most actions again: only a binding with `repeatRate` repeats (see above). The
   system's own key repeat is swallowed with the key.
 - A sound device whose volume moves in coarse hardware steps may round a step smaller than its own.
+
+
+READING TOOLS
+
+These Waypoint features help you move through busy apps quickly. Each can be switched off, and every key can be changed in
+the key list. "VO" below means the TurnOver key (Caps Lock or whichever you chose).
+
+Skim: hear a list quickly
+
+Use it in a list of messages, files or results.
+
+1. Press VO-Option-N. Waypoint says "skim on" and how many items there are.
+2. Up and Down now say each item's key words only, fast, with a tick between items. The speech rate returns to
+   normal a moment after the last item.
+3. Return says the item in full and leaves the cursor on it, and skimming ends.
+4. Escape or VO-Option-N again ends it without choosing.
+
+Skim ends by itself when the focus moves to something else, you switch apps, a menu opens or you leave it alone for five
+minutes. Nothing plays by itself. If it says "skim is off", run the skimEnable command.
+
+Review layer: read around while you type
+
+In a text field, such as a chat box, you can read the page or window without leaving the field and without typing
+anything. The layer is on by default.
+
+1. Hold Left Option + Right Shift and press a key. Each press is one step and the field keeps the keyboard.
+   Or tap VO-Option-R, then press the key; tap it twice to keep the layer on until you press it again. Escape ends
+   it.
+2. Keys: letters are browse-mode quick keys (H next heading, with Left Shift added, previous); Up and Down
+   read by line, Left and Right by character, Right Option with them by word; Home, End and the
+   Page keys jump; Return presses what is under the cursor.
+3. Left Shift with the chord and an arrow selects text in the field (with Right Option, by word).
+4. Afterwards, for five minutes: VO-Option-S says where the review cursor is, VO-Option-Q puts the reviewed text
+   into the field as a quote, VO-Option-I inserts it as it is, and VO-Option-Y copies it.
+
+Passwords and read-only fields are refused. VO-Shift-F5 and a click with the TurnOver key held (no click reaches the
+app) put the review position where the mouse pointer is.
+
+Places: bookmarks and recent places
+
+- VO-Option-B bookmarks the current item, named from its text.
+- VO-Option-G opens your bookmarks: type part of a name and press Return to go there.
+- VO-Option-P lists recent places, newest first.
+
+Bookmarks are saved in `places.json` in Waypoint's support folder. The command placesDelete removes one.
+
+Focus memory: return to where you were
+
+- Switching away from an app and back puts the focus where you left it, if the app has not already done so itself.
+- In apps with named regions (Teams, GitHub Copilot, Notes), moving to another region and back lands on the item you were
+  on and says so. In a message region it lands on the newest message if one has arrived, and says "newest".
+- It is kept across restarts for a week, as short fingerprints (roles and up to 80 characters of text), in
+  `focus-memory.json`. focusMemoryPersist turns that off and focusMemoryForget empties it.
+
+Changing the keys
+
+Every key above is a command in the key list, category Waypoint. Choose a command and press a new key, or remove its key.
+The Right Command launcher is described in the launcher.

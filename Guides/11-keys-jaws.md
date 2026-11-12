@@ -1,6 +1,6 @@
 # JAWS keys: every key
 
-This page is made from TurnOver's own command tables (`turnover-coretest --keys-reference`, 3 Nov 2026), so it matches the build it came with. Don't edit it by hand.
+This page is made from TurnOver's own command tables (`turnover-coretest --keys-reference`, 12 Nov 2026), so it matches the build it came with. Don't edit it by hand.
 
 The JAWS keys style: JAWS's laptop layout. **TurnOver** in a key means the JAWS key: Caps Lock, or Control and Option together. Only the keys that differ from NVDA's are JAWS's own; every other key is NVDA's, so the [NVDA keys page](keys-nvda.html) lists the rest. Keyboard help (the TurnOver menu, Keys) says what any key does without doing it; Command Control Comma, then Slash, lists the keys that work where you are.
 
@@ -206,6 +206,24 @@ Switch styles with Command Control Comma, then K. TurnOver's own commands behind
 | TurnOver Shift P | Reports the current paragraph |
 | TurnOver Shift S | Reports the selected text |
 
+## Waypoint
+
+| Key | What it does |
+|---|---|
+| Control Command 0 | Describes the app in front: its window and the parts of it; pressed twice, as a list to move to a part |
+| Control Command W | Says what is new in this part of the window since you left it; pressed twice, in every part of the app |
+| TurnOver Command A | Anywhere: type to find an app, a menu command, an action or a Waypoint command, and run it |
+| TurnOver Command Equals | Marks this moment in the log, for a report that something just sounded wrong (VO-Command-Equals) |
+| TurnOver Option B | Bookmarks the item you are on, so a key can bring you back to it |
+| TurnOver Option G | Lists your bookmarks, narrowed as you type; Return goes to one, in its app |
+| TurnOver Option I | After reading around a text field, puts the reviewed text into the field as it is |
+| TurnOver Option N | In a list of messages, files or results, switches Up and Down to skimming the items by their key words, quickly, and back; Return reads the item in full |
+| TurnOver Option P | Lists the places you stayed at recently, the one before this first; Return goes back to it |
+| TurnOver Option Q | After reading around a text field, puts the reviewed text into the field as a quote |
+| TurnOver Option R | Review layer: once, the next key reads around the field instead of typing; twice, the layer stays on until pressed again |
+| TurnOver Option S | After reading around a text field, says where the review cursor is |
+| TurnOver Option Y | After reading around a text field, copies the reviewed text |
+
 ## Windows keys
 
 | Key | What it does |
@@ -370,6 +388,18 @@ Keys an app's own support adds at the app level, in that app only; the keys abov
 | Left arrow | The board to the left |
 | Right arrow | The board to the right |
 
+## GitHub Copilot
+
+| Key | What it does |
+|---|---|
+| Control Command 1 | Straight to Quick links |
+| Control Command 2 | Straight to Projects |
+| Control Command 3 | Straight to Sessions |
+| Control Command 4 | Straight to Conversation |
+| Control Command 5 | Straight to Message box |
+| Shift Tab | The previous part of the window |
+| Tab | The next part of the window: Quick links, Projects, Sessions, Conversation, Message box |
+
 ## Keynote
 
 | Key | What it does |
@@ -443,6 +473,21 @@ Keys an app's own support adds at the app level, in that app only; the keys abov
 | Shift Tab | Back to the previous part |
 | Tab | On to the next part, in the screen's order: sections, conversations, messages, the message box |
 | Up arrow | Previous message or conversation |
+
+## Microsoft Teams
+
+| Key | What it does |
+|---|---|
+| Control Command 1 | Straight to Search |
+| Control Command 2 | Straight to Apps |
+| Control Command 3 | Straight to Chat filters |
+| Control Command 4 | Straight to Chat list |
+| Control Command 5 | Straight to Chat tabs |
+| Control Command 6 | Straight to Chat actions |
+| Control Command 7 | Straight to Messages |
+| Control Command 8 | Straight to Message box |
+| Shift Tab | The previous part of the window |
+| Tab | The next part of the window: Search, Apps, Chat filters, Chat list, Chat tabs, Chat actions, Messages, Message box |
 
 ## Music
 
@@ -617,6 +662,15 @@ Keys an app's own support adds at the app level, in that app only; the keys abov
 | Shift Tab | In Spotlight: the previous control, the microphone included |
 | Tab | In Spotlight: the next control, the microphone included |
 
+## Spotify
+
+| Key | What it does |
+|---|---|
+| Command Down arrow | Sends Spotify's volume down shortcut and says quieter |
+| Command Left arrow | Sends Spotify's previous track shortcut and says previous track |
+| Command Right arrow | Sends Spotify's next track shortcut and says next track |
+| Command Up arrow | Sends Spotify's volume up shortcut and says louder |
+
 ## System Settings
 
 | Key | What it does |
@@ -709,6 +763,4 @@ Keys an app's own support adds at the app level, in that app only; the keys abov
 | Shift Tab | In a sheet: the previous control, its buttons included |
 | Tab | In a sheet: the next control, its buttons included |
 | TurnOver Down arrow | In a table: the cell below, the caret at its start (NVDA's table keys; TurnOver plus the arrows) |
-| TurnOver Left arrow | In a table: the previous cell in the row, the caret at its start (NVDA's table keys; TurnOver plus the arrows) |
-| TurnOver Right arrow | In a table: the next cell in the row, the caret at its start (NVDA's table keys; TurnOver plus the arrows) |
 | TurnOver Up arrow | In a table: the cell above, the caret at its start (NVDA's table keys; TurnOver plus the arrows) |
