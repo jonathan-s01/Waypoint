@@ -28,7 +28,8 @@ anything. The layer is on by default.
    read by line, **Left** and **Right** by character, **Right Option** with them by word; **Home**, **End** and the
    **Page** keys jump; **Tab** goes to the next link or control (**Left Shift** for the previous), in the review only,
    and never moves the real focus; **Return** presses what is under the cursor. Quick keys do not wrap round the page.
-   From a chat's message box the review starts at the latest message.
+   From a chat's message box the review starts at the latest message. It keeps its place while you type; it moves to a
+   message only when a new one arrives, and says "new message".
 3. **Left Shift** with the chord and an arrow selects text in the field (with **Right Option**, by word).
 4. Afterwards, for five minutes: **VO-Option-S** says where the review cursor is, **VO-Option-Q** puts the reviewed text
    into the field as a quote, **VO-Option-I** inserts it as it is, and **VO-Option-Y** copies it.

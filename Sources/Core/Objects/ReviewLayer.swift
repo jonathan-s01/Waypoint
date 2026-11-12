@@ -121,6 +121,8 @@ enum ReviewLayer {
     private static var syncedFocus: AXUIElement?
     private static var placedAt = Date.distantPast
     private static var syncedDocument: ObjectIdentifier?
+    /// Where the latest message began when the review last started from a field; a later one has arrived when it moves.
+    private static var messageStart: Int?
     private static var windowDocuments: Set<ObjectIdentifier> = []
 
     // MARK: Which keys
@@ -170,8 +172,6 @@ enum ReviewLayer {
     }
 
     static func handle(_ event: Event) {
-        // Typing in the field (a message sent, a reply arriving) ends the review place: the next use starts afresh.
-        if event.kind == .typedCharacter { syncedFocus = nil }
         guard armed || latched else { return }
         switch event.kind {
         case .foreground, .menuStart, .appModuleLoseFocus:
@@ -182,7 +182,7 @@ enum ReviewLayer {
         }
     }
 
-    static func reset() { armed = false; latched = false; syncedFocus = nil; syncedDocument = nil; windowDocuments = [] }
+    static func reset() { armed = false; latched = false; syncedFocus = nil; messageStart = nil; syncedDocument = nil; windowDocuments = [] }
 
     static func toggleEnabled() {
         enabled.toggle()
@@ -388,13 +388,16 @@ enum ReviewLayer {
             let sameDoc = syncedDocument == ObjectIdentifier(doc)
             // A focus that moved just after the cursor was put somewhere on purpose (a click placing it) follows it.
             let justPlaced = Date().timeIntervalSince(placedAt) < 2
+            let isField = ["AXTextField", "AXTextArea", "AXComboBox"].contains(focus.element.role)
             if !sameDoc || (syncedFocus.map({ !CFEqual($0, focus.element) }) ?? true) && !justPlaced {
                 syncedDocument = ObjectIdentifier(doc); syncedFocus = focus.element
+                messageStart = nil
                 if let at = offsetNear(focus.element, in: doc) {
                     doc.position = at
                     // From a field (a chat's message box) the layer starts at the latest message, not at the field.
-                    if ["AXTextField", "AXTextArea", "AXComboBox"].contains(focus.element.role), let start = doc.lastMessageStart(before: at) {
+                    if isField, let start = doc.lastMessageStart(before: at) {
                         doc.position = start
+                        messageStart = start
                     }
                 } else if Date().timeIntervalSince(doc.buffer.builtAt) > 1 {
                     // The focus is somewhere the copy of the window has not seen (a part that appeared, a new row).
@@ -402,6 +405,12 @@ enum ReviewLayer {
                     if let at = offsetNear(focus.element, in: doc) { doc.position = at }
                     else { Log.io("review layer: the focus (\(focus.element.role)) is not in the document being read") }
                 }
+            } else if let seen = messageStart, isField, let at = offsetNear(focus.element, in: doc),
+                      let start = doc.lastMessageStart(before: at), start > seen {
+                // A new message has arrived (or been sent): the review moves to it. Typing alone does not move it.
+                messageStart = start
+                doc.position = start
+                Speech.speakMessage(String(localized: "new message", comment: "Spoken message: the review layer moved to a message that has just arrived"))
             }
         }
         return doc
