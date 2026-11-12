@@ -85,7 +85,11 @@ nonisolated final class KeyboardHandler: @unchecked Sendable {
     private var optionCode: Int64 = 0
     /// Keyboard help: the name of a modifier key as it goes down (keyboard thread; spoken on the main thread).
     private var lastModifierNamed: (code: Int64, at: Date) = (0, .distantPast)
-    private func announceModifier(code: Int64, flags: CGEventFlags, capsIsTurnOver: Bool) {
+    /// Control was named on its own as it went down, so its release must not pause the name it just said (main thread
+    /// only: set and read inside onMain, which runs in the order the key thread queued it).
+    nonisolated(unsafe) private static var controlNameSaid = false
+    /// `quietWhenSpeaking`: Control's way in normal use: with speech playing it only pauses it, with none it says "control".
+    private func announceModifier(code: Int64, flags: CGEventFlags, capsIsTurnOver: Bool, quietWhenSpeaking: Bool = false) {
         let names: [Int64: (String, CGEventFlags?)] = [
             55: (String(localized: "key.command", defaultValue: "command", comment: "A modifier key's name"), .maskCommand),
             54: (String(localized: "right command", comment: "A modifier key's name"), .maskCommand),
@@ -103,7 +107,12 @@ nonisolated final class KeyboardHandler: @unchecked Sendable {
         // Caps Lock has no held flag: named once a press, not again as it comes up.
         if Date().timeIntervalSince(lastModifierNamed.at) < 0.35, lastModifierNamed.code == code { return }
         lastModifierNamed = (code, Date())
-        onMain { Speech.speakMessage(name) }
+        onMain {
+            if code == 59 || code == 62 { Self.controlNameSaid = false }
+            if quietWhenSpeaking, let p = Speech.player, p.isBusy || p.isPaused { return }
+            if quietWhenSpeaking, code == 59 || code == 62 { Self.controlNameSaid = true }
+            Speech.speakMessage(name)
+        }
     }
 
     /// Command pressed and released alone: Alt in Windows, the menus.
@@ -423,6 +432,12 @@ nonisolated final class KeyboardHandler: @unchecked Sendable {
             // Keyboard help names a modifier key pressed on its own, as NVDA's input help does: it heard only keys
             // that type or run something (12 Oct 2026: "it isn't reading command, control, option").
             if InputManager.isInputHelpActive { announceModifier(code: code, flags: event.flags, capsIsTurnOver: settings.capsIsTurnOver) }
+            // Not Caps Lock (the TurnOver key), and not Control with Option (the other TurnOver key): they would name
+            // themselves before every command.
+            else if settings.speakModifierKeys, code != 57, !TurnOverMenu.anyOpen.value,
+                    !(settings.controlOptionIsTurnOver && event.flags.contains(.maskControl) && event.flags.contains(.maskAlternate)) {
+                announceModifier(code: code, flags: event.flags, capsIsTurnOver: settings.capsIsTurnOver, quietWhenSpeaking: true)
+            }
             if code == 57 { return settings.capsIsTurnOver ? nil : Unmanaged.passUnretained(event) }   // caps lock's own event: nobody sees it while it is the TurnOver key
             // Control pressed and released alone stops speech (NVDA: the control key cancels).
             let ctrl = event.flags.contains(.maskControl)
@@ -434,7 +449,12 @@ nonisolated final class KeyboardHandler: @unchecked Sendable {
                     // NVDA's stop (Shift pauses there, below) (12 Oct 2026).
                     controlAlone = false
                     let stop = settings.windowsKeys
-                    if !InputManager.isInputHelpActive { onMain { if stop { SayAll.stop(); Speech.cancel() } else { Speech.togglePause() } } }
+                    if !InputManager.isInputHelpActive {
+                        onMain {
+                            if Self.controlNameSaid { Self.controlNameSaid = false; return }
+                            if stop { SayAll.stop(); Speech.cancel() } else { Speech.togglePause() }
+                        }
+                    }
                 }
             } else { controlAlone = false }
             // While secure input is on no key between is heard, so Shift, Command and Option are not pressed alone then

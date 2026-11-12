@@ -11,6 +11,7 @@ nonisolated public struct KeySettings: Sendable {
     public var controlOptionIsTurnOver = true
     public var windowsKeys = false
     public var speakCommandKeys = true
+    public var speakModifierKeys = true
     public var optionCommander = true
     public var numpadCommander = false
     public var keypadCommands = true
@@ -25,6 +26,7 @@ nonisolated public struct KeySettings: Sendable {
     @MainActor public static func refresh() {
         let s = KeySettings(capsIsTurnOver: config.general.capsIsTurnOver, controlOptionIsTurnOver: config.general.controlOptionIsTurnOver,
                             windowsKeys: config.general.windowsKeys, speakCommandKeys: config.keyboard.speakCommandKeys,
+                            speakModifierKeys: config.keyboard.speakModifierKeys,
                             optionCommander: config.keyboard.optionCommander, numpadCommander: config.keyboard.numpadCommander,
                             keypadCommands: config.keyboard.keypadCommands)
         lock.lock(); _current = s; lock.unlock()

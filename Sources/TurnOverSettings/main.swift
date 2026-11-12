@@ -499,6 +499,7 @@ struct KeyboardView: View {
                 }
                 Toggle("New line on Return", isOn: model.bool("keyboard", "speakNewLine"))
                 Toggle("Command keys, as you press them", isOn: model.bool("keyboard", "speakCommandKeys"))
+                Toggle("Modifier keys (Command, Option, Control, Fn, Shift), as you press them", isOn: model.bool("keyboard", "speakModifierKeys"))
             }
             Section("Moving around") {
                 Toggle("VoiceOver keys move by groups", isOn: model.bool("general", "navigateByGroups"))
