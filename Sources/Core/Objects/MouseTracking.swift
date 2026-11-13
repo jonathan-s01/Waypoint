@@ -231,7 +231,10 @@ public enum MouseTracking {
             guard let p = cur.element(kAXParentAttribute), p.string(kAXRoleAttribute) != "AXWindow" else { break }
             // Only a row or cell can be the item said whole: a named group around a page is said once and must not
             // silence every text in it.
-            if ["AXRow", "AXCell"].contains(p.role) { up.append(p) }
+            // And only one with words of its own: a GitHub chat cell said just "cell" (4 characters) and silenced the
+            // message in it (13 Nov 2026, from the log).
+            if ["AXRow", "AXCell"].contains(p.role),
+               [kAXTitleAttribute, kAXDescriptionAttribute, kAXValueAttribute].contains(where: { !(p.string($0) ?? "").isEmpty }) { up.append(p) }
             cur = p
         }
         return up
