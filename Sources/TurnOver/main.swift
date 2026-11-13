@@ -87,6 +87,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// it can be taken in a piece at a time (12 Oct 2026: "one long list"). Ordinary alerts, so VoiceOver
     /// (still running) reads each one.
     private func welcomeOnFirstRun() {
+        // Off by its own key, nothing reads the pages and VoiceOver is not started for them: they wait for a start that is on.
+        guard !WaypointPause.isPaused else { Log.info("welcome: Waypoint is off; the pages wait"); return }
         // Coexisting, VoiceOver must be on for the welcome and for every app TurnOver doesn't read (the code review, 17 Oct 2026).
         if Coexist.on, !NSWorkspace.shared.isVoiceOverEnabled { Log.info("welcome: VoiceOver is off; turning it on first"); HandOver.turnVoiceOverOn() }
         let key = "welcomed-\(Edition.version)"
@@ -209,6 +211,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
         let reason = NSAppleEventManager.shared().currentAppleEvent?.attributeDescriptor(forKeyword: AEKeyword(kAEQuitReason))?.enumCodeValue ?? 0
         let systemReasons: [OSType] = [OSType(kAELogOut), OSType(kAEReallyLogOut), OSType(kAEShowRestartDialog), OSType(kAEShowShutdownDialog), OSType(kAERestart), OSType(kAEShutDown)]
+        // A deliberate quit ends "Waypoint off": VoiceOver comes back below, and the next start is on. A logout or
+        // restart keeps it, so Waypoint is still off at the next login.
+        if !systemReasons.contains(reason) { WaypointPause.set(false) }
         if !systemReasons.contains(reason), !FileManager.default.fileExists(atPath: AppPaths.file("restarting").path) {
             DistributedNotificationCenter.default().postNotificationName(Notification.Name("com.turnover.quitting"), object: nil, userInfo: nil, deliverImmediately: true)
         }
@@ -236,6 +241,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let flag = AppPaths.file("restarting")
         if FileManager.default.fileExists(atPath: flag.path) { try? FileManager.default.removeItem(at: flag); Log.info("restart: VoiceOver left as it is"); return }
         guard !HandOver.voiceOverReading else { return }
+        guard !WaypointPause.isPaused else { Log.info("quitting: Waypoint is off, so VoiceOver is left as it is (a logout or restart)"); return }
         guard swapAtQuit.value else { Log.info("quitting: VoiceOver left as it is (the swap is off)"); return }
         // macOS's flag can stay on with VoiceOver gone (quit by script, or crashed): then it is started, not toggled,
         // or the toggle turns the flag off and nobody speaks (a code review, 25 Oct 2026).

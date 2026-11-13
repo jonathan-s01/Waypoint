@@ -227,6 +227,7 @@ final class TurnOverApp {
         // Started while VoiceOver has the Mac (a login, a restart): no words, VoiceOver is talking, but a tone ().
         if NSWorkspace.shared.isVoiceOverEnabled { DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { Tones.startup() } }
         watchForInputMonitoring()
+        WaypointPause.listen { [weak self] in self?.toggleWaypoint() }
         // The swap turned on in Settings while TurnOver waits for VoiceOver (the swap was off): the hand-over it would
         // have made at launch, now (25 Oct 2026).
         SettingsBridge.onSwapChanged = { [weak self] on in
@@ -238,7 +239,12 @@ final class TurnOverApp {
         // The front application at launch may already be one of TurnOver's.
         // Not coexisting, the launch hand-over turns VoiceOver off: only with the swap on, else neither changes the other.
         let launchMayTurnVoiceOverOff = Coexist.on || config.applications.swapWithVoiceOver
-        if let front = NSWorkspace.shared.frontmostApplication, let b = front.bundleIdentifier, config.applications.handsOverAtLaunch, launchMayTurnVoiceOverOff,
+        if WaypointPause.isPaused, !Coexist.on {
+            // Off when it last ran (Right Option, Right Shift, slash): still off, and VoiceOver is not started.
+            lead.suspended = true
+            Log.info("start: Waypoint is off (paused before it last ran); no take-over and VoiceOver is not started")
+            Watchdog.sayOutside(String(localized: "Waypoint is off. Press Right Option, Right Shift and slash to turn it on.", comment: "Spoken message at start while Waypoint was left off"))
+        } else if let front = NSWorkspace.shared.frontmostApplication, let b = front.bundleIdentifier, config.applications.handsOverAtLaunch, launchMayTurnVoiceOverOff,
            lead.shouldLead(b), NSWorkspace.shared.isVoiceOverEnabled || Coexist.on {
             Log.info("start: \(b) is TurnOver's and VoiceOver is on; handing over in a second")
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
@@ -495,6 +501,7 @@ final class TurnOverApp {
         guard keyboard.isReady(generation) else { return }
         Watchdog.shared.active = true
         Core.activate()
+        WaypointPause.listen { [weak self] in self?.toggleWaypoint() }   // a no-op once listening; tries again if the permission came late
         // Core setup can take time. A failed tap during it must not lead to muting VoiceOver afterwards.
         guard inputActivation.confirm(generation, inputReady: keyboard.isReady(generation)) else { inputUnavailable(generation); return }
         KeyboardHandler.bypass = false
@@ -571,6 +578,49 @@ final class TurnOverApp {
             }
         }
     }
+    /// Right Option + Right Shift + slash: Waypoint off or on. Off is no screen reader at all (VoiceOver is not
+    /// started; HandOver and the lead watcher look at WaypointPause), and it is remembered across restarts.
+    /// While coexisting, the existing coexist switch does the same job: VoiceOver is the reader there.
+    private func toggleWaypoint() {
+        if Coexist.on { toggleCoexist(); return }
+        inputActivation.readerSelected()
+        if WaypointPause.isPaused { resumeWaypoint() } else { pauseWaypoint() }
+    }
+
+    private func pauseWaypoint() {
+        Log.info("waypoint off by its key; VoiceOver is not started")
+        WaypointPause.set(true)
+        lead.suspended = true
+        // Said before the keys are let go, in the reader's own voice; a moment to finish it.
+        Speech.speakMessage(String(localized: "\(Edition.productName) off", comment: "Spoken message: Waypoint turned off by its key"))
+        WaypointPause.tone(on: false)
+        onMain(after: 2.0) { [weak self] in
+            guard let self, WaypointPause.isPaused else { Log.info("waypoint: on again before it let go; it stays on"); return }
+            self.deactivate(chime: false)
+        }
+    }
+
+    private func resumeWaypoint() {
+        Log.info("waypoint on by its key")
+        WaypointPause.set(false)
+        lead.suspended = false
+        lead.yieldedToVoiceOverByHand = false
+        WaypointPause.tone(on: true)
+        let words = String(localized: "\(Edition.productName) on", comment: "Spoken message: Waypoint turned on by its key")
+        if active {
+            // On again within the moment before it let go: it never stopped.
+            Speech.speakMessage(words)
+        } else if NSWorkspace.shared.isVoiceOverEnabled, config.applications.swapWithVoiceOver {
+            // VoiceOver was started by hand while Waypoint was off: the usual swap takes the Mac back.
+            LeadWatcher.nextTakeoverWords = words
+            lead.handOver(voiceOverOn: false)
+        } else {
+            LeadWatcher.nextTakeoverWords = words
+            activate()
+        }
+        refreshWindowsLayer()
+    }
+
     /// Quit from the menu while coexisting: VoiceOver gets its apps back first, then TurnOver goes.
     func quitRestoringVoiceOver() {
         lead.suspended = true
@@ -589,7 +639,7 @@ final class TurnOverApp {
         Log.info("quit: the keyboard tap stopped")
     }
 
-    private func deactivate() {
+    private func deactivate(chime: Bool = true) {
         SecureInputWatch.stop()
         Watchdog.shared.active = false
         let wasActive = active
@@ -597,7 +647,7 @@ final class TurnOverApp {
         KeyboardHandler.bypass = true
         keyboard.stop()
         if Coexist.on { VoiceOverTap.set(false, why: "TurnOver hands back") }
-        if wasActive {
+        if wasActive, chime {
             // The falling chime as VoiceOver takes over (words would collide with VoiceOver's own "VoiceOver on").
             if config.general.handOverChimes, !config.general.handOverNothing { Tones.handBack() }
         }

@@ -8,6 +8,10 @@ Changes made in the Waypoint fork, on top of TurnOver 2.0, build 24.1.
 
 ### New to try
 
+- Right Option, Right Shift and / turn Waypoint off and on. Off, nothing reads and VoiceOver is not started; it stays off
+  after a restart or login. It says "Waypoint off" and "Waypoint on", with a falling and a rising tone. Command Control
+  Period still quits Waypoint and hands the Mac to VoiceOver. While off, the lock screen and password prompts have no
+  speech: turn Waypoint on first, or use Command Control Period.
 - Areas: Right Option 0 to 9 jump to the parts of any window (0 is the app's bars and every toolbar button, as a
   list). VO-Option-O, M, A and F go to the area's tools, the main content, the first list and the search field. The
   Tools list stays open and keeps your place. See docs/AREAS.md.

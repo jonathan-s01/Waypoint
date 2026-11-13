@@ -15,6 +15,9 @@ the apps you use every day more simply than VoiceOver does. It runs on macOS 14 
 - **Command Control Period** starts TurnOver, or stops it, from anywhere. A rising chime means on, a falling one off.
   While TurnOver is on it reads everything, password fields and macOS's own prompts included, and VoiceOver is off.
   When TurnOver stops, VoiceOver comes back.
+- **Right Option, Right Shift and slash** turns Waypoint off or on without starting VoiceOver. Off, nothing reads, and it
+  stays off after a restart. Nothing speaks at the lock screen or in password prompts while it is off, so turn it on
+  first, or use Command Control Period to hand the Mac to VoiceOver.
 - **Command Control Shift T** keeps the app in front with VoiceOver, or gives it back to TurnOver, and remembers it.
 - To start TurnOver when you log in: the TurnOver menu, Settings, Starting, Open TurnOver at login.
 

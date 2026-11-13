@@ -45,6 +45,7 @@ enum HandOver {
     /// TurnOver doesn't go before VoiceOver has come (the same review). Polled, as turnVoiceOverOn waits.
     nonisolated static func bringVoiceOverBack(_ why: String, waitUpTo: Double = 0) {
         if voiceOverReading { return }
+        if WaypointPause.isPaused { Log.info("\(why): Waypoint is off; VoiceOver is left as it is"); return }
         // Opened, not toggled, whichever way the flag stands: the shortcut can stop working (turnVoiceOverOn), and with
         // the flag on but VoiceOver gone the toggle would turn the flag off.
         Log.info("\(why): \(NSWorkspace.shared.isVoiceOverEnabled ? "VoiceOver's flag is on but it isn't running" : "VoiceOver off"); opening VoiceOver")
@@ -70,6 +71,7 @@ enum HandOver {
     }
 
     nonisolated static func postToggle() {
+        if WaypointPause.isPaused { return }
         let s = toggleShortcut()
         let src = CGEventSource(stateID: .hidSystemState)
         func post(_ code: CGKeyCode, _ down: Bool, _ flags: CGEventFlags) {
@@ -106,6 +108,7 @@ enum HandOver {
     /// VoiceOver on, safely: never the toggle while VoiceOver is changing, never when it is on; checked after, and
     /// toggled once more only if VoiceOver is wholly off. (Opening VoiceOver.app does not start it, measured.) Any thread.
     nonisolated static func turnVoiceOverOn() {
+        if WaypointPause.isPaused { Log.info("hand-over: Waypoint is off; VoiceOver is left as it is"); return }
         waitForVoiceOverToSettle()
         // Reading, not just its flag: the flag alone stays on after VoiceOver crashed (a code review, 25 Oct 2026).
         if voiceOverReading { return }
@@ -137,6 +140,7 @@ enum HandOver {
 
     /// VoiceOver.app opened, which turns VoiceOver on (macOS 14 to 27): from any thread, without waiting.
     nonisolated static func openVoiceOver(_ why: String) {
+        if WaypointPause.isPaused { return }
         NSWorkspace.shared.openApplication(at: URL(fileURLWithPath: "/System/Library/CoreServices/VoiceOver.app"), configuration: NSWorkspace.OpenConfiguration()) { _, error in
             if let error { Log.error("\(why): VoiceOver didn't open: \(error.localizedDescription)") }
         }
