@@ -51,6 +51,10 @@ nonisolated package struct PointerReading: @unchecked Sendable {
     // does not touch it again: one owner at a time.
     package let element: AXUIElement
     package let text: String
+    /// The paragraph the element is in, when it was looked for (the setting is on and the element is in a web page).
+    package var block: AXUIElement?
+    /// Whether the text is the whole paragraph's, so the pieces of it are not said again one by one.
+    package var readsBlock = false
 }
 
 nonisolated package enum PointerReader {
@@ -133,7 +137,7 @@ nonisolated package enum PointerReader {
 
     /// The reading of an element, or nil when the deadline has already gone. Runs on the lookup queue. `countsGroups`
     /// is the "moves by groups" setting, read on main by the caller.
-    package static func read(_ e: AXUIElement, deadline: Date, countsGroups: Bool = true) -> PointerReading? {
+    package static func read(_ e: AXUIElement, deadline: Date, countsGroups: Bool = true, wholeParagraph: Bool = false) -> PointerReading? {
         guard Date() < deadline else { return nil }
         AXUIElementSetMessagingTimeout(e, messagingTimeout)
         var s = snapshot(e)
@@ -144,7 +148,17 @@ nonisolated package enum PointerReader {
             var count: CFIndex = 0
             if AXUIElementGetAttributeValueCount(e, kAXChildrenAttribute as CFString, &count) == .success, Date() < deadline { s.groupItemCount = count }
         }
-        return PointerReading(element: e, text: compose(s))
+        var block: AXUIElement?
+        var readsBlock = false
+        if wholeParagraph, ["AXStaticText", "AXLink"].contains(s.axRole), Date() < deadline,
+           let p = PointerContext.paragraph(of: e, deadline: deadline) {
+            block = p.element
+            if s.axRole == "AXStaticText", !p.insideLink, Date() < deadline, let text = PointerContext.paragraphText(p.element, deadline: deadline) {
+                s.value = text
+                readsBlock = true
+            }
+        }
+        return PointerReading(element: e, text: compose(s), block: block, readsBlock: readsBlock)
     }
 
     private static func snapshot(_ e: AXUIElement) -> PointerSnapshot {

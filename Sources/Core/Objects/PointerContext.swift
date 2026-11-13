@@ -30,6 +30,87 @@ nonisolated package enum PointerContext {
         return words + (".,;:!?…".contains(last) ? " " : ". ") + tail
     }
 
+    // MARK: Whole paragraphs
+    // In a web page a paragraph is a group of text pieces, with the bold, emphasized and linked words as pieces of their
+    // own, so a sweep of the pointer along a line stopped at each one. With the setting on, a plain text reads as the
+    // paragraph around it (Chrome 13 Nov 2026: an unnamed group of static texts, links, and groups with a subrole
+    // ending in StyleGroup for emphasis; a heading holds its pieces the same way).
+
+    /// A paragraph longer than this is not read whole: the piece under the pointer is said as before.
+    static let paragraphLimit = 1000
+    /// The most pieces joined into one paragraph.
+    static let paragraphPieces = 80
+    /// How far up from a paragraph the web page is looked for. Other apps' text is never read as a paragraph.
+    static let webAreaLevels = 30
+
+    package enum BlockStep: Equatable { case inline, link, block, stop }
+
+    /// How an element above a text counts on the way to its paragraph: a link or emphasis group is part of the
+    /// paragraph's own text, a group, heading, list item or cell is the paragraph, and anything else ends the look.
+    package static func blockStep(role: String, subrole: String) -> BlockStep {
+        if role == "AXLink" { return .link }
+        if subrole.hasSuffix("StyleGroup") { return .inline }
+        if ["AXGroup", "AXHeading", "AXListItem", "AXCell"].contains(role) || subrole == "AXListItem" { return .block }
+        return .stop
+    }
+
+    /// The paragraph a text or link is part of, and whether the way to it went through a link. Nil in any app but a web
+    /// page, and when the structure is not the usual one.
+    package static func paragraph(of e: AXUIElement, deadline: Date) -> (element: AXUIElement, insideLink: Bool)? {
+        var link = false
+        var cur = e
+        for _ in 1...levels {
+            guard Date() < deadline, let p = cur.element(kAXParentAttribute) else { return nil }
+            AXUIElementSetMessagingTimeout(p, PointerReader.messagingTimeout)
+            let a = p.attrs([kAXRoleAttribute, kAXSubroleAttribute])
+            let role = (a[kAXRoleAttribute] as? String) ?? "", subrole = (a[kAXSubroleAttribute] as? String) ?? ""
+            switch blockStep(role: role, subrole: subrole) {
+            case .link: link = true
+            case .inline: break
+            case .block: return isInWebPage(p, deadline: deadline) ? (p, link) : nil
+            case .stop: return nil
+            }
+            cur = p
+        }
+        return nil
+    }
+
+    private static func isInWebPage(_ e: AXUIElement, deadline: Date) -> Bool {
+        var cur = e
+        for _ in 1...webAreaLevels {
+            guard Date() < deadline, let p = cur.element(kAXParentAttribute) else { return false }
+            switch p.role {
+            case "AXWebArea": return true
+            case "AXWindow", "AXApplication": return false
+            default: cur = p
+            }
+        }
+        return false
+    }
+
+    /// The words of a paragraph, in order, or nil when it is too long, has none, or the deadline came first.
+    package static func paragraphText(_ block: AXUIElement, deadline: Date) -> String? {
+        var out = ""
+        var pieces = 0
+        var ok = true
+        func walk(_ e: AXUIElement, depth: Int) {
+            for c in e.elements(kAXChildrenAttribute) {
+                guard ok, Date() < deadline, pieces < paragraphPieces, out.count <= paragraphLimit else { ok = false; return }
+                AXUIElementSetMessagingTimeout(c, PointerReader.messagingTimeout)
+                let a = c.attrs([kAXRoleAttribute, kAXSubroleAttribute, kAXValueAttribute])
+                let role = (a[kAXRoleAttribute] as? String) ?? "", subrole = (a[kAXSubroleAttribute] as? String) ?? ""
+                if role == "AXStaticText" {
+                    if let v = a[kAXValueAttribute] as? String { out += v; pieces += 1 }
+                } else if depth < 3, blockStep(role: role, subrole: subrole) == .link || blockStep(role: role, subrole: subrole) == .inline {
+                    walk(c, depth: depth + 1)
+                }
+            }
+        }
+        walk(block, depth: 0)
+        let text = out.split(whereSeparator: \.isWhitespace).joined(separator: " ")
+        return ok && !text.isEmpty && text.count <= paragraphLimit ? text : nil
+    }
+
     package enum Kind: Equatable { case control, container, none }
 
     /// How an element above the text counts. `distance` is how many levels above the text it is (1 is the parent). A

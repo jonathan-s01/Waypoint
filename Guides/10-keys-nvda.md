@@ -92,6 +92,7 @@ Switch styles with Command Control Comma, then K. TurnOver's own commands behind
 | TurnOver Shift Right bracket | Moves to the next item, in and out of groups (NVDA+Shift+Right Bracket) |
 | TurnOver Control Shift Down arrow | Lowers the speech setting (NVDA+Shift+Control+Down Arrow) |
 | TurnOver Control Shift Left arrow | Previous speech setting (NVDA+Shift+Control+Left Arrow) |
+| TurnOver Control Shift M | Mouse reads the whole paragraph on or off: a web page's text under the pointer is read as its paragraph, not piece by piece (Waypoint) |
 | TurnOver Control Shift Page down | Lowers the speech setting in a large step (NVDA+Shift+Control+Page Down) |
 | TurnOver Control Shift Page up | Raises the speech setting in a large step (NVDA+Shift+Control+Page Up) |
 | TurnOver Control Shift Right arrow | Next speech setting: voice, rate, volume, punctuation (NVDA+Shift+Control+Right Arrow) |

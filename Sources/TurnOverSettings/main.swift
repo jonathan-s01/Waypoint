@@ -586,6 +586,8 @@ struct ItemsView: View {
             Toggle("Read what is under the mouse pointer as it moves", isOn: model.bool("presentation", "mouseTracking"))
             Text("The pointer is not read while a page or Say All is being read out. If pages read themselves when they open, turn off \"Read a page through as it opens\" in Web pages to keep hearing the pointer.").font(.caption)
             Toggle("Mouse pointer moves the review cursor", isOn: model.bool("presentation", "mouseMovesCursor"))
+            Toggle("Mouse pointer reads the whole paragraph", isOn: model.bool("presentation", "mouseReadsParagraphs"))
+            Text("In a web page, a plain text is read as its whole paragraph or heading, so bold, emphasized or linked words in it do not start a new announcement. A link in the paragraph is still said as a link, with its role.").font(.caption)
             Toggle("Mouse pointer interrupts other speech", isOn: model.bool("presentation", "mouseInterruptsSpeech"))
             Text("Off, only the pointer's own speech gives way and a notification is not cut off. On, the pointer is heard at once, even while something else is talking.").font(.caption)
             Toggle("Say which plugin an app has as it comes to the front", isOn: model.bool("presentation", "announcePlugins"))

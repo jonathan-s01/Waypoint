@@ -88,4 +88,13 @@ func pointerReaderTests() {
         expect(PointerReader.clip(long), long)
         expect(PointerReader.clip(String(repeating: "word ", count: 6000)).count <= 20000, true)
     }
+
+    test("pointer paragraphs: links and emphasis are part of the paragraph, groups and headings are the paragraph") {
+        expect(PointerContext.blockStep(role: "AXLink", subrole: ""), .link)
+        expect(PointerContext.blockStep(role: "AXGroup", subrole: "AXEmphasisStyleGroup"), .inline)
+        expect(PointerContext.blockStep(role: "AXGroup", subrole: ""), .block)
+        expect(PointerContext.blockStep(role: "AXHeading", subrole: ""), .block)
+        expect(PointerContext.blockStep(role: "AXButton", subrole: ""), .stop, "a button's text is not a paragraph")
+        expect(PointerContext.blockStep(role: "AXWebArea", subrole: ""), .stop)
+    }
 }

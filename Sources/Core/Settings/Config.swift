@@ -524,8 +524,12 @@ public struct Config: Codable {
         /// pointer is heard at once, not after whatever else is talking (a tester, 10 Nov 2026: other speech kept
         /// talking over the pointer).
         public var mouseInterruptsSpeech = true   // Waypoint: on, as VoiceOver; upstream ships it off (13 Nov 2026: Copilot's chat kept reading over the pointer)
+        /// With mouse tracking, a plain text in a web page reads its whole paragraph (or heading), so a bold, emphasized
+        /// or linked word in the middle does not start a new announcement; a link in it is still said as a link. Off:
+        /// each piece under the pointer is said on its own (a tester, 13 Nov 2026).
+        public var mouseReadsParagraphs = false
         public init() {}
-        enum Keys: String, CodingKey { case verbosity, verbosityByApp, reportObjectDescriptions, reportKeyboardShortcuts, reportObjectPositionInformation, reportDynamicContentChanges, speakHints, reportNotifications, announcePlugins, progressBars, mouseTracking, mouseMovesCursor, mouseInterruptsSpeech }
+        enum Keys: String, CodingKey { case verbosity, verbosityByApp, reportObjectDescriptions, reportKeyboardShortcuts, reportObjectPositionInformation, reportDynamicContentChanges, speakHints, reportNotifications, announcePlugins, progressBars, mouseTracking, mouseMovesCursor, mouseInterruptsSpeech, mouseReadsParagraphs }
         // Each setting falls back on its own: a settings file from before speakHints keeps the others.
         public init(from decoder: Decoder) throws {
             let c = try decoder.container(keyedBy: Keys.self)
@@ -545,6 +549,7 @@ public struct Config: Codable {
             mouseTracking = (try? c.decodeIfPresent(Bool.self, forKey: .mouseTracking)) ?? false
             mouseMovesCursor = (try? c.decodeIfPresent(Bool.self, forKey: .mouseMovesCursor)) ?? true
             mouseInterruptsSpeech = (try? c.decodeIfPresent(Bool.self, forKey: .mouseInterruptsSpeech)) ?? true
+            mouseReadsParagraphs = (try? c.decodeIfPresent(Bool.self, forKey: .mouseReadsParagraphs)) ?? false
         }
         public func encode(to encoder: Encoder) throws {
             var c = encoder.container(keyedBy: Keys.self)
@@ -555,6 +560,7 @@ public struct Config: Codable {
             try c.encode(announcePlugins, forKey: .announcePlugins); try c.encode(progressBars, forKey: .progressBars)
             try c.encode(mouseTracking, forKey: .mouseTracking); try c.encode(mouseMovesCursor, forKey: .mouseMovesCursor)
             try c.encode(mouseInterruptsSpeech, forKey: .mouseInterruptsSpeech)
+            try c.encode(mouseReadsParagraphs, forKey: .mouseReadsParagraphs)
         }
     }
     public struct DocumentFormatting: Codable {

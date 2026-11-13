@@ -82,6 +82,47 @@ func mouseTrackingTests() {
         expect(old?.presentation.mouseInterruptsSpeech, true, "a file from before the setting existed")
     }
 
+    test("mouse paragraphs: off unless asked for, and kept in the file once set") {
+        expect(Config().presentation.mouseReadsParagraphs, false)
+        var c = Config()
+        c.presentation.mouseReadsParagraphs = true
+        let kept = try? JSONDecoder().decode(Config.self, from: JSONEncoder().encode(c))
+        expect(kept?.presentation.mouseReadsParagraphs, true)
+        let old = try? JSONDecoder().decode(Config.self, from: Data("{\"presentation\":{\"mouseTracking\":true}}".utf8))
+        expect(old?.presentation.mouseReadsParagraphs, false, "a file from before the setting existed")
+    }
+
+    test("mouse paragraphs: the pieces of one paragraph are said once") {
+        var t = PointerTracker<String>()
+        expect(t.answer("text 1", block: "P", readsBlock: true), .say, "the first piece reads the paragraph")
+        expect(t.answer("bold", block: "P", readsBlock: true), .nothing, "a bold piece of it is silent")
+        expect(t.answer("text 2", block: "P", readsBlock: true), .nothing, "so is the text after")
+        expect(t.answer("text 3", block: "Q", readsBlock: true), .say, "another paragraph")
+    }
+
+    test("mouse paragraphs: a link in the paragraph is said as a link, and the text after it stays silent") {
+        var t = PointerTracker<String>()
+        expect(t.answer("text 1", block: "P", readsBlock: true), .say)
+        expect(t.answer("link", block: "P"), .say, "the link says itself and its role")
+        expect(t.answer("text 2", block: "P", readsBlock: true), .nothing, "the paragraph was already read")
+    }
+
+    test("mouse paragraphs: entering a paragraph at its link reads the paragraph at the next plain text") {
+        var t = PointerTracker<String>()
+        expect(t.answer("button"), .say)
+        expect(t.answer("link", block: "P"), .say)
+        expect(t.answer("text 2", block: "P", readsBlock: true), .say, "not yet read")
+    }
+
+    test("mouse paragraphs: the gap between lines does not make the paragraph new, but leaving it does") {
+        var t = PointerTracker<String>()
+        expect(t.answer("text 1", block: "P", readsBlock: true), .say)
+        expect(t.answer(nil), .blank)
+        expect(t.answer("text 2", block: "P", readsBlock: true), .nothing, "back in the same paragraph")
+        expect(t.answer("Save"), .say, "something else")
+        expect(t.answer("text 1", block: "P", readsBlock: true), .say, "back to the paragraph after it")
+    }
+
     test("mouse tracking: a file with the removed blank-sound and watchdog settings still loads") {
         let old = try? JSONDecoder().decode(Config.self, from: Data("{\"presentation\":{\"mouseTracking\":true,\"mouseEmptySound\":false,\"mouseWatchdog\":false}}".utf8))
         expect(old?.presentation.mouseTracking, true)
