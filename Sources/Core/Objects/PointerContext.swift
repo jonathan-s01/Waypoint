@@ -20,6 +20,16 @@ nonisolated package enum PointerContext {
     /// walk ends at the first one.
     private static let containers: Set<String> = ["AXRow", "AXCell"]
 
+    /// The words, a pause, then what they are inside. A comma was too short to hear the role as a separate thing, and
+    /// the speech has no pause control, so a full stop stands for it (a tester, 13 Nov 2026); words that already end in
+    /// punctuation have their own pause.
+    package static func said(_ words: String, then context: [String]) -> String {
+        guard !context.isEmpty else { return words }
+        let tail = context.joined(separator: ", ")
+        guard let last = words.last else { return tail }
+        return words + (".,;:!?…".contains(last) ? " " : ". ") + tail
+    }
+
     package enum Kind: Equatable { case control, container, none }
 
     /// How an element above the text counts. `distance` is how many levels above the text it is (1 is the parent). A
@@ -53,7 +63,7 @@ nonisolated package enum PointerContext {
             guard Date() < deadline, let p = cur.element(kAXParentAttribute) else { break }
             AXUIElementSetMessagingTimeout(p, PointerReader.messagingTimeout)
             let a = p.attrs([kAXRoleAttribute, kAXSubroleAttribute, kAXRoleDescriptionAttribute, kAXTitleAttribute,
-                             kAXDescriptionAttribute, "AXHeadingLevel"])
+                             kAXDescriptionAttribute, kAXValueAttribute, "AXHeadingLevel"])
             func text(_ k: String) -> String { (a[k] as? String) ?? "" }
             let role = text(kAXRoleAttribute)
             if role == "AXWindow" || role == "AXWebArea" || role == "AXApplication" { break }
@@ -62,7 +72,7 @@ nonisolated package enum PointerContext {
             switch kind(role: role, subrole: subrole, named: named, distance: distance) {
             case .control:
                 let w = word(role: role, subrole: subrole, roleDescription: text(kAXRoleDescriptionAttribute),
-                             headingLevel: (a["AXHeadingLevel"] as? NSNumber)?.intValue)
+                             headingLevel: ((a["AXHeadingLevel"] ?? a[kAXValueAttribute]) as? NSNumber)?.intValue)
                 if !w.isEmpty, !found.contains(w) { found.append(w) }
             case .container:
                 container = word(role: role, subrole: subrole, roleDescription: text(kAXRoleDescriptionAttribute), headingLevel: nil)

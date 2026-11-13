@@ -74,7 +74,7 @@ nonisolated package enum PointerReader {
     /// The spoken text: name, role, value, states, and a group's count.
     package static func compose(_ s: PointerSnapshot) -> String {
         // A text is its words ("Home", not "Home, text"). Never a secure field's.
-        if s.axRole == "AXStaticText", !s.isSecure, !s.value.isEmpty { return ([s.value] + s.context).joined(separator: ", ") }
+        if s.axRole == "AXStaticText", !s.isSecure, !s.value.isEmpty { return PointerContext.said(s.value, then: s.context) }
         let name = [s.title, s.description].first { !$0.isEmpty } ?? ""
         var parts: [String] = []
         if !name.isEmpty { parts.append(name) }
@@ -86,9 +86,7 @@ nonisolated package enum PointerReader {
            !(s.number != nil && numberStates.contains(s.axRole)) { parts.append(s.value) }
         parts.append(contentsOf: stateWords(s))
         if let n = s.groupItemCount, s.isGroup { parts.append(Phrases.items(n)) }
-        parts.append(contentsOf: s.context)
-        if parts.isEmpty { return role }
-        return parts.joined(separator: ", ")
+        return PointerContext.said(parts.isEmpty ? role : parts.joined(separator: ", "), then: s.context)
     }
 
     /// `text` cut to `limit` characters at the last space before it, so a word is never cut in two.
@@ -165,13 +163,15 @@ nonisolated package enum PointerReader {
             if let str = v as? String { s.value = clip(str) }
             else if let n = v as? NSNumber {
                 s.number = n.intValue
-                if !numberStates.contains(s.axRole), s.subrole != "AXSwitch", s.subrole != "AXToggle" { s.value = n.stringValue }
+                // A web heading holds its level as its value.
+                if s.axRole == "AXHeading" { s.headingLevel = n.intValue }
+                else if !numberStates.contains(s.axRole), s.subrole != "AXSwitch", s.subrole != "AXToggle" { s.value = n.stringValue }
             }
         }
         s.enabled = (a[kAXEnabledAttribute] as? Bool) ?? true
         s.selected = (a[kAXSelectedAttribute] as? Bool) ?? false
         s.expanded = a[kAXExpandedAttribute] as? Bool
-        s.headingLevel = (a["AXHeadingLevel"] as? NSNumber)?.intValue
+        if let level = (a["AXHeadingLevel"] as? NSNumber)?.intValue { s.headingLevel = level }
         return s
     }
 
