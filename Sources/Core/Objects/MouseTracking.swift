@@ -183,7 +183,10 @@ public enum MouseTracking {
         var cur = e
         for _ in 0..<4 {
             guard let p = cur.element(kAXParentAttribute), p.string(kAXRoleAttribute) != "AXWindow" else { break }
-            up.append(p); cur = p
+            // Only a row or cell can be the item said whole: a named group around a page is said once and must not
+            // silence every text in it.
+            if ["AXRow", "AXCell"].contains(p.role) { up.append(p) }
+            cur = p
         }
         return up
     }
@@ -220,6 +223,7 @@ public enum MouseTracking {
         let waited = Date().timeIntervalSince(found.queued)
         if waited > 0.15 { Log.io("mouse tracking: the look came back \(Int(waited * 1000)) ms after it was asked for (\(describe(found.element)))") }
         let inside = found.ancestors.map { Element(element: $0) }
+        if !inside.isEmpty, tracker.spokenIs(in: inside) { Log.io("mouse tracking: silent, inside the row just said (\(describe(found.element)))") }
         switch tracker.answer(found.blank ? nil : found.element.map { Element(element: $0) }, insideSpoken: tracker.spokenIs(in: inside)) {
         case .nothing: break
         case .blank:
