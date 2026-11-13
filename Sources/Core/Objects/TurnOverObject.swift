@@ -546,7 +546,7 @@ open class TurnOverObject: ScriptableObject {
         let editable = hasNavigableText && !states.contains(.readOnly)
         if inWord, hasNavigableText, Speech.typedWordSoFar.isEmpty, !Speech.typedWordWasEdited {
             // (A key held back starts its word where the field put it, not at the caret, which is past it by now.)
-            Self.wordStart = Self.replayWordStart ?? (try? liveField.makeTextInfo(.caret)).map { Self.wordStart(caret: $0.start, expected: Self.nextWordStart) }
+            Self.wordStart = Self.replayWordStart ?? (try? liveField.makeTextInfo(.caret)).map { Self.wordStart(caret: $0.start, expected: Date().timeIntervalSince(Self.nextWordStartAt) < 3 ? Self.nextWordStart : nil) }
             Self.replayWordStart = nil   // only for the first word after the word that waited
         }
         guard !inWord, ch != "\u{8}", hasNavigableText, !Speech.typedWordSoFar.isEmpty || Speech.typedWordWasEdited else {
@@ -558,7 +558,11 @@ open class TurnOverObject: ScriptableObject {
         Self.waitingForField = true
         let start = Speech.typedWordWasEdited ? nil : Self.wordStart   // (a Backspace may have gone back past it)
         let began = Date()
-        let attempts = Self.fieldWaitAttempts(sinceMiss: Date().timeIntervalSince(Self.lastFieldMiss))
+        let sinceMiss = Date().timeIntervalSince(Self.lastFieldMiss)
+        let attempts = Self.fieldWaitAttempts(sinceMiss: sinceMiss)
+        // A word typed over after a Backspace has no known start. In a field that missed lately (a lagging caret), its
+        // ending key is looked for from just before the caret on, and not only as the last thing read.
+        let relaxed = start == nil && sinceMiss < 20
         func attempt(_ n: Int) {
             var found = (taken: false, word: String?.none, next: Int?.none)
             var nextStart: Int?
@@ -566,15 +570,16 @@ open class TurnOverObject: ScriptableObject {
             if let info = try? liveField.makeTextInfo(.caret) {
                 let from = max(0, info.start - 80)
                 // (A field whose caret trails its text puts the key just past the caret: read a few characters on.)
-                let before = info.textRange(from, info.start + (start == nil ? 0 : Self.caretLagReach))
-                found = Speech.fieldWord(endedBy: ch, before: before, notBefore: start.map { $0 - from })
+                let before = info.textRange(from, info.start + (start == nil && !relaxed ? 0 : Self.caretLagReach))
+                found = Speech.fieldWord(endedBy: ch, before: before, notBefore: start.map { $0 - from } ?? (relaxed ? max(0, info.start - 1 - from) : nil))
                 nextStart = found.next.map { $0 + from }
                 looked = "the word began at \(start.map(String.init) ?? "?"), the caret is at \(info.start), \(before.count) characters read, the last is \(before.last.map { $0 == ch ? "the key" : "not the key" } ?? "none")"
-                if found.taken { Self.nextWordStart = nextStart }
+                if found.taken { Self.nextWordStart = nextStart; Self.nextWordStartAt = Date() }
             }
             if !found.taken, n < attempts { DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) { attempt(n + 1) }; return }
             if !found.taken {
                 Self.lastFieldMiss = Date()
+                Self.nextWordStart = nil   // (the word after a missed one starts where the caret says, not after the last)
                 let f = liveField.element
                 let direct = "value \(f.string(kAXValueAttribute).map { String($0.count) } ?? "unreadable") characters, selection \(cfRange(f.attr(kAXSelectedTextRangeAttribute)).map { "\($0.location)+\($0.length)" } ?? "unreadable")"
                 Log.io("typed word: the field hadn't taken the key after \(Int(Date().timeIntervalSince(began) * 1000)) ms and \(n + 1) looks; the letters typed (\(looked); read directly: \(direct))")
@@ -605,6 +610,7 @@ open class TurnOverObject: ScriptableObject {
     /// Where the field put the word after the one last ended; the next word begins there when the caret is at it or
     /// just short of it (the lagging caret above), not where that caret says: it read the word before.
     private static var nextWordStart: Int?
+    private static var nextWordStartAt = Date.distantPast
     public static func wordStart(caret: Int, expected: Int?) -> Int {
         guard let expected, caret <= expected, caret >= expected - caretLagReach else { return caret }
         return expected
