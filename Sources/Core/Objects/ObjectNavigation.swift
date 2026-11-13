@@ -807,6 +807,7 @@ public final class ObjectNavigator {
     /// the cursor lands, the reading goes into the page with it (out of focus mode, the keyboard staying where it is),
     /// and, in a page, the position is the character or the nearest part the page's text has, and is said from there.
     package func placeReading(on target: AXUIElement, at point: CGPoint) {
+        defer { PanesView.current(pid: target.pid)?.readingPlaced(on: target) }
         let web = Self.outermostWebArea(target)
         let keyboardAlreadyThere = Self.takesTyping(target) && Self.hasKeyboard(target)
         land(on: target, followFocus: web == nil, speaking: web == nil)

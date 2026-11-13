@@ -87,15 +87,46 @@ public final class PanesView {
         return false
     }
 
+    /// The pointer put the reading on `target`: that is the part Tab measures from, whatever the keyboard focus is
+    /// (a click in a web app's message list leaves the focus in the message box, and Tab went on from there).
+    public func readingPlaced(on target: AXUIElement) {
+        placed = nil
+        for i in parts.indices {
+            guard let e = element(of: i), isInside(target, e) else { continue }
+            placed = (i, API.focusObject?.element)
+            return
+        }
+    }
+
+    /// The part after or before `cur` (none known: the first or last), round the end; a part not on screen now (a
+    /// hidden sidebar) is skipped.
+    private func neighbour(of cur: Int?, forward: Bool) -> Int {
+        var i = cur.map { ($0 + (forward ? 1 : -1) + parts.count) % parts.count } ?? (forward ? 0 : parts.count - 1)
+        var tries = 0
+        while element(of: i) == nil, tries < parts.count { i = (i + (forward ? 1 : -1) + parts.count) % parts.count; tries += 1 }
+        return i
+    }
+
     /// Tab and Shift Tab: the next or previous part, round the end.
     public func step(forward: Bool) {
         guard !parts.isEmpty else { return }
-        let cur = currentIndex()
-        var i = cur.map { ($0 + (forward ? 1 : -1) + parts.count) % parts.count } ?? (forward ? 0 : parts.count - 1)
-        // A part not on screen now (a hidden sidebar) is skipped.
-        var tries = 0
-        while element(of: i) == nil, tries < parts.count { i = (i + (forward ? 1 : -1) + parts.count) % parts.count; tries += 1 }
-        go(to: i)
+        go(to: neighbour(of: currentIndex(), forward: forward))
+    }
+
+    /// The second reader's Tab: the part after the one it is in, which it goes to without moving the keyboard.
+    public func stepSecond(forward: Bool) {
+        guard !parts.isEmpty else { return }
+        var cur: Int?
+        if let at = ReviewLayer.cursorElement() { cur = parts.indices.first { i in element(of: i).map { isInside(at, $0) } ?? false } }
+        goSecond(to: neighbour(of: cur, forward: forward))
+    }
+
+    /// The second reader to a part: it says the part's name and what is there; the keyboard stays where it is.
+    public func goSecond(to i: Int) {
+        guard parts.indices.contains(i) else { Tones.edge(); return }
+        guard let e = element(of: i) else { Tones.edge(); Speech.speakMessage(String(localized: "\(parts[i].name) is not on screen", comment: "Spoken message: %@ is a part of the window")); return }
+        Speech.speakMessage(parts[i].name)
+        ReviewLayer.jump(to: e, area: TurnOverObject.frame(e))
     }
 
     /// The newest message's words in each document part when it was entered: a reading position is only worth

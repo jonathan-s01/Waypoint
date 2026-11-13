@@ -385,8 +385,13 @@ enum ReviewLayer {
         case .removed?: return
         case nil: break
         }
-        // Tab moves the review cursor to the next link or control; the real focus stays where it is.
+        // Tab is the keyboard's Tab for the second reader: the next part of the window in an app with a panes recipe,
+        // else the next link or control; the real focus stays where it is.
         if id.hasSuffix("tab") {
+            if let pid = windowAndPid()?.pid ?? API.focusPid, let view = PanesView.current(pid: pid) {
+                view.stepSecond(forward: id == "kb:tab")
+                return
+            }
             guard let doc = document() else { Tones.edge(); return }
             doc.reviewTab(forward: id == "kb:tab")
             return

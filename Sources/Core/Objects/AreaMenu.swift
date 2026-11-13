@@ -161,8 +161,7 @@ public enum AreaMenu {
                 Speech.speakMessage(String(localized: "this window has \(view.parts.count) parts", comment: "Spoken message: %lld is how many parts"))
                 return
             }
-            if second { if let e = view.element(of: n - 1) { ReviewLayer.jump(to: e, area: TurnOverObject.frame(e)) } }
-            else { view.go(to: n - 1) }
+            if second { view.goSecond(to: n - 1) } else { view.go(to: n - 1) }
             return
         }
         jump(pid: pid, number: n, second: second)
