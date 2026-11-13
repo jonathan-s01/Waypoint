@@ -251,10 +251,12 @@ public struct Config: Codable {
         /// NVDA's keypad commands in the Windows style (on, as NVDA with Num Lock off; Clear types numbers instead).
         public var numpadCommander = false
         public var keypadCommands = true
+        /// Waypoint: the Left Option letter of a dialog's button is said with it (DialogMnemonics). The letters work either way.
+        public var dialogLetterHints = true
         public init() {}
         /// The user's own keys (UserGestures): key identifier → "script:<name>", "app:<bundle id>" or "none".
         public var userGestures: [String: String] = [:]
-        enum Keys: String, CodingKey { case speakTypedCharacters, speakTypedWords, speakCommandKeys, speakModifierKeys, multiPressTimeoutMs, layout, speakNewLine, userGestures, optionCommander, numpadCommander, keypadCommands }
+        enum Keys: String, CodingKey { case speakTypedCharacters, speakTypedWords, speakCommandKeys, speakModifierKeys, multiPressTimeoutMs, layout, speakNewLine, userGestures, optionCommander, numpadCommander, keypadCommands, dialogLetterHints }
         // Each setting falls back on its own, so adding one never resets the others.
         public init(from decoder: Decoder) throws {
             let c = try decoder.container(keyedBy: Keys.self)
@@ -268,6 +270,7 @@ public struct Config: Codable {
             optionCommander = (try? c.decodeIfPresent(Bool.self, forKey: .optionCommander)) ?? true
             numpadCommander = (try? c.decodeIfPresent(Bool.self, forKey: .numpadCommander)) ?? false
             keypadCommands = (try? c.decodeIfPresent(Bool.self, forKey: .keypadCommands)) ?? true
+            dialogLetterHints = (try? c.decodeIfPresent(Bool.self, forKey: .dialogLetterHints)) ?? true
             userGestures = (try? c.decodeIfPresent([String: String].self, forKey: .userGestures)) ?? [:]
             // Saved before the code name went (12 Oct 2026): "kb:bosun+n" is "kb:turnover+n"; "script:bosunMenu" is
             // "script:turnOverMenu".
@@ -283,6 +286,7 @@ public struct Config: Codable {
             try c.encode(userGestures, forKey: .userGestures); try c.encode(optionCommander, forKey: .optionCommander)
             try c.encode(speakModifierKeys, forKey: .speakModifierKeys)
             try c.encode(numpadCommander, forKey: .numpadCommander); try c.encode(keypadCommands, forKey: .keypadCommands)
+            try c.encode(dialogLetterHints, forKey: .dialogLetterHints)
         }
     }
     public struct EditableText: Codable {
