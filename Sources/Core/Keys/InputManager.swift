@@ -216,6 +216,7 @@ public enum InputManager {
         FormattingFeedback.shared.keyWillPassThrough(gesture)
         DispatchQueue.main.async {
             ScriptHandler.clearLastScript()
+            AXHandler.shared.followFieldKeysGoTo(gesture)
             LetterJump.noteKey(gesture)
             onPassThrough?(gesture)
             for w in passThroughWatchers { w(gesture) }
