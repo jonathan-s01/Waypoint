@@ -49,4 +49,10 @@ func pointerReaderTests() {
     test("pointer reader: nothing to say falls back to the role word") {
         expect(PointerReader.compose(snap("AXImage")), "image")
     }
+    test("pointer reader: a long text is cut at a word, never inside one") {
+        expect(PointerReader.clip("one two three", limit: 100), "one two three")
+        expect(PointerReader.clip("one two three", limit: 9), "one two")
+        expect(PointerReader.clip("everything", limit: 5), "every")
+        expect(PointerReader.clip(String(repeating: "word ", count: 600)).count <= 2000, true)
+    }
 }

@@ -48,4 +48,8 @@ func typingRecorderTests() {
         expect(StaleFocus.actsOnField(typedCharacter: nil, keyName: "backspace"), true)
         expect(StaleFocus.actsOnField(typedCharacter: nil, keyName: "escape"), false)
     }
+    test("typed word: after a miss the field is waited for briefly, until the miss is old") {
+        expect(TurnOverObject.fieldWaitAttempts(sinceMiss: 1), 3)
+        expect(TurnOverObject.fieldWaitAttempts(sinceMiss: 60), 10)
+    }
 }

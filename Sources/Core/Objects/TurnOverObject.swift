@@ -557,6 +557,8 @@ open class TurnOverObject: ScriptableObject {
         // up to 100 ms; the letters typed if it hasn't by then.
         Self.waitingForField = true
         let start = Speech.typedWordWasEdited ? nil : Self.wordStart   // (a Backspace may have gone back past it)
+        let began = Date()
+        let attempts = Self.fieldWaitAttempts(sinceMiss: Date().timeIntervalSince(Self.lastFieldMiss))
         func attempt(_ n: Int) {
             var found = (taken: false, word: String?.none, next: Int?.none)
             var nextStart: Int?
@@ -568,8 +570,13 @@ open class TurnOverObject: ScriptableObject {
                 nextStart = found.next.map { $0 + from }
                 looked = "the word began at \(start.map(String.init) ?? "?"), the caret is at \(info.start), \(before.count) characters read, the last is \(before.last.map { $0 == ch ? "the key" : "not the key" } ?? "none")"
             }
-            if !found.taken, n < 10 { DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) { attempt(n + 1) }; return }
-            if !found.taken { Log.io("typed word: the field hadn't taken the key after 100 ms; the letters typed (\(looked))") }
+            if !found.taken, n < attempts { DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) { attempt(n + 1) }; return }
+            if !found.taken {
+                Self.lastFieldMiss = Date()
+                let f = liveField.element
+                let direct = "value \(f.string(kAXValueAttribute).map { String($0.count) } ?? "unreadable") characters, selection \(cfRange(f.attr(kAXSelectedTextRangeAttribute)).map { "\($0.location)+\($0.length)" } ?? "unreadable")"
+                Log.io("typed word: the field hadn't taken the key after \(Int(Date().timeIntervalSince(began) * 1000)) ms and \(n + 1) looks; the letters typed (\(looked); read directly: \(direct))")
+            }
             Speech.speakTypedCharacter(ch, inEditable: editable, wordBefore: { found.word })
             Self.waitingForField = false
             Self.replayWordStart = nextStart
@@ -586,6 +593,10 @@ open class TurnOverObject: ScriptableObject {
         guard RebuiltField.isGone(element), let f = API.focusObject, f.pid == pid, f.role == role else { return self }
         return f
     }
+    /// How many 10 ms looks a word's end waits for the field: all ten, unless the field missed lately (Teams and GitHub
+    /// Copilot, 13 Nov 2026: words ended after 100 ms of waiting, the field being no quicker for it), then three.
+    public static func fieldWaitAttempts(sinceMiss: TimeInterval) -> Int { sinceMiss < 20 ? 3 : 10 }
+    private static var lastFieldMiss = Date.distantPast
     /// Where the caret was when the word being typed began, so its end is told from the word before's.
     private static var wordStart: Int?
     /// A word's end is waiting for the field; keys typed meanwhile are held back.

@@ -58,7 +58,9 @@ nonisolated package enum PointerReader {
     private static let neverUnavailable: Set<String> = ["AXList", "AXGroup", "AXScrollArea", "AXSplitGroup", "AXStaticText", "AXImage",
         "AXToolbar", "AXTable", "AXOutline", "AXWindow", "AXWebArea", "AXLayoutArea", "AXLayoutItem", "AXUnknown", "AXCell", "AXRow", "AXTabGroup"]
     private static let groupRoles: Set<String> = ["AXToolbar", "AXBrowser", "AXTabGroup", "AXRadioGroup", "AXGrid"]
-    private static let longestValue = 300
+    /// A text's words are cut here, at a word: a chat message's bullet of 330 characters was read to "every" (of
+    /// "everything", a tester, 13 Nov 2026) when the limit was 300 and fell inside a word.
+    private static let longestValue = 2000
     /// How long one accessibility question may take before the app is given up on.
     static let messagingTimeout: Float = 0.3
 
@@ -81,6 +83,14 @@ nonisolated package enum PointerReader {
         if let n = s.groupItemCount, s.isGroup { parts.append(Phrases.items(n)) }
         if parts.isEmpty { return role }
         return parts.joined(separator: ", ")
+    }
+
+    /// `text` cut to `limit` characters at the last space before it, so a word is never cut in two.
+    package static func clip(_ text: String, limit: Int = longestValue) -> String {
+        guard text.count > limit else { return text }
+        let head = text.prefix(limit)
+        if let end = head.lastIndex(where: \.isWhitespace) { return String(head[..<end]) }
+        return String(head)
     }
 
     private static func roleWord(_ s: PointerSnapshot) -> String {
@@ -144,7 +154,7 @@ nonisolated package enum PointerReader {
         s.help = text(kAXHelpAttribute)
         s.roleDescription = text(kAXRoleDescriptionAttribute)
         if let v = a[kAXValueAttribute] {
-            if let str = v as? String { s.value = String(str.prefix(longestValue)) }
+            if let str = v as? String { s.value = clip(str) }
             else if let n = v as? NSNumber {
                 s.number = n.intValue
                 if !numberStates.contains(s.axRole), s.subrole != "AXSwitch", s.subrole != "AXToggle" { s.value = n.stringValue }
