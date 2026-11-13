@@ -62,4 +62,17 @@ func typingRecorderTests() {
         let r = Speech.fieldWord(endedBy: " ", before: "chat an▮d ".replacingOccurrences(of: "▮", with: ""), notBefore: 5)
         expect(r.word, "and")
     }
+    test("typed word: after a Backspace the ending key is found just past a trailing caret, not the space before") {
+        // "…effectivly want ": caret 17 (before the key), the word retyped after Backspace, so no start is known:
+        // looked for from one before the caret on, the first space is the key and the word is "want".
+        let text = "effectivly want "
+        let caret = 14
+        let r = Speech.fieldWord(endedBy: " ", before: text, notBefore: caret - 1)
+        expect(r.taken, true)
+        expect(r.word, "want")
+        // A space before the word's start is not mistaken for the key.
+        let early = Speech.fieldWord(endedBy: " ", before: "want ", notBefore: 4)
+        expect(early.word, "want")
+        expect(Speech.fieldWord(endedBy: " ", before: "want", notBefore: 3).taken, false)
+    }
 }
