@@ -38,6 +38,10 @@ func typingRecorderTests() {
         expect(StaleFocus.shouldTake(heldIsEditable: false, heldHasText: true, namedIsEditable: true, same: false), false)
         expect(StaleFocus.shouldTake(heldIsEditable: false, heldHasText: false, namedIsEditable: false, same: false), false)
     }
+    test("stale focus: an editable field that is gone gives way to the one the keys go to") {
+        expect(StaleFocus.shouldTake(heldIsEditable: true, heldHasText: true, heldIsGone: true, namedIsEditable: true, same: false), true)
+        expect(StaleFocus.shouldTake(heldIsEditable: true, heldHasText: true, heldIsGone: false, namedIsEditable: true, same: false), false)
+    }
     test("stale focus: typed characters, Backspace and the arrows act on a field") {
         expect(StaleFocus.actsOnField(typedCharacter: "a", keyName: "a"), true)
         expect(StaleFocus.actsOnField(typedCharacter: nil, keyName: "leftArrow"), true)

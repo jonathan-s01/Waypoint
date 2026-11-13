@@ -16,10 +16,11 @@ public enum StaleFocus {
         typedCharacter != nil || ["backspace", "leftArrow", "rightArrow", "upArrow", "downArrow"].contains(keyName)
     }
 
-    /// Whether the focus the application names should replace the one held: the held one has no text of its own
-    /// and the application's is an editable field.
-    public static func shouldTake(heldIsEditable: Bool, heldHasText: Bool, namedIsEditable: Bool, same: Bool) -> Bool {
-        !same && !heldIsEditable && !heldHasText && namedIsEditable
+    /// Whether the focus the application names should replace the one held: the application's is an editable field,
+    /// and the held one is gone (the page threw it away and sent no news, GitHub Copilot's chat box, 13 Nov 2026) or
+    /// has no text of its own.
+    public static func shouldTake(heldIsEditable: Bool, heldHasText: Bool, heldIsGone: Bool = false, namedIsEditable: Bool, same: Bool) -> Bool {
+        !same && namedIsEditable && (heldIsGone || (!heldIsEditable && !heldHasText))
     }
 
     /// Asking the application costs a call to it, so not on every key while nothing is wrong.
@@ -37,16 +38,18 @@ extension AXHandler {
     /// field that TurnOver does not hold, and what it holds has no text, the field takes the place, without a word.
     func followFieldKeysGoTo(_ gesture: KeyboardGesture) {
         guard StaleFocus.actsOnField(typedCharacter: gesture.typedCharacter, keyName: gesture.keyName),
-              let held = API.focusObject, !RebuiltField.editable.contains(held.role), !held.hasNavigableText,
+              let held = API.focusObject,
               API.focusTreeInterceptor?.passThrough ?? true,
               MenuNavigationPlugin.heldBar == nil, MenuNavigationPlugin.heldStatus == nil,
               NSWorkspace.shared.frontmostApplication?.processIdentifier == held.pid,
               StaleFocus.due() else { return }
+        let gone = RebuiltField.isGone(held.element)
+        guard gone || (!RebuiltField.editable.contains(held.role) && !held.hasNavigableText) else { return }
         guard let named = AXUIElementCreateApplication(held.pid).element(kAXFocusedUIElementAttribute) else { return }
         let obj = ObjectFactory.make(named)
-        guard StaleFocus.shouldTake(heldIsEditable: false, heldHasText: false,
+        guard StaleFocus.shouldTake(heldIsEditable: false, heldHasText: false, heldIsGone: gone,
                                     namedIsEditable: RebuiltField.editable.contains(obj.role), same: held.isSameElement(as: named)) else { return }
-        Log.io("focus: the keys go to the \(obj.axRole), and TurnOver held the \(held.axRole); the field is the focus now, without a word")
+        Log.io("focus: the keys go to the \(obj.axRole), and TurnOver held the \(held.axRole)\(gone ? " (gone)" : ""); the field is the focus now, without a word")
         let window = named.element(kAXWindowAttribute)
         let ancestors = obj.ancestors
         focusWindow = window
