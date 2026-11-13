@@ -47,6 +47,8 @@ nonisolated public enum ReviewLayerLogic {
         case activate
         /// Escape while the layer is armed or latched: the layer ends.
         case off
+        /// Right Option and a digit with the chord held: the second reader to that area (0 is the global one).
+        case area(Int)
     }
 
     static let arrows: Set<String> = ["leftArrow", "rightArrow", "upArrow", "downArrow"]
@@ -57,6 +59,13 @@ nonisolated public enum ReviewLayerLogic {
     /// reverse and word keys. `flags` are the event's raw flags.
     public static func decide(flags: UInt, keyName: String, chord: Chord, armed: Bool, turnOverKey: Bool) -> Decision? {
         guard !turnOverKey else { return nil }
+        // Right Option is a command key, not the layer's: a digit with it and the chord is an area jump, whatever
+        // the "word" key has been set to.
+        if !armed, let n = Int(keyName), keyName.count == 1 {
+            let held = flags & Device.all
+            if chord.hold != 0, chord.hold & Device.rightOption == 0, held & chord.hold == chord.hold, held & Device.rightOption != 0,
+               held & ~(chord.hold | chord.reverse | chord.word | Device.rightOption) == 0, held & chord.reverse == 0 { return .area(n) }
+        }
         let shift: Bool, option: Bool
         if armed {
             guard flags & (Generic.control | Generic.command) == 0 else { return nil }
@@ -84,6 +93,17 @@ nonisolated public enum ReviewLayerLogic {
             return .review("kb:" + (shift ? "shift+" : "") + keyName)
         }
         return nil
+    }
+
+    /// Whether a command key (Waypoint's own commands, such as the areas and the tools) is meant for the second reader.
+    /// Left Option and Right Option do not share a meaning: Left Option is the keyboard's (and half of the layer's chord),
+    /// Right Option is the command key. Right Option with the TurnOver key, Left Option not held, or with the chord held,
+    /// is the second reader; Left Option with the TurnOver key, and Right Option alone, are the keyboard's.
+    public static func isSecond(flags: UInt, chord: Chord, turnOverKey: Bool) -> Bool {
+        let held = flags & Device.all
+        guard held & Device.rightOption != 0 else { return false }
+        if turnOverKey { return held & Device.leftOption == 0 }
+        return chord.hold != 0 && chord.hold & Device.rightOption == 0 && held & chord.hold == chord.hold
     }
 
     /// The document's scripts the layer may run. A script that sends the key on to the application (Tab, Escape, Enter
@@ -124,6 +144,9 @@ enum ReviewLayer {
     /// Where the latest message began when the review last started from a field; a later one has arrived when it moves.
     private static var messageStart: Int?
     private static var windowDocuments: Set<ObjectIdentifier> = []
+    /// The document the second reader was put in on purpose (an area jump): it stays there, whatever the keyboard does and
+    /// whichever app is in front, until the reset key. Without one it follows the focus, as it always did.
+    private static var pinned: BrowseModeDocument?
 
     // MARK: Which keys
 
@@ -182,7 +205,55 @@ enum ReviewLayer {
         }
     }
 
-    static func reset() { armed = false; latched = false; syncedFocus = nil; messageStart = nil; syncedDocument = nil; windowDocuments = [] }
+    /// Whether a command key was pressed for the second reader (see ReviewLayerLogic.isSecond).
+    static func isSecond(_ g: KeyboardGesture) -> Bool {
+        enabled && ReviewLayerLogic.isSecond(flags: UInt(g.flags.rawValue), chord: chord, turnOverKey: g.modifiers.contains(.turnover))
+    }
+
+    /// The reset key: the second reader goes back to following the keyboard.
+    static func unpin() {
+        pinned = nil; syncedFocus = nil; syncedDocument = nil; messageStart = nil
+        Speech.speakMessage(String(localized: "second reader back with the keyboard", comment: "Spoken message: the review layer follows the keyboard's focus again"))
+    }
+
+    /// The window the second reader is reading, for the area commands: the pinned one, or the one the keyboard is in.
+    static func windowAndPid() -> (window: AXUIElement, pid: pid_t)? {
+        guard let doc = document() else { return nil }
+        let root = doc.webArea
+        guard let window = root.role == "AXWindow" ? root : root.element(kAXWindowAttribute) else { return nil }
+        return (window, root.pid)
+    }
+
+    /// The element under the second reader's cursor, for "the area you are in".
+    static func cursorElement() -> AXUIElement? { document()?.elementAtPosition() }
+
+    /// The second reader to an element, on purpose: it keeps the place and says what is there. The keyboard's focus
+    /// does not move. `area`: in a chat, to the newest message inside that frame rather than its top.
+    @discardableResult
+    static func jump(to e: AXUIElement, area: CGRect? = nil) -> Bool {
+        guard let doc = document() else { Tones.edge(); return false }
+        var at = doc.buffer.offset(of: e)
+        if at == nil {
+            doc.rebuildKeepingPlace(anchor: e)
+            at = doc.buffer.offset(of: e)
+        }
+        guard var offset = at else {
+            Speech.speakMessage(String(localized: "that part is not in what the second reader can read", comment: "Spoken message: the review layer cannot go to the part"))
+            return false
+        }
+        doc.position = offset
+        if let area, doc.buffer.text.length > 0, let m = doc.lastMessageStart(before: doc.buffer.text.length - 1), m > offset {
+            doc.position = m
+            if let at = doc.elementAtPosition(), let f = TurnOverObject.frame(at), area.contains(CGPoint(x: f.midX, y: f.midY)) { offset = m }
+            else { doc.position = offset }
+        }
+        pinned = doc
+        placedAt = Date(); lastUsed = Date()
+        doc.speakQuickNavText(at: offset, link: false)
+        return true
+    }
+
+    static func reset() { pinned = nil; armed = false; latched = false; syncedFocus = nil; messageStart = nil; syncedDocument = nil; windowDocuments = [] }
 
     static func toggleEnabled() {
         enabled.toggle()
@@ -216,6 +287,10 @@ enum ReviewLayer {
                 return
             }
             var c = chord
+            guard which != .hold || bits & ReviewLayerLogic.Device.rightOption == 0 else {
+                Speech.speakMessage(String(localized: "Right Option is the command key for the second reader; choose other keys to hold", comment: "Spoken message"))
+                return
+            }
             switch which {
             case .hold: c.hold = bits
             case .reverse: c.reverse = bits
@@ -262,6 +337,8 @@ enum ReviewLayer {
             activateHere()
         case .review(let id):
             review(id)
+        case .area(let n):
+            AreaMenu.command(number: n, second: true)
         }
     }
 
@@ -361,6 +438,13 @@ enum ReviewLayer {
 
     /// The page's reading document (a chat in a browser), or one over the focused window (a native app), made once.
     static func document() -> BrowseModeDocument? {
+        if let p = pinned {
+            if p.isAlive, !p.buffer.lines.isEmpty {
+                if windowDocuments.contains(ObjectIdentifier(p)), Date().timeIntervalSince(lastUsed) > 4, Date().timeIntervalSince(p.buffer.builtAt) > 4 { p.rebuildKeepingPlace() }
+                return p
+            }
+            pinned = nil
+        }
         let doc: BrowseModeDocument
         if let d = API.focusTreeInterceptor, d.isAlive, !d.buffer.lines.isEmpty {
             doc = d
@@ -430,6 +514,10 @@ final class ReviewLayerPlugin: GlobalPlugin {
         }
         script("reviewLayerArm", String(localized: "Review layer: once, the next key reads around the field instead of typing; twice, the layer stays on until pressed again", comment: "A command, as the key list and keyboard help say it"), gestures: ["kb:turnover+option+r"], category: category) { _ in
             ReviewLayer.armCommand()
+        }
+        script("reviewLayerReset", String(localized: "Puts the second reader back with the keyboard: it follows the focus again, in this app and window (it stays where an area jump put it until then)", comment: "A command, as the key list and keyboard help say it"),
+               gestures: ["kb:turnover+option+command+shift+/"], category: category) { _ in
+            ReviewLayer.unpin()
         }
         script("reviewLayerEnable", String(localized: "Turns the review layer (hold Left Option and Right Shift to read around a text field) on or off", comment: "A command, as the key list and keyboard help say it"), category: category) { _ in
             ReviewLayer.toggleEnabled()

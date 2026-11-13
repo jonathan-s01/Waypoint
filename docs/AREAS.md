@@ -42,6 +42,31 @@ first letter, TurnOver F searches, Escape closes and leaves the focus where it w
   full-height rails go to Global. A column at the right edge (12 to 35% of the window, 3 or more controls) is the side panel.
 - A page and nothing else (a browser): everything outside the page is Global.
 
+## The second reader (review layer)
+
+The review layer is a second copy of the same commands, aimed at what it reads rather than at the keyboard focus. The
+area commands share one implementation (`AreaMenu.command`); a `second` flag says who they are for, and in that mode
+nothing takes the keyboard focus (a jump places the review cursor, a press is an AX press, a field is set by typing in
+the panel).
+
+Left Option and Right Option never share a meaning:
+
+| Keys | Meaning |
+| --- | --- |
+| VO + Left Option + O, M, A, F | tools, main, navigation, search, for the keyboard |
+| VO + Right Option + O, M, A, F | the same, for the second reader |
+| Right Option + 0 to 9 | area jump for the keyboard |
+| Chord (Left Option + Right Shift) + Right Option + 0 to 9 | area jump for the second reader |
+| Chord + Right Option + arrows | review by word (the only place Right Option means "by word") |
+| VO + Option + Command + Shift + / | the second reader goes back to following the keyboard |
+
+After a jump the second reader stays in that window, even when the keyboard moves or another app is in front, until the
+reset key. Without a jump it follows the focus as before. The chord's hold keys cannot include Right Option (the
+capture refuses). A chord with other keys still works; the area jump is the chord's hold keys + Right Option + a digit.
+
+Not known yet: whether macOS lets the second reader read a full-screen window on another space (it is expected to
+work only while that window is visible to accessibility); if not, the per-window position is the fallback.
+
 ## Not done yet
 
 - Mail's reading area shows only the latest message when jumped to; the cause is not yet known.

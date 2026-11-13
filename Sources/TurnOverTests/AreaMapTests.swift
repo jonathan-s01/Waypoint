@@ -197,4 +197,32 @@ func areaMapTests() {
     test("areas: an empty window is only Global") {
         expect(AreaMap.classify([], window: CGRect(x: 0, y: 0, width: 100, height: 100)).count, 1)
     }
+
+    // The second reader: Left Option and Right Option never share a meaning.
+    typealias L = ReviewLayerLogic
+    let d = L.Device.self
+    let chord = L.Chord.standard
+    let chordKeys = d.leftOption | d.rightShift
+    test("second reader: Right Option with the TurnOver key is the second reader, Left Option is the keyboard's") {
+        check(L.isSecond(flags: d.rightOption, chord: chord, turnOverKey: true), "isSecond")
+        check(!L.isSecond(flags: d.leftOption, chord: chord, turnOverKey: true), "isSecond")
+        check(!L.isSecond(flags: d.leftOption | d.rightOption, chord: chord, turnOverKey: true), "isSecond")
+    }
+    test("second reader: Right Option alone is the keyboard's; with the chord held it is the second reader") {
+        check(!L.isSecond(flags: d.rightOption, chord: chord, turnOverKey: false), "isSecond")
+        check(L.isSecond(flags: chordKeys | d.rightOption, chord: chord, turnOverKey: false), "isSecond")
+        check(!L.isSecond(flags: chordKeys, chord: chord, turnOverKey: false), "isSecond")
+    }
+    test("second reader: chord, Right Option and a digit is an area jump, not a quick key") {
+        expect(L.decide(flags: chordKeys | d.rightOption, keyName: "4", chord: chord, armed: false, turnOverKey: false), .area(4))
+        expect(L.decide(flags: chordKeys | d.rightOption, keyName: "0", chord: chord, armed: false, turnOverKey: false), .area(0))
+        expect(L.decide(flags: chordKeys, keyName: "4", chord: chord, armed: false, turnOverKey: false), .review("kb:4"))
+        expect(L.decide(flags: chordKeys | d.rightOption, keyName: "rightArrow", chord: chord, armed: false, turnOverKey: false), .review("kb:option+rightArrow"))
+        expect(L.decide(flags: chordKeys | d.rightOption | d.leftShift, keyName: "4", chord: chord, armed: false, turnOverKey: false), .review("kb:shift+4"))
+        expect(L.decide(flags: d.rightOption, keyName: "4", chord: chord, armed: false, turnOverKey: false), nil)
+    }
+    test("second reader: a chord that includes Right Option cannot be the second reader's") {
+        let bad = L.Chord(hold: d.rightOption | d.rightShift, reverse: d.leftShift, word: d.leftOption)
+        check(!L.isSecond(flags: d.rightOption | d.rightShift, chord: bad, turnOverKey: false), "isSecond")
+    }
 }
