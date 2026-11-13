@@ -53,6 +53,7 @@ public enum Speech {
 
     /// Stop now (NVDA: cancelSpeech). Every gesture does this before its script runs.
     public static func cancel() {
+        TypingRecorder.note("CANCEL", "speech cut")
         player?.cancel()
     }
 
@@ -65,6 +66,9 @@ public enum Speech {
     /// The lowest level: text already processed, queued behind what is playing.
     /// Receives everything that would be spoken, before the mode check (tests and the log viewer).
     public static var sink: ((String) -> Void)?
+    /// An in-memory speech queue for lifecycle tests; production leaves this nil. Tests hold the real
+    /// onStart/completion callbacks and deliver them through their existing return-to-main path.
+    package static var enqueueTestDriver: ((String, (@Sendable () -> Void)?, (@Sendable (Bool) -> Void)?) -> Void)?
 
     /// TurnOver's own words inside text being read ("link", "heading level 2"): marked, so that on a page in another
     /// language they are said by the reader's own voice, not by the page's ("link" read by the Arabic voice as a
@@ -123,6 +127,7 @@ public enum Speech {
         // raised the pitch of the next real utterance instead (code review, 16 Oct 2026).
         let pitch = pitchNext; pitchNext = nil
         sink?(cleaned(text))
+        if let enqueueTestDriver { enqueueTestDriver(cleaned(text), onStart, completion); return }
         switch mode {
         case .talk: break
         case .onDemand where Date() < demandedUntil: break
@@ -144,6 +149,7 @@ public enum Speech {
         if rawPending { rawPending = false } else { lastRaw = "" }
         echoOnly = false
         let voice = Languages.voice(for: language)
+        TypingRecorder.said(s, isPrivate: privateNext)
         if privateNext { Log.io("say: (private, \(s.count) characters)") }
         else if Self.logsWords { Log.io("say\(voice != nil ? " [\(language ?? "")]" : ""): \(s.prefix(160))") }
         else { Log.io("say\(voice != nil ? " [\(language ?? "")]" : ""): [\(s.count) characters]") }

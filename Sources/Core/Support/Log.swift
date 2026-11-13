@@ -70,6 +70,7 @@ nonisolated public enum Log {
         let tag: String
         switch level { case .debug: tag = "D "; case .io: tag = "IO "; case .info: tag = ""; case .warning: tag = "WARN "; case .error: tag = "ERROR " }
         let out = "[\(t)] \(tag)\(text)\n"
+        TypingRecorder.logLine(out)
         lock.lock(); defer { lock.unlock() }
         // The throwing write: the old one raises an Objective-C exception when the disk is full, and that ended
         // TurnOver (12 Oct 2026, the Mac's disk filled by a voice model; VoiceOver couldn't start either). A line

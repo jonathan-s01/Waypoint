@@ -13,6 +13,7 @@ final class MarkMomentPlugin: GlobalPlugin {
         script("markMoment", String(localized: "Marks this moment in the log, for a report that something just sounded wrong (VO-Command-Equals)", comment: "A command, as the key list and keyboard help say it"),
                gestures: ["kb:turnover+command+="], category: "Waypoint") { _ in
             Log.info(Self.line())
+            TypingRecorder.mark()
             Speech.speakMessage(String(localized: "marked", comment: "Spoken message: the moment was marked in the log"))
         }
     }

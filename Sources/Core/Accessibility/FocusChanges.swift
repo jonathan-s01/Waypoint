@@ -38,6 +38,7 @@ extension AXHandler {
         ("background window", ruleBackgroundWindow),
         ("stand-in for a text field", ruleTextStandIn),
         ("duplicate", ruleDuplicate),
+        ("field rebuilt by the page", ruleRebuiltField),
         ("hidden scroll bar", ruleHiddenScrollBar),
         ("blank frame", ruleBlankFrame),
         ("empty web area, no key pressed", ruleEmptyWebAreaUnbidden),
@@ -273,9 +274,10 @@ extension AXHandler {
                 return
             }
             let oldGone = !document.isAlive || document.webArea.elements(kAXChildrenAttribute).isEmpty
-            if oldGone, let fresh = document.currentWebArea(), !fresh.isSame(document.webArea), !fresh.elements(kAXChildrenAttribute).isEmpty {
-                Log.io("focus: the page in hand went; following the window's new web area")
-                self.focusChanged(fresh, pid: fresh.pid)
+            if oldGone {
+                document.followCurrentRoot(requireEmpty: false) { [weak self] followed in
+                    if !followed, tries > 1 { self?.followIfPageWent(document, tries: tries - 1) }
+                }
                 return
             }
             if tries > 1 { self.followIfPageWent(document, tries: tries - 1) }
@@ -557,6 +559,7 @@ extension AXHandler {
             EventHandler.queue(Event(.focusEntered, a))
         }
         lastGainFocus = (target, Date())
+        RebuiltField.remember(obj, window: window)
         let interceptor = BrowseModeHandler.shared.document(for: obj, ancestors: ancestors)
         // Into a document from outside it (another app, the window around the page): its focus event is told, as NVDA's
         // tree interceptor is (_enteringFromOutside).

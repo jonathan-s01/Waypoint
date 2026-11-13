@@ -193,9 +193,12 @@ public final class PanesView {
     /// 9 Nov 2026). False when the part is not in a page TurnOver reads in browse mode.
     private func readAsDocument(_ e: AXUIElement, part: RecipeView.Panes.Part, index: Int, recall: (place: FocusPlace, at: Date)?) -> Bool {
         guard let doc = document(containing: e), API.focusTreeInterceptor === doc else { return false }
-        doc.rebuildIfCheap(stale: 2)
+        doc.refreshBufferIfNeeded(stale: 2)
         let target = landing(in: e, match: part.land) ?? e
-        guard var at = doc.buffer.offset(of: target) ?? doc.readingOn({ doc.buffer.offset(of: target) }) ?? doc.buffer.offset(of: e) else { return false }
+        // The newest message may be past the part of a long page read so far: read on (in the background, as upstream's
+        // browse mode does now) and carry on from there.
+        func finish(_ start: Int) {
+        var at = start
         let newest = FocusMemory.normalise(ElementMatcher.text(of: target))
         // Waypoint focus memory: resume where the user was while the newest message is still the one they left under.
         var note: String?
@@ -218,6 +221,12 @@ public final class PanesView {
         Speech.speakMessage(part.name)
         if let note { Speech.speakMessage(note) }
         doc.speakUnit(.line)
+        }
+        if let at = doc.buffer.offset(of: target) { finish(at); return true }
+        doc.readOnUntil({ doc.buffer.offset(of: target) != nil }) { _ in
+            guard API.focusTreeInterceptor === doc, let at = doc.buffer.offset(of: target) ?? doc.buffer.offset(of: e) else { return }
+            finish(at)
+        }
         return true
     }
 

@@ -165,6 +165,7 @@ public enum Core {
     public static func deactivate() {
         FormattingFeedback.shared.cancel()
         ObjectNavigator.shared.cancelWindowSearch()
+        BrowseModeHandler.shared.cancelBufferBuilds()
         guard active else { return }
         active = false
         MouseTracking.refresh()   // stops watching the pointer: VoiceOver reads now
