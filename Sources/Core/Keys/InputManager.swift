@@ -97,6 +97,7 @@ public enum InputManager {
     public static var speechCutObserver: (() -> Void)?
 
     public static func handleKeyDown(_ gesture: KeyboardGesture) -> Bool {
+        TypingRecorder.key(gesture)
         Hints.cancel()
         if gesture.isTurnOverModifier { DispatchQueue.main.async { LetterJump.reset() } }
         ObjectNavigator.shared.cancelWindowSearch()

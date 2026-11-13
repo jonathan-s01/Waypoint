@@ -53,6 +53,7 @@ public enum Speech {
 
     /// Stop now (NVDA: cancelSpeech). Every gesture does this before its script runs.
     public static func cancel() {
+        TypingRecorder.note("CANCEL", "speech cut")
         player?.cancel()
     }
 
@@ -148,6 +149,7 @@ public enum Speech {
         if rawPending { rawPending = false } else { lastRaw = "" }
         echoOnly = false
         let voice = Languages.voice(for: language)
+        TypingRecorder.said(s, isPrivate: privateNext)
         if privateNext { Log.io("say: (private, \(s.count) characters)") }
         else if Self.logsWords { Log.io("say\(voice != nil ? " [\(language ?? "")]" : ""): \(s.prefix(160))") }
         else { Log.io("say\(voice != nil ? " [\(language ?? "")]" : ""): [\(s.count) characters]") }
