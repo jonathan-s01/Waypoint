@@ -54,7 +54,9 @@ public enum UserGestures {
 
     /// TurnOver's own right Option keys, used unless the user gives the key something else (or takes it away):
     /// right Option T, the time and, pressed twice, the date (12 Oct 2026; TurnOver Shift T does the same).
+    /// Right Option 0 to 9: the areas of the window (0 is the global area), in apps without a panes recipe.
     public static let defaults: [String: String] = ["kb:rightoption+t": "script:dateTime"]
+        .merging((0...9).map { ("kb:rightoption+\($0)", "script:area\($0)") }) { a, _ in a }
 
     public static func target(for g: KeyboardGesture) -> Target? {
         for id in identifiers(of: g) {

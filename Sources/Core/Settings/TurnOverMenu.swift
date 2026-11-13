@@ -144,6 +144,7 @@ public final class TurnOverMenu {
         keyHook = nil
         filterMatcher = nil
         stack.removeAll()
+        popHooks.removeAll()
         filterSource = nil; filter = ""; rotor = nil; browsingResults = false
         config.save()
         let hook = onClose; onClose = nil
@@ -230,24 +231,60 @@ public final class TurnOverMenu {
     /// VoiceOver's Rotor (VO-U), NVDA's Elements List: kinds of item (Headings, Links, Form controls…). Left and
     /// Right change kind, Up and Down move through it, typing narrows it, Enter goes there. It opens on the kind
     /// used last, as VoiceOver's does.
-    public func openRotor(_ categories: [(name: String, items: [MenuItem])]) {
+    public func openRotor(_ categories: [(name: String, items: [MenuItem])], typeToFilter: Bool = true, intro: String? = nil) {
         let kinds = categories.filter { !$0.items.isEmpty }
         guard !kinds.isEmpty else { Speech.speakMessage(String(localized: "nothing to list here", comment: "The rotor found nothing")); return }
         rotor = kinds
         rotorIndex = kinds.firstIndex { $0.name == lastRotorKind } ?? 0
+        rotorTypesToFilter = typeToFilter
         isOpen = true
         Speech.cancel()
-        showRotorKind(intro: String(localized: "rotor", comment: "VoiceOver's rotor, as it opens"))
+        showRotorKind(intro: intro ?? String(localized: "rotor", comment: "VoiceOver's rotor, as it opens"))
     }
+
+    /// The open rotor made again with new items, in place (the tools panel after a control was used): back to its top
+    /// level, at the kind of that name (or the first) and the item at `index`, said as `say` when given.
+    public func replaceRotor(_ categories: [(name: String, items: [MenuItem])], kind: String, index: Int, say: String?, announceItem: Bool = true) {
+        let kinds = categories.filter { !$0.items.isEmpty }
+        guard isOpen, rotor != nil, !kinds.isEmpty else { return }
+        popHooks.removeAll()
+        rotor = kinds
+        rotorIndex = kinds.firstIndex { $0.name == kind } ?? 0
+        let chosen = kinds[rotorIndex]
+        lastRotorKind = chosen.name
+        filterSource = rotorTypesToFilter ? chosen.items : nil; filter = ""; browsingResults = false
+        stack = [(chosen.name, chosen.items, min(max(0, index), chosen.items.count - 1))]
+        if let say { Speech.speakMessage(say) }
+        if announceItem { announce() }
+    }
+
+    /// A list opened inside the open one (the choices of a pop-up button): Left or Escape-then-Left goes back up, running
+    /// `onBack` when it does. Escape closes everything, which `onClose` of the owner must clean up after.
+    public func pushList(verbatim title: String, items: [MenuItem], onBack: (() -> Void)? = nil) {
+        guard isOpen, !items.isEmpty else { return }
+        if let onBack { popHooks[stack.count] = onBack }
+        stack.append((title, items, 0))
+        Speech.cancel()
+        Speech.speakMessage("\(title), \(items.count)")
+        announce()
+    }
+    /// Back up to the list the rotor shows, running what the lists above it said to run.
+    public func popToTop(say: String? = nil) {
+        while stack.count > 1 { popHooks.removeValue(forKey: stack.count - 1)?(); stack.removeLast() }
+        if let say { Speech.speakMessage(say) }
+    }
+    private var popHooks: [Int: () -> Void] = [:]
     private var rotor: [(name: String, items: [MenuItem])]?
     private var rotorIndex = 0
+    /// Typing narrows the rotor's list (VO-U's way), or jumps by first letter as a menu does, with TurnOver+F to search.
+    private var rotorTypesToFilter = true
     private var lastRotorKind = ""
 
     private func showRotorKind(intro: String? = nil) {
         guard let rotor else { return }
         let kind = rotor[rotorIndex]
         lastRotorKind = kind.name
-        filterSource = kind.items; filter = ""; browsingResults = false
+        filterSource = rotorTypesToFilter ? kind.items : nil; filter = ""; browsingResults = false
         stack = [(kind.name, kind.items, 0)]
         Speech.speakMessage(Speech.joined([intro ?? "", kind.name, "\(kind.items.count)"]))
         announce()
@@ -339,7 +376,7 @@ public final class TurnOverMenu {
     }
 
     private func back() {
-        if stack.count > 1 { stack.removeLast(); Speech.speakMessage(stack.last!.title); announce() } else { close() }
+        if stack.count > 1 { popHooks.removeValue(forKey: stack.count - 1)?(); stack.removeLast(); Speech.speakMessage(stack.last!.title); announce() } else { close() }
     }
 
     private func activate(_ item: MenuItem, forward: Bool) {

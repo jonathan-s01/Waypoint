@@ -131,6 +131,7 @@ public enum Core {
         GlobalPluginHandler.shared.register(LetterJumpPlugin.self)
         GlobalPluginHandler.shared.register(FocusMemoryPlugin.self)
         GlobalPluginHandler.shared.register(DescribeAppPlugin.self)
+        GlobalPluginHandler.shared.register(AreaMenuPlugin.self)
         GlobalPluginHandler.shared.register(WhatChangedPlugin.self)
         GlobalPluginHandler.shared.register(MarkMomentPlugin.self)
         GlobalPluginHandler.shared.register(AnywherePlugin.self)
