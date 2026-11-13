@@ -360,8 +360,8 @@ public final class BrowseModeDocument: ScriptableObject {
                     if !singleLetterNavigation { g.send(); return }
                     quickNav(q, forward: false)
                 }
-                next.isAvailable = { config.general.windowsKeys == windows }
-                previous.isAvailable = { config.general.windowsKeys == windows }
+                next.isAvailable = { BrowseModeDocument.usesNVDALetters == windows && config.virtualBuffers.quickNavKeys[q.name] == nil }
+                previous.isAvailable = { BrowseModeDocument.usesNVDALetters == windows && config.virtualBuffers.quickNavKeys[q.name] == nil }
             }
         }
         // NVDA's; VoiceOver has none, so the Mac style leaves comma to the page.
@@ -369,12 +369,12 @@ public final class BrowseModeDocument: ScriptableObject {
             guard let self else { return }
             if !singleLetterNavigation { g.send(); return }
             moveToContainerEdge(end: true)
-        }.isAvailable = { config.general.windowsKeys }
+        }.isAvailable = { BrowseModeDocument.usesNVDALetters }
         script("startOfContainer", String(localized: "Moves to the start of the list, table or other container (NVDA: Shift comma)", comment: "A command, as the key list and keyboard help say it"), gestures: ["kb:shift+,"], category: "Quick navigation") { [weak self] g in
             guard let self else { return }
             if !singleLetterNavigation { g.send(); return }
             moveToContainerEdge(end: false)
-        }.isAvailable = { config.general.windowsKeys }
+        }.isAvailable = { BrowseModeDocument.usesNVDALetters }
         // Waypoint: A reads on from here, Shift-A from the top, without leaving the document. Mac style only: in the
         // Windows style A is NVDA's annotation key.
         for fromStart in [false, true] {
@@ -387,8 +387,23 @@ public final class BrowseModeDocument: ScriptableObject {
                 guard ensureContent() else { return }
                 if fromStart { position = 0 }
                 SayAll.readText(from: rootObject)
-            }.isAvailable = { !config.general.windowsKeys }
+            }.isAvailable = { !BrowseModeDocument.usesNVDALetters }
         }
+    }
+
+    /// Browse mode's single letters are NVDA's (d landmark, k link, l list, i list item), by the setting or the style.
+    static var usesNVDALetters: Bool { config.virtualBuffers.nvdaLetters(windowsKeys: config.general.windowsKeys) }
+
+    /// A letter the user gave a kind (settings: virtualBuffers.quickNavKeys), as that kind's own script. The default
+    /// letter of a kind that has one is switched off above, so a letter has one meaning.
+    func quickNavOverride(for gesture: KeyboardGesture) -> Script? {
+        let keys = config.virtualBuffers.quickNavKeys
+        guard !keys.isEmpty, gesture.modifiers.subtracting(.shift).isEmpty, let letter = gesture.typedCharacter.map({ String($0).lowercased() }) else { return nil }
+        let windows = Self.usesNVDALetters
+        let table = windows ? Self.quickNav : Self.voiceOverQuickNav
+        guard let q = table.first(where: { keys[$0.name]?.lowercased() == letter }) else { return nil }
+        let forward = !gesture.modifiers.contains(.shift)
+        return script(named: (windows ? "" : "vo_") + (forward ? "next" : "previous") + q.name)
     }
 
     public struct QuickNavType { public let name: String; public let key: String; public let spoken: String; let searchKey: String; let roles: Set<String>? }
@@ -687,7 +702,7 @@ public final class BrowseModeDocument: ScriptableObject {
         // a letter typed while the reading position was on a field went into it (Mac style, 9 Oct 2026), and a letter
         // typed while a page field still had the keyboard resumed focus mode quietly (8 Oct 2026); the Safari stress
         // test of 23 Oct 2026 showed both typing h into a field the user had just left with Escape, on four pages.
-        if let s = super.script(for: gesture) {
+        if let s = quickNavOverride(for: gesture) ?? super.script(for: gesture) {
             if passThrough && s.name != "disablePassThrough" { return nil }
             return contentScript(s)
         }

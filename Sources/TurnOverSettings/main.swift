@@ -630,6 +630,9 @@ struct WebPagesView: View {
         Form {
             Toggle("Type into a field as soon as it has the focus", isOn: model.bool("virtualBuffers", "autoFocusMode"))
             Toggle("Read a page through as it opens", isOn: model.bool("virtualBuffers", "autoSayAllOnPageLoad"))
+            Picker("Single-letter keys on a page", selection: model.string("virtualBuffers", "quickNavLetters", "style")) {
+                Text("The keyboard style's own").tag("style"); Text("VoiceOver's: L link, X list, N landmark").tag("voiceOver"); Text("NVDA's: K link, L list, D landmark, I list item").tag("nvda")
+            }
             Toggle("Single-letter keys go round the page", isOn: model.bool("virtualBuffers", "wrapQuickNav"))
             Toggle("Links and buttons in the line, as on screen", isOn: model.bool("virtualBuffers", "screenLayout"))
             Toggle("Name undescribed pictures by their file name", isOn: model.bool("virtualBuffers", "imageFileNames"))

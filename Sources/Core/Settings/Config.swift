@@ -311,8 +311,13 @@ public struct Config: Codable {
         /// A picture with no description is read by its file name ("graphic, sunset beach"), as JAWS can; off, just
         /// "graphic" (a tester, AppleVis, 9 Oct 2026).
         public var imageFileNames = false
+        /// Which single letters jump in browse mode: "style" (the keyboard style's own: VoiceOver's in the Mac style,
+        /// NVDA's in the others), "voiceOver" or "nvda" whatever the style (NVDA: d landmark, k link, l list, i list item).
+        public var quickNavLetters = "style"
+        /// The user's own letters for kinds, by kind name ("Landmark": "d"), on top of the set chosen above.
+        public var quickNavKeys: [String: String] = [:]
         public init() {}
-        enum Keys: String, CodingKey { case maxLineLength, autoSayAllOnPageLoad, wrapQuickNav, screenLayout, autoFocusMode, imageFileNames }
+        enum Keys: String, CodingKey { case maxLineLength, autoSayAllOnPageLoad, wrapQuickNav, screenLayout, autoFocusMode, imageFileNames, quickNavLetters, quickNavKeys }
         public init(from decoder: Decoder) throws {
             let c = try decoder.container(keyedBy: Keys.self)
             maxLineLength = (try? c.decodeIfPresent(Int.self, forKey: .maxLineLength)) ?? 100
@@ -321,6 +326,8 @@ public struct Config: Codable {
             screenLayout = (try? c.decodeIfPresent(Bool.self, forKey: .screenLayout)) ?? true
             autoFocusMode = (try? c.decodeIfPresent(Bool.self, forKey: .autoFocusMode)) ?? true
             imageFileNames = (try? c.decodeIfPresent(Bool.self, forKey: .imageFileNames)) ?? false
+            quickNavLetters = (try? c.decodeIfPresent(String.self, forKey: .quickNavLetters)) ?? "style"
+            quickNavKeys = (try? c.decodeIfPresent([String: String].self, forKey: .quickNavKeys)) ?? [:]
         }
         public func encode(to encoder: Encoder) throws {
             var c = encoder.container(keyedBy: Keys.self)
@@ -330,6 +337,12 @@ public struct Config: Codable {
             try c.encode(screenLayout, forKey: .screenLayout)
             try c.encode(autoFocusMode, forKey: .autoFocusMode)
             try c.encode(imageFileNames, forKey: .imageFileNames)
+            try c.encode(quickNavLetters, forKey: .quickNavLetters)
+            try c.encode(quickNavKeys, forKey: .quickNavKeys)
+        }
+        /// Whether browse mode's single letters are NVDA's (d, k, l, i…) rather than VoiceOver's.
+        public func nvdaLetters(windowsKeys: Bool) -> Bool {
+            switch quickNavLetters { case "nvda": return true; case "voiceOver": return false; default: return windowsKeys }
         }
     }
     /// Screen recognition (NVDA: the Windows OCR settings).

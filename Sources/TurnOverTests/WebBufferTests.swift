@@ -191,6 +191,29 @@ func webBufferTests() {
         expect(buffer.status, .complete, "reactivation resumes even when the interceptor identity is unchanged")
     }
 
+    test("browse mode: single letters follow the chosen set and the user's own letters") {
+        let saved = (config.virtualBuffers.quickNavLetters, config.virtualBuffers.quickNavKeys, config.general.keyboardStyle)
+        defer { (config.virtualBuffers.quickNavLetters, config.virtualBuffers.quickNavKeys, config.general.keyboardStyle) = saved }
+        config.general.keyboardStyle = "mac"
+        let root = AXUIElementCreateApplication(910_000)
+        let buffer = WebBuffer(webArea: root, collect: { root, _, _ in sampleCollection(root, text: "A public sample paragraph.") })
+        let page = BrowseModeDocument(webArea: root, buffer: buffer)
+        waitForBuffer(buffer)
+        @MainActor func name(_ id: String) -> String? { page.script(for: KeyboardGesture(identifier: id)!)?.name }
+        config.virtualBuffers.quickNavLetters = "style"; config.virtualBuffers.quickNavKeys = [:]
+        expect(name("kb:l"), "vo_nextLink", "the Mac style's L is a link")
+        expect(name("kb:k"), "browseModeTrap", "K is no command in VoiceOver's set")
+        config.virtualBuffers.quickNavLetters = "nvda"
+        expect(name("kb:k"), "nextLink", "NVDA's letters in the Mac style: K is a link")
+        expect(name("kb:shift+d"), "previousLandmark", "D is a landmark, Shift goes back")
+        expect(name("kb:l"), "nextList", "L is a list")
+        expect(name("kb:i"), "nextListItem", "I is a list item")
+        config.virtualBuffers.quickNavKeys = ["Landmark": "y"]
+        expect(name("kb:y"), "nextLandmark", "the user's own letter")
+        expect(name("kb:shift+y"), "previousLandmark", "and backwards")
+        check(name("kb:d") != "nextLandmark", "the old letter no longer jumps to landmarks")
+    }
+
     test("document snapshot: read scopes restore nested snapshots and never admit live fallback") {
         let element = AXUIElementCreateApplication(910_000)
         let outer = AXSnapshot(nodes: [ElementKey(element): .init(attributes: ["AXRole": .string("AXButton"), "AXChildren": .array([.element(element)])], actions: ["AXPress"])])
