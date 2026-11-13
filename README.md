@@ -13,6 +13,14 @@ Added in Waypoint (see the top of [CHANGELOG.md](CHANGELOG.md)):
 - Deleted text by pitch: say a deleted character or word lower instead of "deleted" (Settings, Speech; off by default).
 - Typing: "Say space after a typed word" can be turned off (Settings, Keyboard).
 - Typing: Left and Right bump at once at the edge of left-to-right text fields.
+- Areas: Right Option 0 to 9 jump to the parts of any window, and VO-Option-O, M, A and F go to its tools, main content,
+  first list and search field ([docs/AREAS.md](docs/AREAS.md)).
+- A second reader (the review layer): read around a text field without leaving it, with its own place on the page.
+- Skim a list by key words, places (bookmarks and recent), focus memory, what changed since you left a part of a window,
+  describe this app, an actions menu for the item you are on, first-letter jump, and Anywhere, a list that finds an app,
+  a menu command or an action ([the reading tools](Guides/15-reading-tools.md)).
+- The launcher: Right Command and a key opens an app or runs a command ([Guides/14-launcher.md](Guides/14-launcher.md)).
+- What is built, which keys it uses and what is still to do: [docs/WAYPOINT-INTERACTION-MODEL.md](docs/WAYPOINT-INTERACTION-MODEL.md).
 
 Building Waypoint: `./build.sh --no-install` builds and tests it, leaving ~/Library/Developer/TurnOver/build/Waypoint.app;
 `./build.sh` also installs it to /Applications/Waypoint.app and restarts it. A build signed by anyone but TurnOver's own

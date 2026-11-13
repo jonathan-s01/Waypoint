@@ -6,6 +6,25 @@ The newest build is first. "Reported by a tester" marks a fix for something a te
 
 Changes made in the Waypoint fork, on top of TurnOver 2.0, build 24.1.
 
+### New to try
+
+- Areas: Right Option 0 to 9 jump to the parts of any window (0 is the app's bars and every toolbar button, as a
+  list). VO-Option-O, M, A and F go to the area's tools, the main content, the first list and the search field. The
+  Tools list stays open and keeps your place. See docs/AREAS.md.
+- A second reader (the review layer): hold Left Option and Right Shift, or tap VO-Option-R, to read around a text
+  field without leaving it. It has its own place on a page, and its own area keys.
+- Skim (VO-Option-N): a list by key words, fast, with a tick between items; Return reads the item in full.
+- Places: VO-Option-B bookmarks the item, VO-Option-G opens bookmarks, VO-Option-P lists recent places.
+- Focus memory: switching back to an app, or to a part of its window, puts you where you were, kept across restarts.
+- What changed (Control-Command-W) and Describe this app (Control-Command-0).
+- Anywhere (VO-Command-A): type to find an app, a menu command or an action, and run it. The actions menu
+  (VO-Command-Space) lists everything that can be done to the item you are on. Menu search finds submenus.
+- First-letter jump in any list, whatever its sort order.
+- The launcher: Right Command and a key opens an app or runs a command; Right Command with Equals and Minus changes
+  the volume.
+- Panes recipes for Teams and GitHub Copilot, and recipes for Messages, Music, Notes, TV, Podcasts, Discord and WhatsApp.
+- Mouse tracking now interrupts speech as the pointer moves, by default.
+
 ### Fixed
 
 - Braille: the cursor no longer blinks by default (Braille, Blink turns it back on). A saved choice is kept.
