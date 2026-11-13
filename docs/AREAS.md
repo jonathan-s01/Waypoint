@@ -1,6 +1,6 @@
 # Areas: quick navigation in any window (Waypoint)
 
-Added 14 Nov 2026. No recipe needed; a recipe's own parts (`PanesAppModule`) still win in the apps that have one.
+Added 13 Nov 2026. The whole model is in [WAYPOINT-INTERACTION-MODEL.md](WAYPOINT-INTERACTION-MODEL.md). No recipe needed; a recipe's own parts (`PanesAppModule`) still win in the apps that have one.
 
 ## Keys (all remappable in the keyboard commands editor)
 

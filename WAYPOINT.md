@@ -2,7 +2,8 @@
 
 Waypoint is a personal fork of TurnOver, the open-source macOS screen reader. The upstream rules in AGENTS.md,
 CONTRIBUTING.md and AI-CONTRIBUTOR.md still apply. This file adds what is specific to the fork. Where they differ,
-this file wins for Waypoint-only work.
+this file wins for Waypoint-only work. What Waypoint is meant to do, which keys it uses and what is built or not yet
+built is in `docs/WAYPOINT-INTERACTION-MODEL.md`; keep its status table true when a feature lands.
 
 ## Remotes and accounts
 

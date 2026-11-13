@@ -23,4 +23,5 @@ Start with [How to use TurnOver](how-to-use-turnover.html): the short tour, with
   fix with your AI.
 - [Plugins](plugins.html)
 - [The launcher](launcher.html): keys that open apps, run commands and open files.
-- [Reading tools](reading-tools.html): skim a list, read around a text field while typing, places, and focus memory.
+- [Reading tools](reading-tools.html): skim a list, read around a text field while typing, places, focus memory, areas,
+  Anywhere, what changed and describe.
