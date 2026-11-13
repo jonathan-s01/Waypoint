@@ -546,7 +546,7 @@ open class TurnOverObject: ScriptableObject {
         let editable = hasNavigableText && !states.contains(.readOnly)
         if inWord, hasNavigableText, Speech.typedWordSoFar.isEmpty, !Speech.typedWordWasEdited {
             // (A key held back starts its word where the field put it, not at the caret, which is past it by now.)
-            Self.wordStart = Self.replayWordStart ?? (try? makeTextInfo(.caret))?.start
+            Self.wordStart = Self.replayWordStart ?? (try? liveField.makeTextInfo(.caret))?.start
             Self.replayWordStart = nil   // only for the first word after the word that waited
         }
         guard !inWord, ch != "\u{8}", hasNavigableText, !Speech.typedWordSoFar.isEmpty || Speech.typedWordWasEdited else {
@@ -560,7 +560,7 @@ open class TurnOverObject: ScriptableObject {
         func attempt(_ n: Int) {
             var found = (taken: false, word: String?.none, next: Int?.none)
             var nextStart: Int?
-            if let info = try? makeTextInfo(.caret) {
+            if let info = try? liveField.makeTextInfo(.caret) {
                 let from = max(0, info.start - 80)
                 found = Speech.fieldWord(endedBy: ch, before: info.textRange(from, info.start), notBefore: start.map { $0 - from })
                 nextStart = found.next.map { $0 + from }
@@ -577,6 +577,11 @@ open class TurnOverObject: ScriptableObject {
             Self.replayWordStart = nil
         }
         attempt(0)
+    }
+    /// The field typed into: this object, or the focus that took its place if the page rebuilt the field (RebuiltField).
+    private var liveField: TurnOverObject {
+        guard RebuiltField.isGone(element), let f = API.focusObject, f.pid == pid, f.role == role else { return self }
+        return f
     }
     /// Where the caret was when the word being typed began, so its end is told from the word before's.
     private static var wordStart: Int?

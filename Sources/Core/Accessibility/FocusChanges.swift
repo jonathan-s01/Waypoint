@@ -38,6 +38,7 @@ extension AXHandler {
         ("background window", ruleBackgroundWindow),
         ("stand-in for a text field", ruleTextStandIn),
         ("duplicate", ruleDuplicate),
+        ("field rebuilt by the page", ruleRebuiltField),
         ("hidden scroll bar", ruleHiddenScrollBar),
         ("blank frame", ruleBlankFrame),
         ("empty web area, no key pressed", ruleEmptyWebAreaUnbidden),
@@ -555,6 +556,7 @@ extension AXHandler {
             EventHandler.queue(Event(.focusEntered, a))
         }
         lastGainFocus = (target, Date())
+        RebuiltField.remember(obj, window: window)
         let interceptor = BrowseModeHandler.shared.document(for: obj, ancestors: ancestors)
         // Into a document from outside it (another app, the window around the page): its focus event is told, as NVDA's
         // tree interceptor is (_enteringFromOutside).
