@@ -546,7 +546,7 @@ open class TurnOverObject: ScriptableObject {
         let editable = hasNavigableText && !states.contains(.readOnly)
         if inWord, hasNavigableText, Speech.typedWordSoFar.isEmpty, !Speech.typedWordWasEdited {
             // (A key held back starts its word where the field put it, not at the caret, which is past it by now.)
-            Self.wordStart = Self.replayWordStart ?? (try? liveField.makeTextInfo(.caret))?.start
+            Self.wordStart = Self.replayWordStart ?? (try? liveField.makeTextInfo(.caret)).map { Self.wordStart(caret: $0.start, expected: Self.nextWordStart) }
             Self.replayWordStart = nil   // only for the first word after the word that waited
         }
         guard !inWord, ch != "\u{8}", hasNavigableText, !Speech.typedWordSoFar.isEmpty || Speech.typedWordWasEdited else {
@@ -565,10 +565,12 @@ open class TurnOverObject: ScriptableObject {
             var looked = "no caret"
             if let info = try? liveField.makeTextInfo(.caret) {
                 let from = max(0, info.start - 80)
-                let before = info.textRange(from, info.start)
+                // (A field whose caret trails its text puts the key just past the caret: read a few characters on.)
+                let before = info.textRange(from, info.start + (start == nil ? 0 : Self.caretLagReach))
                 found = Speech.fieldWord(endedBy: ch, before: before, notBefore: start.map { $0 - from })
                 nextStart = found.next.map { $0 + from }
                 looked = "the word began at \(start.map(String.init) ?? "?"), the caret is at \(info.start), \(before.count) characters read, the last is \(before.last.map { $0 == ch ? "the key" : "not the key" } ?? "none")"
+                if found.taken { Self.nextWordStart = nextStart }
             }
             if !found.taken, n < attempts { DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) { attempt(n + 1) }; return }
             if !found.taken {
@@ -597,6 +599,16 @@ open class TurnOverObject: ScriptableObject {
     /// Copilot, 13 Nov 2026: words ended after 100 ms of waiting, the field being no quicker for it), then three.
     public static func fieldWaitAttempts(sinceMiss: TimeInterval) -> Int { sinceMiss < 20 ? 3 : 10 }
     private static var lastFieldMiss = Date.distantPast
+    /// How far past the caret a word's end is looked for. GitHub Copilot's chat box keeps its caret one character
+    /// behind its text until the next key (13 Nov 2026, "also▮," at 300 ms), so the key lay after the caret.
+    private static let caretLagReach = 3
+    /// Where the field put the word after the one last ended; the next word begins there when the caret is at it or
+    /// just short of it (the lagging caret above), not where that caret says: it read the word before.
+    private static var nextWordStart: Int?
+    public static func wordStart(caret: Int, expected: Int?) -> Int {
+        guard let expected, caret <= expected, caret >= expected - caretLagReach else { return caret }
+        return expected
+    }
     /// Where the caret was when the word being typed began, so its end is told from the word before's.
     private static var wordStart: Int?
     /// A word's end is waiting for the field; keys typed meanwhile are held back.

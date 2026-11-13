@@ -52,4 +52,14 @@ func typingRecorderTests() {
         expect(TurnOverObject.fieldWaitAttempts(sinceMiss: 1), 3)
         expect(TurnOverObject.fieldWaitAttempts(sinceMiss: 60), 10)
     }
+    test("typed word: a caret trailing the text does not put the word's start on the word before") {
+        expect(TurnOverObject.wordStart(caret: 426, expected: 427), 427)
+        expect(TurnOverObject.wordStart(caret: 427, expected: 427), 427)
+        expect(TurnOverObject.wordStart(caret: 428, expected: 427), 428)
+        expect(TurnOverObject.wordStart(caret: 100, expected: 427), 100)
+        expect(TurnOverObject.wordStart(caret: 426, expected: nil), 426)
+        // "chat and": the caret trails by one, the key lies past it, and the word is "and", not "chat".
+        let r = Speech.fieldWord(endedBy: " ", before: "chat an▮d ".replacingOccurrences(of: "▮", with: ""), notBefore: 5)
+        expect(r.word, "and")
+    }
 }
