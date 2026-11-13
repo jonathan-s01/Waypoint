@@ -40,14 +40,15 @@ requests from a branch with only that change.
 
 ---
 
-# TurnOver
+# Waypoint
 
-A screen reader for the Mac.
+A screen reader for the Mac, a personal fork of TurnOver. Waypoint is what it says and shows; the project underneath is
+TurnOver by Oliver Kennett.
 
 Free and open source, made in spare time. If it helps you, [tip on Ko-fi](https://ko-fi.com/oliverkennett), no account
 needed. GitHub Sponsors is coming.
 
-TurnOver is a full screen reader: it reads every app, with its own voice and the keys you already know, VoiceOver's,
+Waypoint is a full screen reader: it reads every app, with its own voice and the keys you already know, VoiceOver's,
 NVDA's or JAWS's. While it is on, VoiceOver is off; it turns VoiceOver off as it starts and back on as it quits, so
 you are never without speech. Command Control Period starts and quits it, if you want VoiceOver for something.
 
@@ -55,7 +56,7 @@ Word was the reason it exists: writing in Microsoft Word on a Mac, with a screen
 
 ## The deal: a spare-time project
 
-TurnOver is made by one blind developer, in spare time, and given away under the GPL. It works, and it's what I use
+TurnOver, which Waypoint is built on, is made by one blind developer, in spare time, and given away under the GPL. It works, and it's what I use
 every day. But:
 
 - **It's provided as-is.** No warranty, no support promise, no roadmap commitment.
@@ -65,16 +66,14 @@ every day. But:
 ## Supporting TurnOver
 
 If TurnOver is useful to you and you'd like to help cover its running costs, there's
-[Ko-fi](https://ko-fi.com/oliverkennett), a one-off or monthly tip with no account needed; TurnOver's menu has Support
-TurnOver, which opens it. GitHub Sponsors is coming once GitHub has approved the project's profile.
+[Ko-fi](https://ko-fi.com/oliverkennett), a one-off or monthly tip with no account needed; Waypoint's menu has Support
+Waypoint, which opens it. GitHub Sponsors is coming once GitHub has approved the project's profile.
 
 ## Installing
 
-Download the latest build from the [releases page](https://doll-eye.github.io/turnover-updates/). It runs on macOS 14
-or later, on Apple silicon and Intel Macs. Move TurnOver to Applications and open it; a welcome explains the two
-permissions macOS asks for (Accessibility and Input Monitoring). TurnOver updates itself. Every build is also on the
-[releases page](../../releases), newest first, so you can go back to an earlier one if the newest breaks something:
-download it, replace the app, and skip the newer one in TurnOver's menu, About and updates, Updates.
+Waypoint is built from source: see "Building Waypoint" at the top of this file. It runs on macOS 14 or later. A welcome
+explains the two permissions macOS asks for (Accessibility and Input Monitoring). The releases page and the updates in the
+menu are TurnOver's own, not Waypoint's.
 
 The [guides](https://doll-eye.github.io/turnover-updates/guide.html) cover getting started, the keys, reading, the
 apps, the keyboard styles and troubleshooting.
@@ -82,12 +81,12 @@ apps, the keyboard styles and troubleshooting.
 The two keys to remember:
 
 - **Command Control Comma** is the way in to everything: then M for the menu, S for settings, T to switch the app in
-  front between TurnOver and VoiceOver, H for help. Any other key lists the letters.
-- **Command Control Period** turns TurnOver off and on, from anywhere.
+  front between Waypoint and VoiceOver, H for help. Any other key lists the letters.
+- **Command Control Period** turns Waypoint off and on, from anywhere.
 
 ## Reporting a problem
 
-Use the [issue form](../../issues/new/choose). Say what you were doing, what happened and what you expected. TurnOver's
+Use the [issue form](../../issues/new/choose). Say what you were doing, what happened and what you expected. Waypoint's
 menu has Send feedback, which saves a report you can attach; the log never keeps what you type, and you choose whether
 it keeps what was read.
 

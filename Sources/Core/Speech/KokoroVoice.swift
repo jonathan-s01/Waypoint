@@ -58,8 +58,8 @@ public enum KokoroVoice {
         downloading = false
         if let p = process { removing = true; kill(p.pid, SIGTERM) }
         try? FileManager.default.removeItem(at: modelFolder)
-        let mac = AVSpeechSynthesisVoice(identifier: config.speech.voice)?.name ?? String(localized: "its voice", comment: "TurnOver's voice, when it has no name")
-        Speech.speakMessage(String(localized: "Natural voices removed. TurnOver speaks with \(mac).", comment: "Said when the natural voices are removed: %@ is the Mac voice"))
+        let mac = AVSpeechSynthesisVoice(identifier: config.speech.voice)?.name ?? String(localized: "its voice", comment: "Waypoint's voice, when it has no name")
+        Speech.speakMessage(String(localized: "Natural voices removed. Waypoint speaks with \(mac).", comment: "Said when the natural voices are removed: %@ is the Mac voice"))
         SettingsBridge.sendState()
     }
     /// The download asked for in Settings, Speech is under way (the helper's first start fetches the model).
@@ -69,7 +69,7 @@ public enum KokoroVoice {
     public static func download() {
         guard available, !downloaded, !downloading else { return }
         downloading = true
-        Speech.speakMessage(String(localized: "Downloading the natural voices, about 170 MB. TurnOver will say when they're ready.", comment: "Said when the natural voices start downloading"))
+        Speech.speakMessage(String(localized: "Downloading the natural voices, about 170 MB. Waypoint will say when they're ready.", comment: "Said when the natural voices start downloading"))
         start()
     }
     /// The helper inside TurnOver.app (Contents/Helpers, built by build.sh), when there is one.
@@ -186,7 +186,7 @@ public enum KokoroVoice {
         // Mac): the start downloads them, so it is said, as the button says it.
         if !downloaded && !downloading {
             downloading = true
-            Speech.speakMessage(String(localized: "Downloading the natural voices, about 170 MB. TurnOver will say when they're ready.", comment: "Said when the natural voices start downloading"))
+            Speech.speakMessage(String(localized: "Downloading the natural voices, about 170 MB. Waypoint will say when they're ready.", comment: "Said when the natural voices start downloading"))
         }
         // Started so it doesn't inherit TurnOver's Accessibility and Input Monitoring (it did, with Process: probed
         // 13 Oct 2026; the plugin design notes 12). It needs neither: it only turns text into sound.

@@ -453,7 +453,7 @@ if let dir = opt("--keys-reference") {
     func display(_ id: String) -> String {
         guard let g = KeyboardGesture(identifier: id) else { return id }
         var parts: [String] = []
-        if g.modifiers.contains(.turnover) { parts.append("TurnOver") }
+        if g.modifiers.contains(.turnover) { parts.append("Waypoint") }
         if g.modifiers.contains(.control) { parts.append("Control") }
         if g.modifiers.contains(.option) { parts.append("Option") }
         if g.modifiers.contains(.command) { parts.append("Command") }
@@ -467,7 +467,7 @@ if let dir = opt("--keys-reference") {
         if id.hasPrefix("kb(") { return nil }
         return id
     }
-    let order = ["JAWS keys", "Narrator keys", "TurnOver", "Text", "Reading", "Navigation", "VoiceOver keys", "NVDA keys", "Review", "Mouse", "Tables", "Speech", "Braille", "Settings", "Windows", "System", "Plugins", "Add-ons"]
+    let order = ["JAWS keys", "Narrator keys", "Waypoint", "Text", "Reading", "Navigation", "VoiceOver keys", "NVDA keys", "Review", "Mouse", "Tables", "Speech", "Braille", "Settings", "Windows", "System", "Plugins", "Add-ons"]
     func rank(_ c: String) -> Int { order.firstIndex(of: c) ?? order.count }
     let pages: [(KeyboardStyle, String, String)] = [
         (.voiceOver, "09-keys-voiceover.md", "VoiceOver keys: every key"),
@@ -475,9 +475,9 @@ if let dir = opt("--keys-reference") {
         (.jaws, "11-keys-jaws.md", "JAWS keys: every key"),
     ]
     let intro: [KeyboardStyle: String] = [
-        .voiceOver: "The VoiceOver keys style (the Mac style): VoiceOver's own keys, doing what they do in VoiceOver. **TurnOver** in a key means the TurnOver key: Control and Option together (VO), or Caps Lock. Keys VoiceOver has that aren't listed here go to VoiceOver as usual where VoiceOver reads, and do nothing special where TurnOver reads.",
-        .nvda: "The NVDA keys style (the Windows style): NVDA's own keys, doing what they do in NVDA. **TurnOver** in a key means the NVDA key: Caps Lock, or Control and Option together. NVDA's Alt is the Mac's Command key, by position.",
-        .jaws: "The JAWS keys style: JAWS's laptop layout. **TurnOver** in a key means the JAWS key: Caps Lock, or Control and Option together. Only the keys that differ from NVDA's are JAWS's own; every other key is NVDA's, so the [NVDA keys page](keys-nvda.html) lists the rest.",
+        .voiceOver: "The VoiceOver keys style (the Mac style): VoiceOver's own keys, doing what they do in VoiceOver. **Waypoint** in a key means the Waypoint key: Control and Option together (VO), or Caps Lock. Keys VoiceOver has that aren't listed here go to VoiceOver as usual where VoiceOver reads, and do nothing special where Waypoint reads.",
+        .nvda: "The NVDA keys style (the Windows style): NVDA's own keys, doing what they do in NVDA. **Waypoint** in a key means the NVDA key: Caps Lock, or Control and Option together. NVDA's Alt is the Mac's Command key, by position.",
+        .jaws: "The JAWS keys style: JAWS's laptop layout. **Waypoint** in a key means the JAWS key: Caps Lock, or Control and Option together. Only the keys that differ from NVDA's are JAWS's own; every other key is NVDA's, so the [NVDA keys page](keys-nvda.html) lists the rest.",
     ]
     let df = DateFormatter(); df.dateFormat = "d MMM yyyy"; df.locale = Locale(identifier: "en_GB")
     let modules = AppModuleHandler.shared.registeredBundleIdentifiers.sorted().compactMap { b -> AppModule? in
@@ -497,13 +497,13 @@ if let dir = opt("--keys-reference") {
         for id in ids {
             guard let g = KeyboardGesture(identifier: id), let s = ScriptHandler.findScript(for: g) else { continue }
             // A key from the style's own table is listed under the style's name, whatever command it reaches.
-            let category = own[normalizeGestureIdentifier(id)] != nil ? style.spokenName : s.category == ScriptableObject.defaultCategory ? "TurnOver" : s.category
+            let category = own[normalizeGestureIdentifier(id)] != nil ? style.spokenName : s.category == ScriptableObject.defaultCategory ? "Waypoint" : s.category
             sections[category, default: []].append((display(id), s.description))
         }
         var md = "# \(title)\n\n"
-        md += "This page is made from TurnOver's own command tables (`turnover-coretest --keys-reference`, \(df.string(from: Date()))), so it matches the build it came with. Don't edit it by hand.\n\n"
-        md += intro[style]! + " Keyboard help (the TurnOver menu, Keys) says what any key does without doing it; Command Control Comma, then Slash, lists the keys that work where you are.\n\n"
-        md += "Switch styles with Command Control Comma, then K. TurnOver's own commands behind Command Control Comma are the same in every style: see [The TurnOver layer](the-turnover-layer.html).\n"
+        md += "This page is made from Waypoint's own command tables (`turnover-coretest --keys-reference`, \(df.string(from: Date()))), so it matches the build it came with. Don't edit it by hand.\n\n"
+        md += intro[style]! + " Keyboard help (the Waypoint menu, Keys) says what any key does without doing it; Command Control Comma, then Slash, lists the keys that work where you are.\n\n"
+        md += "Switch styles with Command Control Comma, then K. Waypoint's own commands behind Command Control Comma are the same in every style: see [The Waypoint layer](the-turnover-layer.html).\n"
         for category in sections.keys.sorted(by: { (rank($0), $0) < (rank($1), $1) }) {
             md += "\n## \(category)\n\n| Key | What it does |\n|---|---|\n"
             for (k, d) in sections[category]!.sorted(by: { ($0.0.count(where: { $0 == " " }), $0.0) < ($1.0.count(where: { $0 == " " }), $1.0) }) { md += "| \(cell(k)) | \(cell(d)) |\n" }

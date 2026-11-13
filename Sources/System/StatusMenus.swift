@@ -128,7 +128,7 @@ public enum StatusMenus {
             })
         }
         // TurnOver's own item, at the right of the others it sits beside.
-        items.append(MenuItem("TurnOver", .action { DispatchQueue.main.async { TurnOverMenu.shared.open() } }))
+        items.append(MenuItem("Waypoint", .action { DispatchQueue.main.async { TurnOverMenu.shared.open() } }))
         Log.io("status menus: \(extras.count) items")
         TurnOverMenu.shared.openList("Status menus", items: items)
     }

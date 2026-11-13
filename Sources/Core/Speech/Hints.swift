@@ -26,7 +26,7 @@ public enum Hints {
     /// A web page or message in browse mode.
     public static var page: String {
         String(localized: "Up and Down read. H moves by heading, K by link, F by form field; Tab moves through links and controls.", comment: "A hint on a web page")
-            + (config.general.windowsKeys ? " " + String(localized: "TurnOver Space switches to typing into the page.", comment: "A hint on a web page, Windows style") : "")
+            + (config.general.windowsKeys ? " " + String(localized: "Waypoint Space switches to typing into the page.", comment: "A hint on a web page, Windows style") : "")
     }
 
     /// For a control with focus: the keys that work it, as VoiceOver's hints say them; in the apps TurnOver knows,
@@ -73,7 +73,7 @@ public enum Hints {
             if role == .editableText || role == .searchField { return String(localized: "Shift Tab goes back to the conversation.", comment: "A hint, said after a pause on an item") }
         case "com.apple.MobileSMS", "net.whatsapp.WhatsApp":
             if ["messageBodyField", "ChatBar_ComposerTextView"].contains(obj.element.string(kAXIdentifierAttribute) ?? "") {
-                return String(localized: "Tab goes to the messages, Shift Tab to the conversations. TurnOver 1 reads the newest message.", comment: "A hint, said after a pause on an item")
+                return String(localized: "Tab goes to the messages, Shift Tab to the conversations. Waypoint 1 reads the newest message.", comment: "A hint, said after a pause on an item")
             }
         case "com.apple.TextEdit":
             if role == .editableText || role == .document { return "" }

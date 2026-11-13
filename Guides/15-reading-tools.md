@@ -1,7 +1,7 @@
 # Reading tools
 
 These Waypoint features help you move through busy apps quickly. Each can be switched off, and every key can be changed in
-the key list. "VO" below means the TurnOver key (Caps Lock or whichever you chose).
+the key list. "VO" below means the Waypoint key (Caps Lock or whichever you chose).
 
 ## Skim: hear a list quickly
 
@@ -34,7 +34,7 @@ anything. The layer is on by default.
 4. Afterwards, for five minutes: **VO-Option-S** says where the review cursor is, **VO-Option-Q** puts the reviewed text
    into the field as a quote, **VO-Option-I** inserts it as it is, and **VO-Option-Y** copies it.
 
-Passwords and read-only fields are refused. **VO-Shift-F5** and a click with the TurnOver key held (no click reaches the
+Passwords and read-only fields are refused. **VO-Shift-F5** and a click with the Waypoint key held (no click reaches the
 app) put the review position where the mouse pointer is.
 
 ## Places: bookmarks and recent places

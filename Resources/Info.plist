@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-	<string>TurnOver</string>
+	<string>Waypoint</string>
 	<key>CFBundleExecutable</key>
 	<string>turnover</string>
 	<key>CFBundleIdentifier</key>
@@ -13,7 +13,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>TurnOver</string>
+	<string>Waypoint</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -25,15 +25,15 @@
 	<key>LSUIElement</key>
 	<true/>
 	<key>NSAppleEventsUsageDescription</key>
-	<string>TurnOver asks VoiceOver to say a few words where VoiceOver is reading, asks Microsoft Word for the page and line number, and asks Keynote for the words of the slide showing while a presentation plays.</string>
+	<string>Waypoint asks VoiceOver to say a few words where VoiceOver is reading, asks Microsoft Word for the page and line number, and asks Keynote for the words of the slide showing while a presentation plays.</string>
 	<key>NSAudioCaptureUsageDescription</key>
-	<string>TurnOver keeps VoiceOver's sound quiet while TurnOver reads, so the two never speak at once. Nothing is recorded, saved or sent.</string>
+	<string>Waypoint keeps VoiceOver's sound quiet while Waypoint reads, so the two never speak at once. Nothing is recorded, saved or sent.</string>
 	<key>NSBluetoothAlwaysUsageDescription</key>
-	<string>TurnOver connects to your Bluetooth braille display, as VoiceOver does.</string>
+	<string>Waypoint connects to your Bluetooth braille display, as VoiceOver does.</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>© 2026 Oliver Kennett and contributors. Free software under the GNU GPL 3.0 or later.</string>
 	<key>NSInputMonitoringUsageDescription</key>
-	<string>TurnOver listens for the VoiceOver keys in the apps it reads, so it can read and move around for you.</string>
+	<string>Waypoint listens for the VoiceOver keys in the apps it reads, so it can read and move around for you.</string>
 	<key>SUEnableAutomaticChecks</key>
 	<true/>
 	<key>SUFeedURL</key>

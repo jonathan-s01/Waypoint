@@ -581,8 +581,8 @@ final class LeadWatcher {
         InputManager.directPid = on ? app.processIdentifier : nil
         appActivated(app)   // TurnOver takes the app if it wasn't reading it (its tap sends the keys)
         // Said by TurnOver, which leads here now (VoiceOver is kept quiet), once the take-over has been said.
-        let words = on ? String(localized: "Direct. Keys go straight to \(name), and TurnOver stays quiet here. Command Control Comma, then D, to leave.", comment: "Direct mode on: %@ is the app")
-                       : String(localized: "Direct off. TurnOver reads \(name) again.", comment: "Direct mode off: %@ is the app")
+        let words = on ? String(localized: "Direct. Keys go straight to \(name), and Waypoint stays quiet here. Command Control Comma, then D, to leave.", comment: "Direct mode on: %@ is the app")
+                       : String(localized: "Direct off. Waypoint reads \(name) again.", comment: "Direct mode off: %@ is the app")
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { [weak self] in
             if self?.turnOverActive() == true { Speech.speakMessage(words) } else { self?.say(words) }
         }
@@ -627,11 +627,11 @@ final class LeadWatcher {
         if toTurnOver, Coexist.on {
             // Said first, then the app, as "VoiceOver leads in" is: said once TurnOver was up, it came after the app's
             // window, field and all, and wasn't heard (19 Oct 2026, twice).
-            Speech.speakMessage(String(localized: "TurnOver leads in \(name)", comment: "Spoken message"))
+            Speech.speakMessage(String(localized: "Waypoint leads in \(name)", comment: "Spoken message"))
             settleReader(after: 1.0, generation: choiceGeneration)
         } else if toTurnOver {
             handOver(voiceOverOn: false)
-            sayWhenTurnOverIsUp(String(localized: "TurnOver leads in \(name)", comment: "TurnOver reads the app in front: %@ is the app"), generation: choiceGeneration)
+            sayWhenTurnOverIsUp(String(localized: "Waypoint leads in \(name)", comment: "Waypoint reads the app in front: %@ is the app"), generation: choiceGeneration)
         } else {
             Speech.speakMessage(String(localized: "VoiceOver leads in \(name)", comment: "VoiceOver reads the app in front: %@ is the app"))
             settleReader(after: 0.8, generation: choiceGeneration)

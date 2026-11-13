@@ -45,7 +45,7 @@ enum BrailleCommands {
         (dots("235"), String(localized: "select left", comment: "A braille chord's command, as braille help says it"), .key("shift+leftArrow")),
         (dots("256"), String(localized: "select right", comment: "A braille chord's command, as braille help says it"), .key("shift+rightArrow")),
         // Control
-        (dots("136"), String(localized: "TurnOver menu", comment: "A braille chord's command, as braille help says it"), .key("turnover+n")),
+        (dots("136"), String(localized: "Waypoint menu", comment: "A braille chord's command, as braille help says it"), .key("turnover+n")),
         (dots("123456"), String(localized: "Screen Curtain", comment: "A braille chord's command, as braille help says it"), .run { ScriptHandler.findScript(named: "screenCurtain").map { $0.handler(KeyboardGesture(identifier: "kb:turnover+shift+escape")!) } }),
         (dots("1234"), String(localized: "pause or continue speech", comment: "A braille chord's command, as braille help says it"), .run { Speech.togglePause() }),
         (dots("134"), String(localized: "speech on or off", comment: "A braille chord's command, as braille help says it"), .run { ScriptHandler.findScript(named: "speechMode").map { $0.handler(KeyboardGesture(identifier: "kb:turnover+s")!) } }),
@@ -62,7 +62,7 @@ enum BrailleCommands {
         (dots("145"), String(localized: "delete", comment: "A braille chord's command, as braille help says it"), .key("delete")),
         (dots("15"), String(localized: "return", comment: "A braille chord's command, as braille help says it"), .key("return")),
         (dots("2345"), String(localized: "tab", comment: "A braille chord's command, as braille help says it"), .key("tab")),
-        (dots("2567"), String(localized: "desktop", comment: "A braille chord's command, as braille help says it"), .run { Speech.speakMessage(String(localized: "Go to Desktop is not available in TurnOver yet", comment: "Spoken message")) }),
+        (dots("2567"), String(localized: "desktop", comment: "A braille chord's command, as braille help says it"), .run { Speech.speakMessage(String(localized: "Go to Desktop is not available in Waypoint yet", comment: "Spoken message")) }),
         // Modifiers: with dot 7 for the next key, with dot 8 locked until the same chord again.
         (dots("47"), String(localized: "shift", comment: "A braille chord's command, as braille help says it"), .run { BrailleInput.modifier(.shift, name: KeyNames.spokenNames["shift"] ?? "shift", lock: false) }),
         (dots("48"), String(localized: "shift lock", comment: "A braille chord's command, as braille help says it"), .run { BrailleInput.modifier(.shift, name: KeyNames.spokenNames["shift"] ?? "shift", lock: true) }),

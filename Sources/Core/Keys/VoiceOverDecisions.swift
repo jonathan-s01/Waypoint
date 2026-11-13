@@ -100,9 +100,9 @@ enum HotSpots {
 public enum TurnOverGuide {
     /// The TurnOver guide (VO-Shift-Slash, VO-Command-F8, Command Control H).
     public static func open() {
-        guard let g = Bundle.main.url(forResource: Edition.guideName, withExtension: "txt") else { Speech.speakMessage(String(localized: "The guide is not in this copy of TurnOver", comment: "Spoken message")); return }
+        guard let g = Bundle.main.url(forResource: Edition.guideName, withExtension: "txt") else { Speech.speakMessage(String(localized: "The guide is not in this copy of Waypoint", comment: "Spoken message")); return }
         NSWorkspace.shared.open(g)
-        Speech.speakMessage(String(localized: "TurnOver guide", comment: "Spoken message"))
+        Speech.speakMessage(String(localized: "Waypoint guide", comment: "Spoken message"))
     }
 }
 
@@ -138,7 +138,7 @@ extension VoiceOverKeysPlugin {
         add("customLabel", String(localized: "Labels the item, and more: the plugin maker (VO-Slash)", comment: "A command, as the key list and keyboard help say it"), ["kb:turnover+/"]) { g in
             (ScriptHandler.findScript(named: "makePlugin") ?? GlobalCommands.shared.script(named: "makePlugin"))?.handler(g)
         }
-        add("guide", String(localized: "Opens the TurnOver guide (VO-Shift-Slash)", comment: "A command, as the key list and keyboard help say it"), ["kb:turnover+shift+/", "kb:turnover+?"]) { _ in TurnOverGuide.open() }
+        add("guide", String(localized: "Opens the Waypoint guide (VO-Shift-Slash)", comment: "A command, as the key list and keyboard help say it"), ["kb:turnover+shift+/", "kb:turnover+?"]) { _ in TurnOverGuide.open() }
         // 6. VO-Command-C: the next style change. (Copying the last thing spoken: VO-Shift-C, Command Control C.)
         add("nextStyleChange", String(localized: "Next style change (VO-Command-C)", comment: "A command, as the key list and keyboard help say it"), ["kb:turnover+command+c"]) { _ in Self.styleChange(forward: true) }
         add("previousStyleChange", String(localized: "Previous style change (VO-Command-Shift-C)", comment: "A command, as the key list and keyboard help say it"), ["kb:turnover+command+shift+c"]) { _ in Self.styleChange(forward: false) }
@@ -180,11 +180,11 @@ extension VoiceOverKeysPlugin {
         // 10, 11. VoiceOver Utility and the Tutorial.
         // VoiceOver Utility itself (18 Oct 2026: "vo f8 needs to be returned to opening voiceover utility");
         // TurnOver's settings are Command Control Comma, S.
-        add("utility", String(localized: "VoiceOver Utility (VO-F8); TurnOver's own settings are Command Control Comma, S", comment: "A command, as the key list and keyboard help say it"), ["kb:turnover+f8"]) { _ in
+        add("utility", String(localized: "VoiceOver Utility (VO-F8); Waypoint's own settings are Command Control Comma, S", comment: "A command, as the key list and keyboard help say it"), ["kb:turnover+f8"]) { _ in
             if let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.apple.VoiceOverUtility") { NSWorkspace.shared.openApplication(at: url, configuration: NSWorkspace.OpenConfiguration()) }
             else { TurnOverMenu.shared.openSettings() }
         }
-        add("tutorial", String(localized: "The TurnOver guide, until there is a tutorial (VO-Command-F8)", comment: "A command, as the key list and keyboard help say it"), ["kb:turnover+command+f8"]) { _ in TurnOverGuide.open() }
+        add("tutorial", String(localized: "The Waypoint guide, until there is a tutorial (VO-Command-F8)", comment: "A command, as the key list and keyboard help say it"), ["kb:turnover+command+f8"]) { _ in TurnOverGuide.open() }
         // 14. Activities: TurnOver's settings profiles (SettingsProfiles.swift). In VoiceOver's apps VO-X is VoiceOver's
         // own (TurnOver isn't taking the keys there). Passing it to VoiceOver from TurnOver's apps (18 Oct 2026, for
         // the Activity way of CoExist) opened VoiceOver's chooser where the tap keeps VoiceOver silent: unheard.
@@ -198,11 +198,11 @@ extension VoiceOverKeysPlugin {
                                    ("braillePanelMove", String(localized: "Moving the braille panel (VO-Shift-F9)", comment: "A VoiceOver feature"), ["kb:turnover+shift+f9"]),
                                    ("tileVisuals", String(localized: "Tile visuals (VO-F10)", comment: "A VoiceOver feature"), ["kb:turnover+f10"]),
                                    ("visuals", String(localized: "The cursor and panels on screen (VO-Command-F11)", comment: "A VoiceOver feature"), ["kb:turnover+command+f11"])] {
-            add(name, String(localized: "\(what): not in TurnOver yet", comment: "A VoiceOver feature TurnOver lacks: %@ is the feature"), keys) { _ in Speech.speakMessage(String(localized: "\(what.components(separatedBy: " (").first ?? what) isn't available in TurnOver yet", comment: "A VoiceOver feature TurnOver lacks: %@ is the feature")) }
+            add(name, String(localized: "\(what): not in Waypoint yet", comment: "A VoiceOver feature Waypoint lacks: %@ is the feature"), keys) { _ in Speech.speakMessage(String(localized: "\(what.components(separatedBy: " (").first ?? what) isn't available in Waypoint yet", comment: "A VoiceOver feature Waypoint lacks: %@ is the feature")) }
         }
         for (name, what, keys) in [("nextPageColumn", String(localized: "Next column (VO-Command-Y)", comment: "A VoiceOver feature"), ["kb:turnover+command+y"]),
                                    ("previousPageColumn", String(localized: "Previous column (VO-Command-Shift-Y)", comment: "A VoiceOver feature"), ["kb:turnover+command+shift+y"])] {
-            add(name, String(localized: "\(what): pages don't offer it to TurnOver", comment: "A VoiceOver feature pages don't give TurnOver: %@ is the feature"), keys) { _ in Speech.speakMessage(String(localized: "\(what.components(separatedBy: " (").first ?? what) isn't available in TurnOver", comment: "A VoiceOver feature TurnOver lacks: %@ is the feature")) }
+            add(name, String(localized: "\(what): pages don't offer it to Waypoint", comment: "A VoiceOver feature pages don't give Waypoint: %@ is the feature"), keys) { _ in Speech.speakMessage(String(localized: "\(what.components(separatedBy: " (").first ?? what) isn't available in Waypoint", comment: "A VoiceOver feature Waypoint lacks: %@ is the feature")) }
         }
     }
 

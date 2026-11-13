@@ -19,22 +19,22 @@ public enum HelpMakeTurnOver {
     nonisolated(unsafe) public static var show: (@MainActor () -> Void)?
 
     public static var title: String {
-        String(localized: "Help make TurnOver", comment: "The title of the page about the ways to help TurnOver (a welcome page, and an item in the TurnOver menu's Help)")
+        String(localized: "Help make Waypoint", comment: "The title of the page about the ways to help Waypoint (a welcome page, and an item in the Waypoint menu's Help)")
     }
 
     /// One point a line, as the welcome pages have them, read with Up and Down.
     public static var body: String {
         [
-            String(localized: "TurnOver is free and open source. It gets better when the people who use it say what works and what doesn't.", comment: "Help make TurnOver: the first line"),
-            String(localized: "Tell us how it's going, good or bad: Tools, then Send feedback, in the TurnOver menu. A sentence is enough.", comment: "Help make TurnOver: feedback"),
-            String(localized: "Something wrong in one app: This app, then Help improve this app, in the TurnOver menu. A form opens, already filled in for that app.", comment: "Help make TurnOver: reporting a problem with an app"),
-            String(localized: "Fix an item yourself: Fix the item I'm on, in Help improve this app, gives it a name or a key. With VoiceOver keys, VO-Slash does the same. Share your fix, and everyone who uses that app gets it.", comment: "Help make TurnOver: fixing an item"),
-            String(localized: "Teach TurnOver a whole app with your own AI assistant, such as Claude Code or Codex. Help improve this app starts it for you.", comment: "Help make TurnOver: building an app's module with an AI assistant"),
-            String(localized: "Translate TurnOver into your language. The Turkish and Russian translations came from people who use it.", comment: "Help make TurnOver: translating"),
-            String(localized: "Write code: TurnOver is on GitHub, and CONTRIBUTING.md there is the place to start.", comment: "Help make TurnOver: contributing code"),
-            String(localized: "Talk with other people who use TurnOver on its Discord, at \(discordAddress).", comment: "Help make TurnOver: the Discord server; the argument is its address"),
-            String(localized: "If you've found Discord hard going, it reads better with TurnOver on the Mac.", comment: "Help make TurnOver: Discord reads better with TurnOver"),
-            String(localized: "Open TurnOver on GitHub, below, to make a start. This page is in the TurnOver menu, under Help, as Help make TurnOver.", comment: "Help make TurnOver: the last line, before the buttons"),
+            String(localized: "Waypoint is free and open source. It gets better when the people who use it say what works and what doesn't.", comment: "Help make Waypoint: the first line"),
+            String(localized: "Tell us how it's going, good or bad: Tools, then Send feedback, in the Waypoint menu. A sentence is enough.", comment: "Help make Waypoint: feedback"),
+            String(localized: "Something wrong in one app: This app, then Help improve this app, in the Waypoint menu. A form opens, already filled in for that app.", comment: "Help make Waypoint: reporting a problem with an app"),
+            String(localized: "Fix an item yourself: Fix the item I'm on, in Help improve this app, gives it a name or a key. With VoiceOver keys, VO-Slash does the same. Share your fix, and everyone who uses that app gets it.", comment: "Help make Waypoint: fixing an item"),
+            String(localized: "Teach Waypoint a whole app with your own AI assistant, such as Claude Code or Codex. Help improve this app starts it for you.", comment: "Help make Waypoint: building an app's module with an AI assistant"),
+            String(localized: "Translate Waypoint into your language. The Turkish and Russian translations came from people who use it.", comment: "Help make Waypoint: translating"),
+            String(localized: "Write code: Waypoint is on GitHub, and CONTRIBUTING.md there is the place to start.", comment: "Help make Waypoint: contributing code"),
+            String(localized: "Talk with other people who use TurnOver, which Waypoint is built on, on its Discord, at \(discordAddress).", comment: "Help make Waypoint: the Discord server; the argument is its address"),
+            String(localized: "If you've found Discord hard going, it reads better with Waypoint on the Mac.", comment: "Help make Waypoint: Discord reads better with Waypoint"),
+            String(localized: "Open Waypoint on GitHub, below, to make a start. This page is in the Waypoint menu, under Help, as Help make Waypoint.", comment: "Help make Waypoint: the last line, before the buttons"),
         ].joined(separator: "\n")
     }
 
@@ -42,6 +42,6 @@ public enum HelpMakeTurnOver {
 
     /// The page's own button, where the welcome's last page has Read the guide.
     public static var buttonTitle: String {
-        String(localized: "Open TurnOver on GitHub", comment: "The button on the Help make TurnOver page")
+        String(localized: "Open Waypoint on GitHub", comment: "The button on the Help make Waypoint page")
     }
 }

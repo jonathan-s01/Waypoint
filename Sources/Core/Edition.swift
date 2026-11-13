@@ -35,7 +35,7 @@ public enum Edition {
     /// The build number (CFBundleVersion; raised for every published build), so a report says exactly which build.
     public static var build: String { Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "?" }
     /// "TurnOver 1.0", or "TurnOver 1.0 (build 3)" once builds are numbered.
-    public static var fullName: String { build == version ? "TurnOver \(version)" : "TurnOver \(version) (build \(build))" }   // (feedback subjects are counted by it)
+    public static var fullName: String { build == version ? "Waypoint \(version)" : "Waypoint \(version) (build \(build))" }   // (feedback subjects are counted by it)
     /// TurnOver's issues on GitHub: Send feedback and app requests open its forms there, filled in.
     public static let issuesURL = "https://github.com/TurnOver-For-Mac/turnover/issues"
 

@@ -15,7 +15,7 @@ func pureTests() {
     test("Help make TurnOver: every way to help named, by the menu's own words, and it opens by itself once") {
         let body = HelpMakeTurnOver.body
         for words in ["Send feedback", "Help improve this app", "Fix the item I'm on", "VO-Slash", "Translate", "CONTRIBUTING.md",
-                      HelpMakeTurnOver.discordAddress, "Discord", "under Help, as Help make TurnOver"] {
+                      HelpMakeTurnOver.discordAddress, "Discord", "under Help, as Help make Waypoint"] {
             check(body.contains(words), "the page names \(words)")
         }
         check(body.split(separator: "\n").count >= 8, "one point a line, read with Up and Down")

@@ -100,7 +100,7 @@ nonisolated final class KeyboardHandler: @unchecked Sendable {
             59: (String(localized: "key.control", defaultValue: "control", comment: "A modifier key's name"), .maskControl),
             62: (String(localized: "right control", comment: "A modifier key's name"), .maskControl),
             63: (String(localized: "function", comment: "The Fn key's name, as keyboard help says it"), .maskSecondaryFn),
-            57: (capsIsTurnOver ? String(localized: "caps lock, the TurnOver key", comment: "Keyboard help: Caps Lock as the TurnOver key") : String(localized: "key.capsLock", defaultValue: "caps lock", comment: "A key's name"), nil),
+            57: (capsIsTurnOver ? String(localized: "caps lock, the Waypoint key", comment: "Keyboard help: Caps Lock as the Waypoint key") : String(localized: "key.capsLock", defaultValue: "caps lock", comment: "A key's name"), nil),
         ]
         guard let (name, mask) = names[code] else { return }
         if let mask, !flags.contains(mask) { return }   // the key going up
@@ -402,7 +402,7 @@ nonisolated final class KeyboardHandler: @unchecked Sendable {
             disabledAt = disabledAt.filter { now.timeIntervalSince($0) < 10 } + [now]
             if disabledAt.count >= 3, now.timeIntervalSince(lastDisableSpoken) > 60 {
                 lastDisableSpoken = now
-                onMain { Speech.speakMessage(String(localized: "The system keeps switching TurnOver's keyboard off; TurnOver turns it back on each time. If keys are being missed, quit and start TurnOver again.", comment: "Spoken message")) }
+                onMain { Speech.speakMessage(String(localized: "The system keeps switching Waypoint's keyboard off; Waypoint turns it back on each time. If keys are being missed, quit and start Waypoint again.", comment: "Spoken message")) }
             }
             return Unmanaged.passUnretained(event)
         }

@@ -93,12 +93,12 @@ public enum UserGestures {
             return .script(Script(name: "user_scriptFile", description: String(localized: "Runs \((path as NSString).lastPathComponent)", comment: "Your own key: %@ is the script it runs"), category: "Your keys", owner: nil) { _ in VoiceOverCommands.runScriptFile(path) })
         case .voiceOver(let command):
             let name = VoiceOverCommands.englishName(of: command)
-            return .script(Script(name: "user_voiceOverCommand", description: String(localized: "VoiceOver's \(name)", comment: "Your own key: %@ is a VoiceOver command's English name"), category: "Your keys", owner: nil) { _ in Speech.speakMessage(String(localized: "VoiceOver's \(name) isn't in TurnOver yet", comment: "A VoiceOver command TurnOver lacks: %@ is its English name")) })
+            return .script(Script(name: "user_voiceOverCommand", description: String(localized: "VoiceOver's \(name)", comment: "Your own key: %@ is a VoiceOver command's English name"), category: "Your keys", owner: nil) { _ in Speech.speakMessage(String(localized: "VoiceOver's \(name) isn't in Waypoint yet", comment: "A VoiceOver command Waypoint lacks: %@ is its English name")) })
         }
     }
 
     public static func set(_ g: KeyboardGesture, to t: Target) {
-        if isProtected(g) { Log.info("keys: \(g.identifier) is essential; not reassigned"); Speech.speakMessage(String(localized: "\(g.displayName) is one of TurnOver's essential keys and can't be changed", comment: "Spoken message: %@ is the command")); return }
+        if isProtected(g) { Log.info("keys: \(g.identifier) is essential; not reassigned"); Speech.speakMessage(String(localized: "\(g.displayName) is one of Waypoint's essential keys and can't be changed", comment: "Spoken message: %@ is the command")); return }
         config.keyboard.userGestures[storedIdentifier(of: g)] = t.stored
         config.save()
         Log.info("user keys: \(storedIdentifier(of: g)) → \(t.stored)")
@@ -121,12 +121,12 @@ public enum UserGestures {
 
     public static func describe(_ t: Target) -> String {
         switch t {
-        case .removed: return String(localized: "does nothing in TurnOver (goes to the application)", comment: "What your own key does")
+        case .removed: return String(localized: "does nothing in Waypoint (goes to the application)", comment: "What your own key does")
         case .app(let b): return String(localized: "opens \(appName(b))", comment: "What your own key does: %@ is the app")
         case .script(let n): return ScriptHandler.findScript(named: n)?.description ?? n
         case .shortcut: return String(localized: "runs a Shortcut", comment: "What your own key does")
         case .file(let p): return String(localized: "runs the script \((p as NSString).lastPathComponent)", comment: "What your own key does: %@ is the script")
-        case .voiceOver(let c): return String(localized: "VoiceOver's \(VoiceOverCommands.englishName(of: c)), not in TurnOver yet", comment: "What your own key does: %@ is a VoiceOver command's English name")
+        case .voiceOver(let c): return String(localized: "VoiceOver's \(VoiceOverCommands.englishName(of: c)), not in Waypoint yet", comment: "What your own key does: %@ is a VoiceOver command's English name")
         }
     }
 

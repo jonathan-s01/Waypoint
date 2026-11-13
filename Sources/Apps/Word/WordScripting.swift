@@ -284,7 +284,7 @@ final class WordScript {
         if first {
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
                 guard Self.automation.isPending(request), NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.UserNotificationCenter").contains(where: { !$0.isTerminated }) else { return }
-                Speech.speakMessage(String(localized: "macOS is asking whether TurnOver may control Microsoft Word. Choose Allow; there is no hurry.", comment: "Spoken message"))
+                Speech.speakMessage(String(localized: "macOS is asking whether Waypoint may control Microsoft Word. Choose Allow; there is no hurry.", comment: "Spoken message"))
             }
         }
         var error: NSDictionary?
@@ -297,7 +297,7 @@ final class WordScript {
             // Refused (errAEEventNotPermitted, -1743): say why, once in a while, not fail in silence.
             if refused {
                 DispatchQueue.main.async {
-                    Speech.speakMessage(String(localized: "TurnOver needs permission to control Word. In System Settings, Privacy and Security, Automation, turn on Microsoft Word under TurnOver.", comment: "Spoken message"))
+                    Speech.speakMessage(String(localized: "Waypoint needs permission to control Word. In System Settings, Privacy and Security, Automation, turn on Microsoft Word under Waypoint.", comment: "Spoken message"))
                 }
             }
             return nil

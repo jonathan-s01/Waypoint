@@ -1,243 +1,257 @@
 # VoiceOver keys: every key
 
-This page is made from TurnOver's own command tables (`turnover-coretest --keys-reference`, 12 Nov 2026), so it matches the build it came with. Don't edit it by hand.
+This page is made from Waypoint's own command tables (`turnover-coretest --keys-reference`, 13 Nov 2026), so it matches the build it came with. Don't edit it by hand.
 
-The VoiceOver keys style (the Mac style): VoiceOver's own keys, doing what they do in VoiceOver. **TurnOver** in a key means the TurnOver key: Control and Option together (VO), or Caps Lock. Keys VoiceOver has that aren't listed here go to VoiceOver as usual where VoiceOver reads, and do nothing special where TurnOver reads. Keyboard help (the TurnOver menu, Keys) says what any key does without doing it; Command Control Comma, then Slash, lists the keys that work where you are.
+The VoiceOver keys style (the Mac style): VoiceOver's own keys, doing what they do in VoiceOver. **Waypoint** in a key means the Waypoint key: Control and Option together (VO), or Caps Lock. Keys VoiceOver has that aren't listed here go to VoiceOver as usual where VoiceOver reads, and do nothing special where Waypoint reads. Keyboard help (the Waypoint menu, Keys) says what any key does without doing it; Command Control Comma, then Slash, lists the keys that work where you are.
 
-Switch styles with Command Control Comma, then K. TurnOver's own commands behind Command Control Comma are the same in every style: see [The TurnOver layer](the-turnover-layer.html).
+Switch styles with Command Control Comma, then K. Waypoint's own commands behind Command Control Comma are the same in every style: see [The Waypoint layer](the-turnover-layer.html).
 
-## TurnOver
+## Waypoint
 
 | Key | What it does |
 |---|---|
+| Control Command 0 | Describes the app in front: its window and the parts of it; pressed twice, as a list to move to a part |
+| Control Command W | Says what is new in this part of the window since you left it; pressed twice, in every part of the app |
 | Option Command Escape | Force quit an application; lists the running applications to force quit one, with a confirmation (the Mac's Force Quit window, spoken) |
+| Waypoint Command A | Anywhere: type to find an app, a menu command, an action or a Waypoint command, and run it |
+| Waypoint Command Equals | Marks this moment in the log, for a report that something just sounded wrong (VO-Command-Equals) |
+| Waypoint Option B | Bookmarks the item you are on, so a key can bring you back to it |
+| Waypoint Option G | Lists your bookmarks, narrowed as you type; Return goes to one, in its app |
+| Waypoint Option I | After reading around a text field, puts the reviewed text into the field as it is |
+| Waypoint Option N | In a list of messages, files or results, switches Up and Down to skimming the items by their key words, quickly, and back; Return reads the item in full |
+| Waypoint Option P | Lists the places you stayed at recently, the one before this first; Return goes back to it |
+| Waypoint Option Q | After reading around a text field, puts the reviewed text into the field as a quote |
+| Waypoint Option R | Review layer: once, the next key reads around the field instead of typing; twice, the layer stays on until pressed again |
+| Waypoint Option S | After reading around a text field, says where the review cursor is |
+| Waypoint Option Y | After reading around a text field, copies the reviewed text |
+| Waypoint Option Command Shift Slash | Puts the second reader back with the keyboard: it follows the focus again, in this app and window (it stays where an area jump put it until then) |
 
 ## VoiceOver keys
 
 | Key | What it does |
 |---|---|
-| TurnOver 0 | Goes to hot spot 0 (VO-0) |
-| TurnOver 1 | Goes to hot spot 1 (VO-1) |
-| TurnOver 2 | Goes to hot spot 2 (VO-2) |
-| TurnOver 3 | Goes to hot spot 3 (VO-3) |
-| TurnOver 4 | Goes to hot spot 4 (VO-4) |
-| TurnOver 5 | Goes to hot spot 5 (VO-5) |
-| TurnOver 6 | Goes to hot spot 6 (VO-6) |
-| TurnOver 7 | Goes to hot spot 7 (VO-7) |
-| TurnOver 8 | Goes to hot spot 8 (VO-8) |
-| TurnOver 9 | Goes to hot spot 9 (VO-9) |
-| TurnOver A | Reads the VoiceOver cursor's contents: in text or a page, from the cursor on; elsewhere everything in the item (VO-A) |
-| TurnOver B | Reads from the beginning to here (VO-B) |
-| TurnOver Backslash | Opens or closes the disclosure triangle (VO-Backslash) |
-| TurnOver Backspace | Deletes the tab stop on a ruler (VO-Backspace) |
-| TurnOver C | In a table, the column header (twice, the column from here down); elsewhere the character (twice, phonetically) (VO-C, VO-C-C) |
-| TurnOver D | The Dock (VO-D) |
-| TurnOver End | In text, the end of the text; elsewhere the last item in the group (VO-End) |
-| TurnOver Enter | In a text field, starts or stops selecting text; elsewhere selects the list or menu item (VO-Return) |
-| TurnOver F1 | Says the application and its windows; pressed twice, the application chooser (VO-F1, VO-F1-F1) |
-| TurnOver F10 | Tile visuals (VO-F10): not in TurnOver yet |
-| TurnOver F2 | Says the window's title; pressed twice, the window chooser (VO-F2, VO-F2-F2) |
-| TurnOver F3 | The item's description; in text, the word and character; twice, how many lines (VO-F3, VO-F3-F3) |
-| TurnOver F4 | Describes the item with keyboard focus; twice, more about it (in text, where the insertion point is) (VO-F4, VO-F4-F4) |
-| TurnOver F5 | The item under the mouse pointer; twice, where the pointer is on the screen; three times, in the window (VO-F5) |
-| TurnOver F6 | Reads the selected item (VO-F6) |
-| TurnOver F7 | The date and time; twice, the battery; three times, the network (VO-F7, VO-F7-F7, VO-F7-F7-F7) |
-| TurnOver F8 | VoiceOver Utility (VO-F8); TurnOver's own settings are Command Control Comma, S |
-| TurnOver Grave | Moves the window with the arrow keys; Escape stops (VO-Grave Accent) |
-| TurnOver H | The help menu; pressed twice, the commands (VO-H, VO-H-H) |
-| TurnOver Home | In text, the start of the text; elsewhere the first item in the group (VO-Home) |
-| TurnOver I | Everything in the window or page, narrowed as you type; Enter goes there (VO-I) |
-| TurnOver J | Jump to the linked item; jumps to the linked item, such as from the message list to the message (VO-J) |
-| TurnOver K | Keyboard help: every key says what it does (VO-K) |
-| TurnOver L | Reads the line (VO-L) |
-| TurnOver M | The application's menus (VO-M); pressed twice, the status menus (VO-M-M) |
-| TurnOver N | The notifications heard lately (VO-N) |
-| TurnOver NumpadClear | NumPad Commander on or off: the keypad runs VoiceOver's commands (VO-Clear) |
-| TurnOver O | Opens Notification Centre and goes to its first notification; again closes it (VO-O) |
-| TurnOver P | Reads the paragraph (VO-P) |
-| TurnOver Q | Browse mode on or off: single-letter navigation (VO-Q) |
-| TurnOver R | Reads the row header; twice, the row from here to its end (VO-R, VO-R-R) |
-| TurnOver S | Reads the sentence (VO-S) |
-| TurnOver Semicolon | Locks or unlocks the VO keys: every key is a VO key until unlocked (VO-Semicolon) |
-| TurnOver Slash | Labels the item, and more: the plugin maker (VO-Slash) |
-| TurnOver Space | Activates the item under the VoiceOver cursor (VO-Space) |
-| TurnOver T | Reads the text attributes (VO-T) |
-| TurnOver Tab | The next key goes to the application untouched (VO-Tab) |
-| TurnOver U | The rotor: headings, links, form controls, landmarks… Left and Right change kind (VO-U) |
-| TurnOver V | Verbosity: punctuation, item details and hints (VO-V) |
-| TurnOver W | Reads the word; twice, spells it; three times, spells it phonetically (VO-W) |
-| TurnOver X | Activities: sets of speech, verbosity, web and braille settings, by hand or for an app (VO-X) |
-| TurnOver Z | Repeats the last thing spoken (VO-Z) |
-| TurnOver Command 0 | Describes hot spot 0 (VO-Command-0) |
-| TurnOver Command 1 | Describes hot spot 1 (VO-Command-1) |
-| TurnOver Command 2 | Describes hot spot 2 (VO-Command-2) |
-| TurnOver Command 3 | Describes hot spot 3 (VO-Command-3) |
-| TurnOver Command 4 | Describes hot spot 4 (VO-Command-4) |
-| TurnOver Command 5 | Describes hot spot 5 (VO-Command-5) |
-| TurnOver Command 6 | Describes hot spot 6 (VO-Command-6) |
-| TurnOver Command 7 | Describes hot spot 7 (VO-Command-7) |
-| TurnOver Command 8 | Describes hot spot 8 (VO-Command-8) |
-| TurnOver Command 9 | Describes hot spot 9 (VO-Command-9) |
-| TurnOver Command B | Next bold text (VO-Command-B) |
-| TurnOver Command Backslash | Jumps back to the parent folder (VO-Command-Backslash) |
-| TurnOver Command C | Next style change (VO-Command-C) |
-| TurnOver Command D | Next different item (VO-Command-D) |
-| TurnOver Command E | Next spelling error (VO-Command-E) |
-| TurnOver Command End | The last item in the window (VO-Command-End) |
-| TurnOver Command Enter | Add to or remove from the selection; adds the item to the selection, or takes it out, keeping the others (VO-Command-Return) |
-| TurnOver Command Escape | Closes the window (VO-Command-Escape) |
-| TurnOver Command F | Next frame (VO-Command-F) |
-| TurnOver Command F10 | The caption panel (VO-Command-F10): not in TurnOver yet |
-| TurnOver Command F11 | The cursor and panels on screen (VO-Command-F11): not in TurnOver yet |
-| TurnOver Command F2 | The window's size and where it is on the screen (VO-Command-F2) |
-| TurnOver Command F3 | The item's size and where it is on the screen (VO-Command-F3) |
-| TurnOver Command F4 | The keyboard focus to the VoiceOver cursor (VO-Command-F4) |
-| TurnOver Command F5 | The mouse pointer to the VoiceOver cursor (VO-Command-F5) |
-| TurnOver Command F8 | The TurnOver guide, until there is a tutorial (VO-Command-F8) |
-| TurnOver Command F9 | The braille panel (VO-Command-F9): not in TurnOver yet |
-| TurnOver Command G | Next graphic (VO-Command-G) |
-| TurnOver Command Grave | Moves the item with the arrow keys, where it can be moved; Escape stops (VO-Command-Grave Accent) |
-| TurnOver Command H | Next heading (VO-Command-H) |
-| TurnOver Command Home | The first item in the window (VO-Command-Home) |
-| TurnOver Command I | Next italic text (VO-Command-I) |
-| TurnOver Command J | Next form control (VO-Command-J) |
-| TurnOver Command K | Next colour change (VO-Command-K) |
-| TurnOver Command L | Next link (VO-Command-L) |
-| TurnOver Command M | Next heading of the same level (VO-Command-M) |
-| TurnOver Command O | Next font change (VO-Command-O) |
-| TurnOver Command P | Next plain text (VO-Command-P) |
-| TurnOver Command Q | Next blockquote (VO-Command-Q) |
-| TurnOver Command R | Next tracked change (VO-Command-R) |
-| TurnOver Command S | Next item of the same type (VO-Command-S) |
-| TurnOver Command Slash | Reads additional content for the item (VO-Command-Slash) |
-| TurnOver Command Space | The item's actions, to choose from (VO-Command-Space) |
-| TurnOver Command T | Next table (VO-Command-T) |
-| TurnOver Command U | Next underlined text (VO-Command-U) |
-| TurnOver Command V | Next visited link (VO-Command-V) |
-| TurnOver Command W | Next blockquote of the same level (VO-Command-W) |
-| TurnOver Command X | Next list (VO-Command-X) |
-| TurnOver Command Y | Next column (VO-Command-Y): pages don't offer it to TurnOver |
-| TurnOver Down arrow | Next line in text; elsewhere the item below (VO-Down) |
-| TurnOver Left arrow | Previous item (VO-Left) |
-| TurnOver Left bracket | The previous part of the window (VO-Left Bracket) |
-| TurnOver Right arrow | Next item (VO-Right) |
-| TurnOver Right bracket | The next part of the window: sidebar, toolbar, content (VO-Right Bracket) |
-| TurnOver Shift 0 | Sets or removes hot spot 0 (VO-Shift-0) |
-| TurnOver Shift 1 | Sets or removes hot spot 1 (VO-Shift-1) |
-| TurnOver Shift 2 | Sets or removes hot spot 2 (VO-Shift-2) |
-| TurnOver Shift 3 | Sets or removes hot spot 3 (VO-Shift-3) |
-| TurnOver Shift 4 | Sets or removes hot spot 4 (VO-Shift-4) |
-| TurnOver Shift 5 | Sets or removes hot spot 5 (VO-Shift-5) |
-| TurnOver Shift 6 | Sets or removes hot spot 6 (VO-Shift-6) |
-| TurnOver Shift 7 | Sets or removes hot spot 7 (VO-Shift-7) |
-| TurnOver Shift 8 | Sets or removes hot spot 8 (VO-Shift-8) |
-| TurnOver Shift 9 | Sets or removes hot spot 9 (VO-Shift-9) |
-| TurnOver Shift A | Selects all the text in the VoiceOver cursor (VO-Shift-A) |
-| TurnOver Shift Backslash | On a page, how many headings, links, tables…; in a table, the column's sort button (VO-Shift-Vertical Line) |
-| TurnOver Shift C | Copies the last thing spoken (VO-Shift-C) |
-| TurnOver Shift D | Moves to the desktop (VO-Shift-D) |
-| TurnOver Shift End | In text, the last word in view; elsewhere the last item in the group (VO-Shift-End) |
-| TurnOver Shift Escape | Out to the top level of the window (VO-Shift-Escape) |
-| TurnOver Shift F | The find commands: bold, headings, links… (VO-Shift-F) |
-| TurnOver Shift F10 | Moving the caption panel (VO-Shift-F10): not in TurnOver yet |
-| TurnOver Shift F11 | Screen Curtain on or off (VO-Shift-F11) |
-| TurnOver Shift F2 | Brings the VoiceOver cursor's window to the front (VO-Shift-F2) |
-| TurnOver Shift F3 | Cursor tracking off or on for now: the VoiceOver cursor stays put as the focus moves (VO-Shift-F3) |
-| TurnOver Shift F4 | The VoiceOver cursor to the keyboard focus (VO-Shift-F4) |
-| TurnOver Shift F5 | The VoiceOver cursor to the item under the mouse pointer (VO-Shift-F5) |
-| TurnOver Shift F9 | Moving the braille panel (VO-Shift-F9): not in TurnOver yet |
-| TurnOver Shift Grave | Resizes the window with the arrow keys; Escape stops (VO-Tilde) |
-| TurnOver Shift H | Reads the item's help tag (VO-Shift-H) |
-| TurnOver Shift Home | In text, the first word in view; elsewhere the first item in the group (VO-Shift-Home) |
-| TurnOver Shift J | Jumps to the input method or autocorrect panel (VO-Shift-J) |
-| TurnOver Shift K | Option key Commander on or off: right Option with a letter runs a command (VO-Shift-K) |
-| TurnOver Shift L | Describes the image or photo; anywhere else, what the window looks like (VO-Shift-L) |
-| TurnOver Shift M | The shortcut menu for the item (VO-Shift-M) |
-| TurnOver Shift N | Reads the hint for the item (VO-Shift-N) |
-| TurnOver Shift O | Opens or closes Control Centre (VO-Shift-O) |
-| TurnOver Shift Q | Arrow-key Quick Nav on or off: Left and Right move the VoiceOver cursor, Up and Down the item above and below (VO-Shift-Q; Left and Right Arrow together) |
-| TurnOver Shift S | Scrolls the area the VoiceOver cursor is in: arrows, Page Up and Page Down, Shift Page Up and Down to the top and bottom; Escape stops (VO-Shift-S) |
-| TurnOver Shift Slash | Opens the TurnOver guide (VO-Shift-Slash) |
-| TurnOver Shift Space | Clicks the item with the mouse; pressed twice, a double click (VO-Shift-Space, VO-Shift-Space-Space) |
-| TurnOver Shift T | Reads the row and column number; twice, how many rows and columns (VO-Shift-T, VO-Shift-T-T) |
-| TurnOver Shift U | Reads a link's address (VO-Shift-U) |
-| TurnOver Shift W | Reads everything in the window (VO-Shift-W) |
-| TurnOver Shift X | The hot spot chooser (VO-Shift-X) |
-| TurnOver Shift Y | Recognises the text in the window from the screen (OCR), to read with the arrows and click with Return; pressed twice, its buttons, fields and icons instead (VO-Shift-Y, TurnOver's own) |
-| TurnOver Shift Z | Save the last phrase to the Desktop; saves the last spoken phrase, with TurnOver's log, to a file on the Desktop (VO-Shift-Z) |
-| TurnOver Up arrow | Previous line in text; elsewhere the item above (VO-Up) |
-| TurnOver Command Down arrow | The next item of the rotor's kind (VO-Command-Down) |
-| TurnOver Command Left arrow | The rotor's previous kind (VO-Command-Left) |
-| TurnOver Command Left bracket | Your previous window spot (VO-Command-Left Bracket) |
-| TurnOver Command Page down | Reads the next sentence (VO-Command-Page Down) |
-| TurnOver Command Page up | Reads the previous sentence (VO-Command-Page Up) |
-| TurnOver Command Right arrow | The rotor's next kind: headings, links, form controls, tables… (VO-Command-Right) |
-| TurnOver Command Right bracket | Your next window spot (VO-Command-Right Bracket) |
-| TurnOver Command Shift 0 | Watches hot spot 0 for changes, or stops (VO-Command-Shift-0) |
-| TurnOver Command Shift 1 | Watches hot spot 1 for changes, or stops (VO-Command-Shift-1) |
-| TurnOver Command Shift 2 | Watches hot spot 2 for changes, or stops (VO-Command-Shift-2) |
-| TurnOver Command Shift 3 | Watches hot spot 3 for changes, or stops (VO-Command-Shift-3) |
-| TurnOver Command Shift 4 | Watches hot spot 4 for changes, or stops (VO-Command-Shift-4) |
-| TurnOver Command Shift 5 | Watches hot spot 5 for changes, or stops (VO-Command-Shift-5) |
-| TurnOver Command Shift 6 | Watches hot spot 6 for changes, or stops (VO-Command-Shift-6) |
-| TurnOver Command Shift 7 | Watches hot spot 7 for changes, or stops (VO-Command-Shift-7) |
-| TurnOver Command Shift 8 | Watches hot spot 8 for changes, or stops (VO-Command-Shift-8) |
-| TurnOver Command Shift 9 | Watches hot spot 9 for changes, or stops (VO-Command-Shift-9) |
-| TurnOver Command Shift B | Previous bold text (VO-Command-Shift-B) |
-| TurnOver Command Shift C | Previous style change (VO-Command-Shift-C) |
-| TurnOver Command Shift D | Previous different item (VO-Command-Shift-D) |
-| TurnOver Command Shift E | Previous spelling error (VO-Command-Shift-E) |
-| TurnOver Command Shift F | Previous frame (VO-Command-Shift-F) |
-| TurnOver Command Shift G | Previous graphic (VO-Command-Shift-G) |
-| TurnOver Command Shift Grave | Resizes the item with the arrow keys, where it can be; Escape stops (VO-Command-Tilde) |
-| TurnOver Command Shift H | Previous heading (VO-Command-Shift-H) |
-| TurnOver Command Shift I | Previous italic text (VO-Command-Shift-I) |
-| TurnOver Command Shift J | Previous form control (VO-Command-Shift-J) |
-| TurnOver Command Shift K | Previous colour change (VO-Command-Shift-K) |
-| TurnOver Command Shift L | Previous link (VO-Command-Shift-L) |
-| TurnOver Command Shift M | Previous heading of the same level (VO-Command-Shift-M) |
-| TurnOver Command Shift O | Previous font change (VO-Command-Shift-O) |
-| TurnOver Command Shift P | Previous plain text (VO-Command-Shift-P) |
-| TurnOver Command Shift Q | Previous blockquote (VO-Command-Shift-Q) |
-| TurnOver Command Shift R | Previous tracked change (VO-Command-Shift-R) |
-| TurnOver Command Shift S | Previous item of the same type (VO-Command-Shift-S) |
-| TurnOver Command Shift Space | Mouse button down at the VoiceOver cursor; again, up where the cursor is then: a drag (VO-Command-Shift-Space) |
-| TurnOver Command Shift T | Previous table (VO-Command-Shift-T) |
-| TurnOver Command Shift U | Previous underlined text (VO-Command-Shift-U) |
-| TurnOver Command Shift V | Previous visited link (VO-Command-Shift-V) |
-| TurnOver Command Shift W | Previous blockquote of the same level (VO-Command-Shift-W) |
-| TurnOver Command Shift X | Previous list (VO-Command-Shift-X) |
-| TurnOver Command Shift Y | Previous column (VO-Command-Shift-Y): pages don't offer it to TurnOver |
-| TurnOver Command Up arrow | The previous item of the rotor's kind (VO-Command-Up) |
-| TurnOver Shift Down arrow | Into the item: its first part (VO-Shift-Down) |
-| TurnOver Shift Left arrow | The previous group, without going into it (VO-Shift-Left) |
-| TurnOver Shift Left bracket | Previous hot spot (VO-Shift-Left Bracket) |
-| TurnOver Shift Page down | Reads the next paragraph (VO-Shift-Page Down) |
-| TurnOver Shift Page up | Reads the previous paragraph (VO-Shift-Page Up) |
-| TurnOver Shift Right arrow | The next group, without going into it (VO-Shift-Right) |
-| TurnOver Shift Right bracket | Next hot spot (VO-Shift-Right Bracket) |
-| TurnOver Shift Up arrow | Out of the item: what holds it (VO-Shift-Up) |
-| TurnOver Command Shift Down arrow | Lowers the speech setting (VO-Command-Shift-Down) |
-| TurnOver Command Shift Left arrow | Previous speech setting (VO-Command-Shift-Left) |
-| TurnOver Command Shift Left bracket | Removes your window spot here (VO-Command-Shift-Left Bracket) |
-| TurnOver Command Shift Right arrow | Next speech setting: voice, rate, pitch, volume, punctuation (VO-Command-Shift-Right) |
-| TurnOver Command Shift Right bracket | Makes the item a window spot of your own (VO-Command-Shift-Right Bracket) |
-| TurnOver Command Shift Up arrow | Raises the speech setting (VO-Command-Shift-Up) |
+| Waypoint 0 | Goes to hot spot 0 (VO-0) |
+| Waypoint 1 | Goes to hot spot 1 (VO-1) |
+| Waypoint 2 | Goes to hot spot 2 (VO-2) |
+| Waypoint 3 | Goes to hot spot 3 (VO-3) |
+| Waypoint 4 | Goes to hot spot 4 (VO-4) |
+| Waypoint 5 | Goes to hot spot 5 (VO-5) |
+| Waypoint 6 | Goes to hot spot 6 (VO-6) |
+| Waypoint 7 | Goes to hot spot 7 (VO-7) |
+| Waypoint 8 | Goes to hot spot 8 (VO-8) |
+| Waypoint 9 | Goes to hot spot 9 (VO-9) |
+| Waypoint A | Reads the VoiceOver cursor's contents: in text or a page, from the cursor on; elsewhere everything in the item (VO-A) |
+| Waypoint B | Reads from the beginning to here (VO-B) |
+| Waypoint Backslash | Opens or closes the disclosure triangle (VO-Backslash) |
+| Waypoint Backspace | Deletes the tab stop on a ruler (VO-Backspace) |
+| Waypoint C | In a table, the column header (twice, the column from here down); elsewhere the character (twice, phonetically) (VO-C, VO-C-C) |
+| Waypoint D | The Dock (VO-D) |
+| Waypoint End | In text, the end of the text; elsewhere the last item in the group (VO-End) |
+| Waypoint Enter | In a text field, starts or stops selecting text; elsewhere selects the list or menu item (VO-Return) |
+| Waypoint F1 | Says the application and its windows; pressed twice, the application chooser (VO-F1, VO-F1-F1) |
+| Waypoint F10 | Tile visuals (VO-F10): not in Waypoint yet |
+| Waypoint F2 | Says the window's title; pressed twice, the window chooser (VO-F2, VO-F2-F2) |
+| Waypoint F3 | The item's description; in text, the word and character; twice, how many lines (VO-F3, VO-F3-F3) |
+| Waypoint F4 | Describes the item with keyboard focus; twice, more about it (in text, where the insertion point is) (VO-F4, VO-F4-F4) |
+| Waypoint F5 | The item under the mouse pointer; twice, where the pointer is on the screen; three times, in the window (VO-F5) |
+| Waypoint F6 | Reads the selected item (VO-F6) |
+| Waypoint F7 | The date and time; twice, the battery; three times, the network (VO-F7, VO-F7-F7, VO-F7-F7-F7) |
+| Waypoint F8 | VoiceOver Utility (VO-F8); Waypoint's own settings are Command Control Comma, S |
+| Waypoint Grave | Moves the window with the arrow keys; Escape stops (VO-Grave Accent) |
+| Waypoint H | The help menu; pressed twice, the commands (VO-H, VO-H-H) |
+| Waypoint Home | In text, the start of the text; elsewhere the first item in the group (VO-Home) |
+| Waypoint I | Everything in the window or page, narrowed as you type; Enter goes there (VO-I) |
+| Waypoint J | Jump to the linked item; jumps to the linked item, such as from the message list to the message (VO-J) |
+| Waypoint K | Keyboard help: every key says what it does (VO-K) |
+| Waypoint L | Reads the line (VO-L) |
+| Waypoint M | The application's menus (VO-M); pressed twice, the status menus (VO-M-M) |
+| Waypoint N | The notifications heard lately (VO-N) |
+| Waypoint NumpadClear | NumPad Commander on or off: the keypad runs VoiceOver's commands (VO-Clear) |
+| Waypoint O | Opens Notification Centre and goes to its first notification; again closes it (VO-O) |
+| Waypoint P | Reads the paragraph (VO-P) |
+| Waypoint Q | Browse mode on or off: single-letter navigation (VO-Q) |
+| Waypoint R | Reads the row header; twice, the row from here to its end (VO-R, VO-R-R) |
+| Waypoint S | Reads the sentence (VO-S) |
+| Waypoint Semicolon | Locks or unlocks the VO keys: every key is a VO key until unlocked (VO-Semicolon) |
+| Waypoint Slash | Labels the item, and more: the plugin maker (VO-Slash) |
+| Waypoint Space | Activates the item under the VoiceOver cursor (VO-Space) |
+| Waypoint T | Reads the text attributes (VO-T) |
+| Waypoint Tab | The next key goes to the application untouched (VO-Tab) |
+| Waypoint U | The rotor: headings, links, form controls, landmarks… Left and Right change kind (VO-U) |
+| Waypoint V | Verbosity: punctuation, item details and hints (VO-V) |
+| Waypoint W | Reads the word; twice, spells it; three times, spells it phonetically (VO-W) |
+| Waypoint X | Activities: sets of speech, verbosity, web and braille settings, by hand or for an app (VO-X) |
+| Waypoint Z | Repeats the last thing spoken (VO-Z) |
+| Waypoint Command 0 | Describes hot spot 0 (VO-Command-0) |
+| Waypoint Command 1 | Describes hot spot 1 (VO-Command-1) |
+| Waypoint Command 2 | Describes hot spot 2 (VO-Command-2) |
+| Waypoint Command 3 | Describes hot spot 3 (VO-Command-3) |
+| Waypoint Command 4 | Describes hot spot 4 (VO-Command-4) |
+| Waypoint Command 5 | Describes hot spot 5 (VO-Command-5) |
+| Waypoint Command 6 | Describes hot spot 6 (VO-Command-6) |
+| Waypoint Command 7 | Describes hot spot 7 (VO-Command-7) |
+| Waypoint Command 8 | Describes hot spot 8 (VO-Command-8) |
+| Waypoint Command 9 | Describes hot spot 9 (VO-Command-9) |
+| Waypoint Command B | Next bold text (VO-Command-B) |
+| Waypoint Command Backslash | Jumps back to the parent folder (VO-Command-Backslash) |
+| Waypoint Command C | Next style change (VO-Command-C) |
+| Waypoint Command D | Next different item (VO-Command-D) |
+| Waypoint Command E | Next spelling error (VO-Command-E) |
+| Waypoint Command End | The last item in the window (VO-Command-End) |
+| Waypoint Command Enter | Add to or remove from the selection; adds the item to the selection, or takes it out, keeping the others (VO-Command-Return) |
+| Waypoint Command Escape | Closes the window (VO-Command-Escape) |
+| Waypoint Command F | Next frame (VO-Command-F) |
+| Waypoint Command F10 | The caption panel (VO-Command-F10): not in Waypoint yet |
+| Waypoint Command F11 | The cursor and panels on screen (VO-Command-F11): not in Waypoint yet |
+| Waypoint Command F2 | The window's size and where it is on the screen (VO-Command-F2) |
+| Waypoint Command F3 | The item's size and where it is on the screen (VO-Command-F3) |
+| Waypoint Command F4 | The keyboard focus to the VoiceOver cursor (VO-Command-F4) |
+| Waypoint Command F5 | The mouse pointer to the VoiceOver cursor (VO-Command-F5) |
+| Waypoint Command F8 | The Waypoint guide, until there is a tutorial (VO-Command-F8) |
+| Waypoint Command F9 | The braille panel (VO-Command-F9): not in Waypoint yet |
+| Waypoint Command G | Next graphic (VO-Command-G) |
+| Waypoint Command Grave | Moves the item with the arrow keys, where it can be moved; Escape stops (VO-Command-Grave Accent) |
+| Waypoint Command H | Next heading (VO-Command-H) |
+| Waypoint Command Home | The first item in the window (VO-Command-Home) |
+| Waypoint Command I | Next italic text (VO-Command-I) |
+| Waypoint Command J | Next form control (VO-Command-J) |
+| Waypoint Command K | Next colour change (VO-Command-K) |
+| Waypoint Command L | Next link (VO-Command-L) |
+| Waypoint Command M | Next heading of the same level (VO-Command-M) |
+| Waypoint Command O | Next font change (VO-Command-O) |
+| Waypoint Command P | Next plain text (VO-Command-P) |
+| Waypoint Command Q | Next blockquote (VO-Command-Q) |
+| Waypoint Command R | Next tracked change (VO-Command-R) |
+| Waypoint Command S | Next item of the same type (VO-Command-S) |
+| Waypoint Command Slash | Reads additional content for the item (VO-Command-Slash) |
+| Waypoint Command Space | The item's actions, to choose from (VO-Command-Space) |
+| Waypoint Command T | Next table (VO-Command-T) |
+| Waypoint Command U | Next underlined text (VO-Command-U) |
+| Waypoint Command V | Next visited link (VO-Command-V) |
+| Waypoint Command W | Next blockquote of the same level (VO-Command-W) |
+| Waypoint Command X | Next list (VO-Command-X) |
+| Waypoint Command Y | Next column (VO-Command-Y): pages don't offer it to Waypoint |
+| Waypoint Down arrow | Next line in text; elsewhere the item below (VO-Down) |
+| Waypoint Left arrow | Previous item (VO-Left) |
+| Waypoint Left bracket | The previous part of the window (VO-Left Bracket) |
+| Waypoint Right arrow | Next item (VO-Right) |
+| Waypoint Right bracket | The next part of the window: sidebar, toolbar, content (VO-Right Bracket) |
+| Waypoint Shift 0 | Sets or removes hot spot 0 (VO-Shift-0) |
+| Waypoint Shift 1 | Sets or removes hot spot 1 (VO-Shift-1) |
+| Waypoint Shift 2 | Sets or removes hot spot 2 (VO-Shift-2) |
+| Waypoint Shift 3 | Sets or removes hot spot 3 (VO-Shift-3) |
+| Waypoint Shift 4 | Sets or removes hot spot 4 (VO-Shift-4) |
+| Waypoint Shift 5 | Sets or removes hot spot 5 (VO-Shift-5) |
+| Waypoint Shift 6 | Sets or removes hot spot 6 (VO-Shift-6) |
+| Waypoint Shift 7 | Sets or removes hot spot 7 (VO-Shift-7) |
+| Waypoint Shift 8 | Sets or removes hot spot 8 (VO-Shift-8) |
+| Waypoint Shift 9 | Sets or removes hot spot 9 (VO-Shift-9) |
+| Waypoint Shift A | Selects all the text in the VoiceOver cursor (VO-Shift-A) |
+| Waypoint Shift Backslash | On a page, how many headings, links, tables…; in a table, the column's sort button (VO-Shift-Vertical Line) |
+| Waypoint Shift C | Copies the last thing spoken (VO-Shift-C) |
+| Waypoint Shift D | Moves to the desktop (VO-Shift-D) |
+| Waypoint Shift End | In text, the last word in view; elsewhere the last item in the group (VO-Shift-End) |
+| Waypoint Shift Escape | Out to the top level of the window (VO-Shift-Escape) |
+| Waypoint Shift F | The find commands: bold, headings, links… (VO-Shift-F) |
+| Waypoint Shift F10 | Moving the caption panel (VO-Shift-F10): not in Waypoint yet |
+| Waypoint Shift F11 | Screen Curtain on or off (VO-Shift-F11) |
+| Waypoint Shift F2 | Brings the VoiceOver cursor's window to the front (VO-Shift-F2) |
+| Waypoint Shift F3 | Cursor tracking off or on for now: the VoiceOver cursor stays put as the focus moves (VO-Shift-F3) |
+| Waypoint Shift F4 | The VoiceOver cursor to the keyboard focus (VO-Shift-F4) |
+| Waypoint Shift F5 | The VoiceOver cursor to the item under the mouse pointer (VO-Shift-F5) |
+| Waypoint Shift F9 | Moving the braille panel (VO-Shift-F9): not in Waypoint yet |
+| Waypoint Shift Grave | Resizes the window with the arrow keys; Escape stops (VO-Tilde) |
+| Waypoint Shift H | Reads the item's help tag (VO-Shift-H) |
+| Waypoint Shift Home | In text, the first word in view; elsewhere the first item in the group (VO-Shift-Home) |
+| Waypoint Shift J | Jumps to the input method or autocorrect panel (VO-Shift-J) |
+| Waypoint Shift K | Option key Commander on or off: right Option with a letter runs a command (VO-Shift-K) |
+| Waypoint Shift L | Describes the image or photo; anywhere else, what the window looks like (VO-Shift-L) |
+| Waypoint Shift M | The shortcut menu for the item (VO-Shift-M) |
+| Waypoint Shift N | Reads the hint for the item (VO-Shift-N) |
+| Waypoint Shift O | Opens or closes Control Centre (VO-Shift-O) |
+| Waypoint Shift Q | Arrow-key Quick Nav on or off: Left and Right move the VoiceOver cursor, Up and Down the item above and below (VO-Shift-Q; Left and Right Arrow together) |
+| Waypoint Shift S | Scrolls the area the VoiceOver cursor is in: arrows, Page Up and Page Down, Shift Page Up and Down to the top and bottom; Escape stops (VO-Shift-S) |
+| Waypoint Shift Slash | Opens the Waypoint guide (VO-Shift-Slash) |
+| Waypoint Shift Space | Clicks the item with the mouse; pressed twice, a double click (VO-Shift-Space, VO-Shift-Space-Space) |
+| Waypoint Shift T | Reads the row and column number; twice, how many rows and columns (VO-Shift-T, VO-Shift-T-T) |
+| Waypoint Shift U | Reads a link's address (VO-Shift-U) |
+| Waypoint Shift W | Reads everything in the window (VO-Shift-W) |
+| Waypoint Shift X | The hot spot chooser (VO-Shift-X) |
+| Waypoint Shift Y | Recognises the text in the window from the screen (OCR), to read with the arrows and click with Return; pressed twice, its buttons, fields and icons instead (VO-Shift-Y, Waypoint's own) |
+| Waypoint Shift Z | Save the last phrase to the Desktop; saves the last spoken phrase, with Waypoint's log, to a file on the Desktop (VO-Shift-Z) |
+| Waypoint Up arrow | Previous line in text; elsewhere the item above (VO-Up) |
+| Waypoint Command Down arrow | The next item of the rotor's kind (VO-Command-Down) |
+| Waypoint Command Left arrow | The rotor's previous kind (VO-Command-Left) |
+| Waypoint Command Left bracket | Your previous window spot (VO-Command-Left Bracket) |
+| Waypoint Command Page down | Reads the next sentence (VO-Command-Page Down) |
+| Waypoint Command Page up | Reads the previous sentence (VO-Command-Page Up) |
+| Waypoint Command Right arrow | The rotor's next kind: headings, links, form controls, tables… (VO-Command-Right) |
+| Waypoint Command Right bracket | Your next window spot (VO-Command-Right Bracket) |
+| Waypoint Command Shift 0 | Watches hot spot 0 for changes, or stops (VO-Command-Shift-0) |
+| Waypoint Command Shift 1 | Watches hot spot 1 for changes, or stops (VO-Command-Shift-1) |
+| Waypoint Command Shift 2 | Watches hot spot 2 for changes, or stops (VO-Command-Shift-2) |
+| Waypoint Command Shift 3 | Watches hot spot 3 for changes, or stops (VO-Command-Shift-3) |
+| Waypoint Command Shift 4 | Watches hot spot 4 for changes, or stops (VO-Command-Shift-4) |
+| Waypoint Command Shift 5 | Watches hot spot 5 for changes, or stops (VO-Command-Shift-5) |
+| Waypoint Command Shift 6 | Watches hot spot 6 for changes, or stops (VO-Command-Shift-6) |
+| Waypoint Command Shift 7 | Watches hot spot 7 for changes, or stops (VO-Command-Shift-7) |
+| Waypoint Command Shift 8 | Watches hot spot 8 for changes, or stops (VO-Command-Shift-8) |
+| Waypoint Command Shift 9 | Watches hot spot 9 for changes, or stops (VO-Command-Shift-9) |
+| Waypoint Command Shift B | Previous bold text (VO-Command-Shift-B) |
+| Waypoint Command Shift C | Previous style change (VO-Command-Shift-C) |
+| Waypoint Command Shift D | Previous different item (VO-Command-Shift-D) |
+| Waypoint Command Shift E | Previous spelling error (VO-Command-Shift-E) |
+| Waypoint Command Shift F | Previous frame (VO-Command-Shift-F) |
+| Waypoint Command Shift G | Previous graphic (VO-Command-Shift-G) |
+| Waypoint Command Shift Grave | Resizes the item with the arrow keys, where it can be; Escape stops (VO-Command-Tilde) |
+| Waypoint Command Shift H | Previous heading (VO-Command-Shift-H) |
+| Waypoint Command Shift I | Previous italic text (VO-Command-Shift-I) |
+| Waypoint Command Shift J | Previous form control (VO-Command-Shift-J) |
+| Waypoint Command Shift K | Previous colour change (VO-Command-Shift-K) |
+| Waypoint Command Shift L | Previous link (VO-Command-Shift-L) |
+| Waypoint Command Shift M | Previous heading of the same level (VO-Command-Shift-M) |
+| Waypoint Command Shift O | Previous font change (VO-Command-Shift-O) |
+| Waypoint Command Shift P | Previous plain text (VO-Command-Shift-P) |
+| Waypoint Command Shift Q | Previous blockquote (VO-Command-Shift-Q) |
+| Waypoint Command Shift R | Previous tracked change (VO-Command-Shift-R) |
+| Waypoint Command Shift S | Previous item of the same type (VO-Command-Shift-S) |
+| Waypoint Command Shift Space | Mouse button down at the VoiceOver cursor; again, up where the cursor is then: a drag (VO-Command-Shift-Space) |
+| Waypoint Command Shift T | Previous table (VO-Command-Shift-T) |
+| Waypoint Command Shift U | Previous underlined text (VO-Command-Shift-U) |
+| Waypoint Command Shift V | Previous visited link (VO-Command-Shift-V) |
+| Waypoint Command Shift W | Previous blockquote of the same level (VO-Command-Shift-W) |
+| Waypoint Command Shift X | Previous list (VO-Command-Shift-X) |
+| Waypoint Command Shift Y | Previous column (VO-Command-Shift-Y): pages don't offer it to Waypoint |
+| Waypoint Command Up arrow | The previous item of the rotor's kind (VO-Command-Up) |
+| Waypoint Shift Down arrow | Into the item: its first part (VO-Shift-Down) |
+| Waypoint Shift Left arrow | The previous group, without going into it (VO-Shift-Left) |
+| Waypoint Shift Left bracket | Previous hot spot (VO-Shift-Left Bracket) |
+| Waypoint Shift Page down | Reads the next paragraph (VO-Shift-Page Down) |
+| Waypoint Shift Page up | Reads the previous paragraph (VO-Shift-Page Up) |
+| Waypoint Shift Right arrow | The next group, without going into it (VO-Shift-Right) |
+| Waypoint Shift Right bracket | Next hot spot (VO-Shift-Right Bracket) |
+| Waypoint Shift Up arrow | Out of the item: what holds it (VO-Shift-Up) |
+| Waypoint Command Shift Down arrow | Lowers the speech setting (VO-Command-Shift-Down) |
+| Waypoint Command Shift Left arrow | Previous speech setting (VO-Command-Shift-Left) |
+| Waypoint Command Shift Left bracket | Removes your window spot here (VO-Command-Shift-Left Bracket) |
+| Waypoint Command Shift Right arrow | Next speech setting: voice, rate, pitch, volume, punctuation (VO-Command-Shift-Right) |
+| Waypoint Command Shift Right bracket | Makes the item a window spot of your own (VO-Command-Shift-Right Bracket) |
+| Waypoint Command Shift Up arrow | Raises the speech setting (VO-Command-Shift-Up) |
 
 ## Speech
 
 | Key | What it does |
 |---|---|
-| TurnOver Control Down arrow | Speaks slower |
-| TurnOver Control Up arrow | Speaks faster |
+| Waypoint Control Down arrow | Speaks slower |
+| Waypoint Control Up arrow | Speaks faster |
 
 ## System
 
 | Key | What it does |
 |---|---|
-| TurnOver F12 | Reports the time. Pressed twice, reports the date |
-| Control Command M | Opens the TurnOver menu: settings, keys, tools, help, quit |
-| TurnOver Shift B | Reports the battery level |
+| Waypoint F12 | Reports the time. Pressed twice, reports the date |
+| Control Command M | Opens the Waypoint menu: settings, keys, tools, help, quit |
+| Waypoint Shift B | Reports the battery level |
 
 ## Menus
 
@@ -249,40 +263,22 @@ Switch styles with Command Control Comma, then K. TurnOver's own commands behind
 
 | Key | What it does |
 |---|---|
-| TurnOver Shift Backspace | Move focus here; moves the keyboard focus to the item object navigation is on |
+| Waypoint Shift Backspace | Move focus here; moves the keyboard focus to the item object navigation is on |
 
 ## Text review
 
 | Key | What it does |
 |---|---|
-| TurnOver Delete | Reports where the caret is: the page and line where the application knows them |
-| TurnOver F | Finds text: type it, then Return; the match is where you are left (VO-F; NVDA+Control+F) |
-| TurnOver G | Finds the next match of the last search (VO-G; NVDA+F3) |
-| TurnOver Period | Reports the current character. Pressed twice, says its name |
-| TurnOver Control F | Finds text: type it, then Return; the match is where you are left (VO-F; NVDA+Control+F) |
-| TurnOver Control Period | Reports the current word. Pressed twice, spells it |
-| TurnOver Control S | Reports the current sentence |
-| TurnOver Shift G | Finds the previous match of the last search (VO-Shift-G; NVDA+Shift+F3) |
-| TurnOver Shift P | Reports the current paragraph |
-| TurnOver Shift Period | Reports the current line. Pressed twice, spells it |
-
-## Waypoint
-
-| Key | What it does |
-|---|---|
-| Control Command 0 | Describes the app in front: its window and the parts of it; pressed twice, as a list to move to a part |
-| Control Command W | Says what is new in this part of the window since you left it; pressed twice, in every part of the app |
-| TurnOver Command A | Anywhere: type to find an app, a menu command, an action or a Waypoint command, and run it |
-| TurnOver Command Equals | Marks this moment in the log, for a report that something just sounded wrong (VO-Command-Equals) |
-| TurnOver Option B | Bookmarks the item you are on, so a key can bring you back to it |
-| TurnOver Option G | Lists your bookmarks, narrowed as you type; Return goes to one, in its app |
-| TurnOver Option I | After reading around a text field, puts the reviewed text into the field as it is |
-| TurnOver Option N | In a list of messages, files or results, switches Up and Down to skimming the items by their key words, quickly, and back; Return reads the item in full |
-| TurnOver Option P | Lists the places you stayed at recently, the one before this first; Return goes back to it |
-| TurnOver Option Q | After reading around a text field, puts the reviewed text into the field as a quote |
-| TurnOver Option R | Review layer: once, the next key reads around the field instead of typing; twice, the layer stays on until pressed again |
-| TurnOver Option S | After reading around a text field, says where the review cursor is |
-| TurnOver Option Y | After reading around a text field, copies the reviewed text |
+| Waypoint Delete | Reports where the caret is: the page and line where the application knows them |
+| Waypoint F | Finds text: type it, then Return; the match is where you are left (VO-F; NVDA+Control+F) |
+| Waypoint G | Finds the next match of the last search (VO-G; NVDA+F3) |
+| Waypoint Period | Reports the current character. Pressed twice, says its name |
+| Waypoint Control F | Finds text: type it, then Return; the match is where you are left (VO-F; NVDA+Control+F) |
+| Waypoint Control Period | Reports the current word. Pressed twice, spells it |
+| Waypoint Control S | Reports the current sentence |
+| Waypoint Shift G | Finds the previous match of the last search (VO-Shift-G; NVDA+Shift+F3) |
+| Waypoint Shift P | Reports the current paragraph |
+| Waypoint Shift Period | Reports the current line. Pressed twice, spells it |
 
 # In the apps
 
@@ -362,7 +358,7 @@ Keys an app's own support adds at the app level, in that app only; the keys abov
 
 | Key | What it does |
 |---|---|
-| TurnOver Shift R | Reads Claude's latest reply |
+| Waypoint Shift R | Reads Claude's latest reply |
 
 ## Contacts
 
@@ -400,7 +396,7 @@ Keys an app's own support adds at the app level, in that app only; the keys abov
 
 | Key | What it does |
 |---|---|
-| TurnOver Option C | Reports the cell's note; twice, shows it to read line by line (NVDA+Alt+C) |
+| Waypoint Option C | Reports the cell's note; twice, shows it to read line by line (NVDA+Alt+C) |
 
 ## Finder
 
@@ -451,7 +447,7 @@ Keys an app's own support adds at the app level, in that app only; the keys abov
 | Space | While playing: the next or previous slide, read |
 | Up arrow | The previous or next slide, read (Keynote says nothing as it moves) |
 
-## Kindle
+## Lassen
 
 | Key | What it does |
 |---|---|

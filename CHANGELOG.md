@@ -8,6 +8,10 @@ Changes made in the Waypoint fork, on top of TurnOver 2.0, build 24.1.
 
 ### New to try
 
+- The reader is called Waypoint where you hear and see it: "Waypoint on" and "Waypoint off", the menu, the menu bar item,
+  Settings, the permission prompts, the Waypoint key, the guides and the README. Credits, the licence, the settings folder
+  (Application Support/TurnOver), the bundle identifier and the source folders keep TurnOver's name, so merging TurnOver's
+  updates stays easy. Translations of the changed phrases fall back to English until they are redone.
 - Right Option, Right Shift and / turn Waypoint off and on. Off, nothing reads and VoiceOver is not started; it stays off
   after a restart or login. It says "Waypoint off" and "Waypoint on", with a falling and a rising tone. Command Control
   Period still quits Waypoint and hands the Mac to VoiceOver. While off, the lock screen and password prompts have no

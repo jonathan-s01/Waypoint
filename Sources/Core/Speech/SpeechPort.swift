@@ -198,7 +198,7 @@ final class SpeechPort {
             self.save()
             self.tellAll(speaker.id)
             Log.info("speech port: \(speaker.name) \(allowed ? "allowed" : "not allowed")")
-            Speech.speakMessage(allowed ? String(localized: "\(speaker.name) can speak through TurnOver.", comment: "An app allowed to speak: its name") : String(localized: "\(speaker.name) won't be heard.", comment: "An app not allowed to speak: its name"))
+            Speech.speakMessage(allowed ? String(localized: "\(speaker.name) can speak through Waypoint.", comment: "An app allowed to speak: its name") : String(localized: "\(speaker.name) won't be heard.", comment: "An app not allowed to speak: its name"))
             // The line that asked, said after the answer: only if the app is still in front (issue 56: it could speak
             // once after the user had switched away).
             if allowed, case .speak(let text) = Games.bridgeCommand(line) {
@@ -209,9 +209,9 @@ final class SpeechPort {
             }
         }
         TurnOverMenu.shared.onClose = { [weak self] in if self?.asking.contains(speaker.id) == true { self?.asking.remove(speaker.id); self?.tellAll(speaker.id) } }
-        TurnOverMenu.shared.openList(verbatim: String(localized: "\(speaker.name) wants TurnOver to speak for it. Do you trust it?", comment: "An app asking to speak through TurnOver: its name"), items: [
-            MenuItem("Don't allow", .action { decide(false) }, hint: "\(speaker.name) won't be heard; you can change this in Settings, Apps that speak through TurnOver"),
-            MenuItem("Allow", .action { decide(true) }, hint: "\(speaker.name) can make TurnOver say anything while it is the app in front, and nothing else"),
+        TurnOverMenu.shared.openList(verbatim: String(localized: "\(speaker.name) wants Waypoint to speak for it. Do you trust it?", comment: "An app asking to speak through Waypoint: its name"), items: [
+            MenuItem("Don't allow", .action { decide(false) }, hint: "\(speaker.name) won't be heard; you can change this in Settings, Apps that speak through Waypoint"),
+            MenuItem("Allow", .action { decide(true) }, hint: "\(speaker.name) can make Waypoint say anything while it is the app in front, and nothing else"),
             MenuItem("Not now", .action { decide(nil) }, hint: "Asked again the next time it wants to speak"),
         ])
     }
@@ -247,7 +247,7 @@ final class SpeechPort {
         return decisions.sorted { $0.value.name.lowercased() < $1.value.name.lowercased() }.map { id, v in
             MenuItem(verbatim: v.name, .toggle(get: { [weak self] in self?.decisions[id]?.allowed ?? false },
                                      set: { [weak self] on in self?.decisions[id]?.allowed = on; self?.save(); self?.tellAll(id) }),
-                     hint: "Allowed: it can make TurnOver speak while it is the app in front")
+                     hint: "Allowed: it can make Waypoint speak while it is the app in front")
         }
     }
 

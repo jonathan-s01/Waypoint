@@ -133,7 +133,7 @@ public struct Config: Codable {
         /// How the TurnOver key is spoken in help and the shortcuts list.
         public var turnOverKeyName: String {
             turnOverKey == "controlOption" ? String(localized: "V O", comment: "The VO key (Control and Option), as spoken")
-                : String(localized: "caps", comment: "Caps Lock as the TurnOver key, as spoken before another key")
+                : String(localized: "caps", comment: "Caps Lock as the Waypoint key, as spoken before another key")
         }
         public var capsIsTurnOver: Bool { turnOverKey != "controlOption" }
         public var controlOptionIsTurnOver: Bool { turnOverKey != "caps" }
@@ -423,8 +423,8 @@ public struct Config: Codable {
             }
         }
         public static func leadModeName(_ m: String) -> String {
-            m == "everywhere" ? String(localized: "TurnOver everywhere", comment: "Who reads: a mode")
-                : m == "voiceover" ? String(localized: "VoiceOver everywhere", comment: "Who reads: a mode") : String(localized: "TurnOver in its apps", comment: "Who reads: a mode")
+            m == "everywhere" ? String(localized: "Waypoint everywhere", comment: "Who reads: a mode")
+                : m == "voiceover" ? String(localized: "VoiceOver everywhere", comment: "Who reads: a mode") : String(localized: "Waypoint in its apps", comment: "Who reads: a mode")
         }
         enum Keys: String, CodingKey { case leadBundles, leadEverywhereElse, automaticHandOver, leadMode, voiceOverBundles, directApps, perAppReaders, swapWithVoiceOver }
         // Each field falls back on its own: a new field must never wipe the list of apps TurnOver leads in (8 Oct 2026).

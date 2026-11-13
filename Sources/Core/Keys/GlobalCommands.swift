@@ -49,7 +49,7 @@ public final class GlobalCommands: ScriptableObject {
         for (name, description, setting, by) in ring {
             script(name, description, gestures: [], category: sys) { _ in SynthRing.change(setting, by: by) }
         }
-        script("copyVoiceOverSettings", String(localized: "Copies VoiceOver's voice, rate, pitch, volume, verbosity and typing echo into TurnOver, through VoiceOver Utility's export", comment: "A command, as the key list and keyboard help say it"), gestures: [], category: sys) { _ in   // in the layer: Command Control Comma, then V
+        script("copyVoiceOverSettings", String(localized: "Copies VoiceOver's voice, rate, pitch, volume, verbosity and typing echo into Waypoint, through VoiceOver Utility's export", comment: "A command, as the key list and keyboard help say it"), gestures: [], category: sys) { _ in   // in the layer: Command Control Comma, then V
             VoiceOverSettings.startFlow()
         }
         // Steam's Big Picture menu open without the keyboard: these keys go into the menu's page (Games.swift).
@@ -57,7 +57,7 @@ public final class GlobalCommands: ScriptableObject {
             script("steamMenu_\(k.gesture)", String(localized: "In Steam's Big Picture menu: \(k.key)", comment: "A command, as the key list and keyboard help say it: %@ is the key"), gestures: ["kb:\(k.gesture)"], category: "Games") { _ in Games.forwardMenuKey(k.key, vk: k.vk) }
                 .isAvailable = { Games.menuNeedsKeys && Games.active && Games.steamInFront }   // (never in another app: code review, 16 Oct 2026)
         }
-        script("makePlugin", String(localized: "Make a plugin for this item; label, give a key to, watch or silence the item TurnOver is on, saved as your own plugin for the app", comment: "A command, as the key list and keyboard help say it"), gestures: [], category: "Plugins") { _ in
+        script("makePlugin", String(localized: "Make a plugin for this item; label, give a key to, watch or silence the item Waypoint is on, saved as your own plugin for the app", comment: "A command, as the key list and keyboard help say it"), gestures: [], category: "Plugins") { _ in
             PluginMaker.open()
         }.isAvailable = { Edition.includesPlugins }
         script("dateTime", String(localized: "Reports the time. Pressed twice, reports the date", comment: "A command, as the key list and keyboard help say it"), gestures: ["kb:turnover+f12"], category: sys) { _ in   // NVDA+F12; TurnOver Shift T (a tester's preference) removed, 12 Oct 2026
@@ -65,7 +65,7 @@ public final class GlobalCommands: ScriptableObject {
             if ScriptHandler.lastScriptRepeatCount > 0 { f.dateStyle = .full; f.timeStyle = .none } else { f.dateStyle = .none; f.timeStyle = .short }
             Speech.speakMessage(f.string(from: Date()))
         }
-        script("describeImage", String(localized: "Describes the picture under TurnOver's cursor: what it shows and any text in it; anywhere else, what the window looks like", comment: "A command, as the key list and keyboard help say it"), gestures: [], category: sys) { _ in
+        script("describeImage", String(localized: "Describes the picture under Waypoint's cursor: what it shows and any text in it; anywhere else, what the window looks like", comment: "A command, as the key list and keyboard help say it"), gestures: [], category: sys) { _ in
             ImageDescriber.describeCurrent()
         }
         // Windows style: Enter presses the focused button, as on a PC ("in windows mode enter should do things",
@@ -115,7 +115,7 @@ public final class GlobalCommands: ScriptableObject {
                 Speech.speakMessage(String(localized: "The Dock didn't take the focus. In System Settings, Keyboard, Keyboard Shortcuts, Keyboard, turn on Move focus to the Dock.", comment: "Spoken message"))
             }
         }.isAvailable = windowsOn
-        script("trackpadControl", String(localized: "Gesture control on or off: the trackpad's gestures drive TurnOver (NVDA+Control+Alt+T, touch interaction)", comment: "A command, as the key list and keyboard help say it"), gestures: ["kb:turnover+control+option+t"], category: win) { _ in
+        script("trackpadControl", String(localized: "Gesture control on or off: the trackpad's gestures drive Waypoint (NVDA+Control+Alt+T, touch interaction)", comment: "A command, as the key list and keyboard help say it"), gestures: ["kb:turnover+control+option+t"], category: win) { _ in
             Trackpad.toggle()
         }.isAvailable = { windowsOn() && Trackpad.available }
         script("applicationChooser", String(localized: "Application chooser; lists every application with a window, system alerts too, to switch to (Windows: Windows+Tab, Task View)", comment: "A command, as the key list and keyboard help say it"), gestures: ["kb:option+tab"], category: win) { _ in
@@ -131,7 +131,7 @@ public final class GlobalCommands: ScriptableObject {
             let desktop = URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent("Desktop")
             DispatchQueue.global(qos: .userInitiated).async { NSWorkspace.shared.open(desktop) }
         }.isAvailable = windowsOn
-        script("focusStatusMenus", String(localized: "Status menus; lists the status menus at the right of the menu bar, TurnOver's own item last (Windows: Windows+B)", comment: "A command, as the key list and keyboard help say it"), gestures: ["kb:option+b"], category: win) { _ in
+        script("focusStatusMenus", String(localized: "Status menus; lists the status menus at the right of the menu bar, Waypoint's own item last (Windows: Windows+B)", comment: "A command, as the key list and keyboard help say it"), gestures: ["kb:option+b"], category: win) { _ in
             StatusMenus.openList()
         }.isAvailable = windowsOn
         script("openMenus", String(localized: "Opens the application's menus; closes them if open (Windows: Alt or F10). Also Command on its own", comment: "A command, as the key list and keyboard help say it"), gestures: ["kb:f10"], category: win) { _ in
@@ -159,7 +159,7 @@ public final class GlobalCommands: ScriptableObject {
         }
         // Command Control M, one key for the menu in every style, as NVDA N is (Oliver, 21 Oct 2026); Command Control Comma
         // then M is still the layer's way.
-        script("turnOverMenu", String(localized: "Opens the TurnOver menu: settings, keys, tools, help, quit", comment: "A command, as the key list and keyboard help say it"), gestures: ["kb:turnover+n", "kb:command+control+m"], category: sys) { _ in
+        script("turnOverMenu", String(localized: "Opens the Waypoint menu: settings, keys, tools, help, quit", comment: "A command, as the key list and keyboard help say it"), gestures: ["kb:turnover+n", "kb:command+control+m"], category: sys) { _ in
             TurnOverMenu.shared.open()
         }
         // Mac style (VoiceOver's keys, key for key) or Windows style (a Mac that feels like a Windows machine with NVDA).
@@ -167,7 +167,7 @@ public final class GlobalCommands: ScriptableObject {
             GlobalCommands.toggleKeyboardStyle()
         }
         // "That was wrong" (6 Oct 2026): one key at the moment something goes wrong; the marks go in the next report.
-        script("markProblem", String(localized: "Mark a problem; marks this moment as something TurnOver got wrong, for your next feedback report", comment: "A command, as the key list and keyboard help say it"), gestures: [], category: sys) { _ in
+        script("markProblem", String(localized: "Mark a problem; marks this moment as something Waypoint got wrong, for your next feedback report", comment: "A command, as the key list and keyboard help say it"), gestures: [], category: sys) { _ in
             // Only ever marks: a second press no longer sends a report (it carries recent speech, and a key pressed
             // twice by accident, in an app that uses it too, would have sent one; the code review, 12 Oct 2026).
             Feedback.mark()
@@ -177,7 +177,7 @@ public final class GlobalCommands: ScriptableObject {
             // Just "marked": the count climbing with each press read as something going wrong (two testers, 13 Oct
             // 2026). The number is in the TurnOver menu, Send feedback, where they are sent or forgotten.
             Speech.speakMessage(hinted ? String(localized: "marked", comment: "A moment marked for feedback")
-                : String(localized: "Marked. Carry on; when you're ready, send your marked moments from the TurnOver menu, Send feedback, or forget them there.", comment: "The first moment marked for feedback"))
+                : String(localized: "Marked. Carry on; when you're ready, send your marked moments from the Waypoint menu, Send feedback, or forget them there.", comment: "The first moment marked for feedback"))
         }
         script("toggleInputHelp", String(localized: "Turns input help on or off: every key says what it does", comment: "A command, as the key list and keyboard help say it"), gestures: ["kb:turnover+1"], category: sys, bypassInputHelp: true) { _ in
             InputManager.toggleInputHelp()
@@ -283,12 +283,12 @@ public final class GlobalCommands: ScriptableObject {
                          n.isEmpty || n == v ? "" : String(localized: "build \(n)", comment: "An application's build number: %@ is the build")]
             Speech.speakMessage(words.filter { !$0.isEmpty }.joined(separator: ", "))
         }
-        script("jaws_speechHistory", String(localized: "Lists what TurnOver said lately, newest first; Return says one again (JAWS: Insert+Space, H)", comment: "A command, as the key list and keyboard help say it"), gestures: [], category: sys) { _ in
+        script("jaws_speechHistory", String(localized: "Lists what Waypoint said lately, newest first; Return says one again (JAWS: Insert+Space, H)", comment: "A command, as the key list and keyboard help say it"), gestures: [], category: sys) { _ in
             let recent = Speech.history.value.suffix(100).reversed().map(\.text).filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }
             guard !recent.isEmpty else { Speech.speakMessage(String(localized: "nothing said yet", comment: "The speech history is empty")); return }
             TurnOverMenu.shared.openList("Speech history", items: recent.map { t in MenuItem(verbatim: t, .action { Speech.speakMessage(t, remember: false) }) })
         }
-        script("jaws_settings", String(localized: "Opens TurnOver's settings in its menu (JAWS: Insert+F2, Insert+6)", comment: "A command, as the key list and keyboard help say it"), gestures: [], category: sys) { _ in
+        script("jaws_settings", String(localized: "Opens Waypoint's settings in its menu (JAWS: Insert+F2, Insert+6)", comment: "A command, as the key list and keyboard help say it"), gestures: [], category: sys) { _ in
             TurnOverMenu.shared.openSettings()
         }
         // JAWS's lists of one kind (issue 125): on a page in browse mode, its links, headings or form fields alone.
@@ -389,8 +389,8 @@ public final class GlobalCommands: ScriptableObject {
             let t = Speech.lastRaw.isEmpty ? Speech.lastSpoken : Speech.lastRaw
             if t.isEmpty { Speech.speakMessage(String(localized: "nothing spoken yet", comment: "Copying the last phrase when there is none"), remember: false) } else { Speech.speakText(t) }
         }
-        script("quit", String(localized: "Quits TurnOver", comment: "A command, as the key list and keyboard help say it"), gestures: ["kb:turnover+q"], category: sys) { _ in
-            Speech.speakMessage(String(localized: "TurnOver quitting", comment: "TurnOver is about to quit"))
+        script("quit", String(localized: "Quits Waypoint", comment: "A command, as the key list and keyboard help say it"), gestures: ["kb:turnover+q"], category: sys) { _ in
+            Speech.speakMessage(String(localized: "Waypoint quitting", comment: "Waypoint is about to quit"))
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { NSApp.terminate(nil) }
         }
         // NVDA's commands for the Windows style (NVDAParity.swift), last so they answer first there.
@@ -527,7 +527,7 @@ public final class GlobalCommands: ScriptableObject {
             for a in API.focusAncestors { add(a, "This control") }
         }
         for p in GlobalPluginHandler.shared.plugins { add(p, "Add-ons") }
-        add(GlobalCommands.shared, "TurnOver")
+        add(GlobalCommands.shared, "Waypoint")
         // Keys that do the same thing are one entry ("a to z, jumps to the item starting with the letter";
         // "up arrow, down arrow, home, end…, moves in the open menu"), not one entry a key.
         var groups: [(String, [MenuItem])] = collected.map { category, entries in
@@ -564,7 +564,7 @@ public final class GlobalCommands: ScriptableObject {
         let speechKeys = config.general.windowsKeys ? String(localized: "Control alone stops speech; Shift alone pauses it and carries on, but not while secure input is on", comment: "In the key list")
             : String(localized: "Control alone pauses speech, and again carries on", comment: "In the key list")
         items.append(MenuItem(verbatim: speechKeys + (config.general.capsIsTurnOver ? String(localized: ". Caps Lock pressed twice toggles caps lock", comment: "In the key list, after the speech keys") : ""), .action {}))
-        items.append(MenuItem(verbatim: String(localized: "Command Control Comma opens the TurnOver menu in any app", comment: "In the key list"), .action {}))
+        items.append(MenuItem(verbatim: String(localized: "Command Control Comma opens the Waypoint menu in any app", comment: "In the key list"), .action {}))
         TurnOverMenu.shared.openList("Shortcuts", items: items)
     }
 

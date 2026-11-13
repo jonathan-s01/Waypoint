@@ -70,7 +70,7 @@ public enum NewToTry {
         let headings = buildPages().filter { $0.0 != whatToTest }.map { $0.0 }
         let build = String(describing: l.build)
         var pages = [(String(localized: "New in build \(build)", comment: "A welcome page's title after an update: the build"),
-                      headings.joined(separator: ". ") + ".\n\n" + String(localized: "Each is explained in the TurnOver menu, What to test in build \(build).", comment: "A welcome page after an update: the build"))]
+                      headings.joined(separator: ". ") + ".\n\n" + String(localized: "Each is explained in the Waypoint menu, What to test in build \(build).", comment: "A welcome page after an update: the build"))]
         let tests = latestTests
         if !tests.isEmpty { pages.append((whatToTest, tests.map { "• " + $0 }.joined(separator: "\n"))) }
         return pages
@@ -104,8 +104,8 @@ public enum NewToTry {
         Log.info("new to try: build \(current), \(count) new since build \(seen)")
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
             let build = String(describing: current)
-            Speech.speakMessage(count == 1 ? String(localized: "TurnOver has been updated to build \(build), with 1 new thing to try: TurnOver menu, New in build \(build).", comment: "After an update: the build")
-                : String(localized: "TurnOver has been updated to build \(build), with \(String(count)) new things to try: TurnOver menu, New in build \(build).", comment: "After an update: the build and how many new things"))
+            Speech.speakMessage(count == 1 ? String(localized: "Waypoint has been updated to build \(build), with 1 new thing to try: Waypoint menu, New in build \(build).", comment: "After an update: the build")
+                : String(localized: "Waypoint has been updated to build \(build), with \(String(count)) new things to try: Waypoint menu, New in build \(build).", comment: "After an update: the build and how many new things"))
         }
     }
 

@@ -127,9 +127,9 @@ struct ContentView: View {
                 .accessibilityLabel("Settings sections")
         } detail: {
             if model.turnedAway {
-                Text("TurnOver turned this window away: it was probably updated while the window was open. Quit Settings and open it again from the TurnOver menu.").padding()
+                Text("Waypoint turned this window away: it was probably updated while the window was open. Quit Settings and open it again from the Waypoint menu.").padding()
             } else if !model.connected {
-                Text("Waiting for TurnOver. Start it with Command Control Period.").padding()
+                Text("Waiting for Waypoint. Start it with Command Control Period.").padding()
             } else {
                 switch section ?? .general {
                 case .general: GeneralView()
@@ -484,7 +484,7 @@ struct KeyboardView: View {
             }
             Toggle("NVDA and JAWS keys where VoiceOver reads too", isOn: model.bool("general", "keysWhereVoiceOverReads"))
             Text("On, Caps Lock is the NVDA key in every app, whichever reader is speaking. Off, VoiceOver's own Caps Lock keys work in the apps VoiceOver reads.").font(.caption)
-            Picker("TurnOver key", selection: model.string("general", "bosunKey", "both")) {
+            Picker("Waypoint key", selection: model.string("general", "bosunKey", "both")) {
                 Text("Caps Lock or Control Option").tag("both"); Text("Caps Lock").tag("caps"); Text("Control Option").tag("controlOption")
             }
             Picker("Keyboard layout", selection: model.string("keyboard", "layout", "laptop")) {
@@ -648,7 +648,7 @@ struct RecognitionView: View {
             Toggle("Read the whole result as it opens", isOn: model.bool("recognition", "autoSayAll"))
             // macOS 26 and later only: earlier, recognition reads text alone (ScreenInterface needs Vision's newer readers).
             if #available(macOS 26.0, *) {
-                Text("Press the screen recognition key twice (VO-Shift-Y, or TurnOver R) for the window's controls: each row is one, such as \"Save, button\", and Return clicks it. Pressed once, it reads the text.").font(.caption)
+                Text("Press the screen recognition key twice (VO-Shift-Y, or Waypoint R) for the window's controls: each row is one, such as \"Save, button\", and Return clicks it. Pressed once, it reads the text.").font(.caption)
             }
             Toggle("After Return clicks something, recognise again", isOn: model.bool("recognition", "refreshAfterClick"))
             Text("The screen that follows a click is read without pressing the key again; off, the result closes after the click.").font(.caption)
@@ -678,12 +678,12 @@ struct OtherAppsView: View {
                 Button("Restart Steam") { model.setSpecial("_restartSteam", true) }
             }
             if apps.isEmpty {
-                Text("No app has asked to speak through TurnOver yet. A game or another program can ask; it appears here, and you choose whether it may.").font(.caption)
+                Text("No app has asked to speak through Waypoint yet. A game or another program can ask; it appears here, and you choose whether it may.").font(.caption)
             } else {
                 ForEach(apps, id: \.id) { a in
                     Toggle(a.name, isOn: Binding(get: { a.allowed }, set: { on in model.setSpecial("_speechPortAllowed", ["id": a.id, "allowed": on]) }))
                 }
-                Text("Allowed: it can make TurnOver speak while it is the app in front.").font(.caption)
+                Text("Allowed: it can make Waypoint speak while it is the app in front.").font(.caption)
             }
         }.formStyle(.grouped).navigationTitle("Other apps' speech")
     }
@@ -694,14 +694,14 @@ struct GeneralView: View {
     var body: some View {
         Form {
             Section("Starting") {
-                Toggle("Open TurnOver at login", isOn: model.bool("general", "openAtLogin"))
-                Toggle("Show TurnOver in the menu bar", isOn: model.bool("general", "showInMenuBar"))
+                Toggle("Open Waypoint at login", isOn: model.bool("general", "openAtLogin"))
+                Toggle("Show Waypoint in the menu bar", isOn: model.bool("general", "showInMenuBar"))
             }
             Section("Alerts") {
                 Toggle("Read notifications from other apps", isOn: model.bool("presentation", "reportNotifications"))
                 Toggle("Read changes on screen as they happen", isOn: model.bool("presentation", "reportDynamicContentChanges"))
             }
-            Picker("Screen Curtain while TurnOver reads", selection: model.string("general", "screenCurtain", "follow")) {
+            Picker("Screen Curtain while Waypoint reads", selection: model.string("general", "screenCurtain", "follow")) {
                 Text("The same as VoiceOver's").tag("follow"); Text("Always on").tag("on"); Text("Off").tag("off")
             }
         }.formStyle(.grouped).navigationTitle("General")
@@ -734,17 +734,17 @@ struct SoundsView: View {
     var body: some View {
         Form {
             Picker("Whose sounds", selection: whose) {
-                Text("VoiceOver's").tag("voiceover"); Text("TurnOver's").tag("turnover")
+                Text("VoiceOver's").tag("voiceover"); Text("Waypoint's").tag("turnover")
             }
-            Text("VoiceOver's: VoiceOver's own sounds where it has one, such as links and boundaries, and TurnOver's set for the rest. TurnOver's: its set throughout.").font(.caption)
+            Text("VoiceOver's: VoiceOver's own sounds where it has one, such as links and boundaries, and Waypoint's set for the rest. Waypoint's: its set throughout.").font(.caption)
             Toggle("Sounds as I move and press", isOn: model.bool("general", "navigationSounds"))
-            Picker("When TurnOver takes over from VoiceOver", selection: handOver) {
+            Picker("When Waypoint takes over from VoiceOver", selection: handOver) {
                 Text("Words").tag("words"); Text("A sound").tag("sound"); Text("Nothing").tag("nothing")
             }
             Picker("Progress bars", selection: model.string("presentation", "progressBars", "beep")) {
                 Text("Beep").tag("beep"); Text("Speak the percentage").tag("speak"); Text("Beep and speak").tag("both"); Text("Off").tag("off")
             }
-            Picker("Lower other sounds while TurnOver speaks", selection: model.string("speech", "ducking", "off")) {
+            Picker("Lower other sounds while Waypoint speaks", selection: model.string("speech", "ducking", "off")) {
                 Text("No").tag("off"); Text("While speaking").tag("speech"); Text("Always").tag("always")
             }
         }.formStyle(.grouped).navigationTitle("Sounds")
@@ -764,18 +764,18 @@ struct ReadersView: View {
                 // Named and described for accessibility explicitly: the long label came through empty, read as "switch, on"
                 // with nothing said about what it does (25 Oct 2026), while the shorter one below was read.
                 // One switch for the two readers swapping (25 Oct 2026: a second, for the quit alone, said the same by halves).
-                Toggle("TurnOver and VoiceOver swap: one comes on as the other goes off", isOn: model.bool("applications", "swapWithVoiceOver"))
-                    .accessibilityLabel("TurnOver and VoiceOver swap: one comes on as the other goes off")
-                    .accessibilityHint("Off: each reader has its own switch and neither turns the other on or off; TurnOver is still quiet while VoiceOver is on.")
-                Text("On: TurnOver turns VoiceOver off as it starts and on as it quits, comes on when VoiceOver turns off and steps aside when VoiceOver comes on. Off: each reader has its own switch and neither turns the other on or off, for VoiceOver reading inside a virtual machine such as Parallels. Either way one reader speaks at a time: while VoiceOver is on, TurnOver is quiet.").font(.caption)
+                Toggle("Waypoint and VoiceOver swap: one comes on as the other goes off", isOn: model.bool("applications", "swapWithVoiceOver"))
+                    .accessibilityLabel("Waypoint and VoiceOver swap: one comes on as the other goes off")
+                    .accessibilityHint("Off: each reader has its own switch and neither turns the other on or off; Waypoint is still quiet while VoiceOver is on.")
+                Text("On: Waypoint turns VoiceOver off as it starts and on as it quits, comes on when VoiceOver turns off and steps aside when VoiceOver comes on. Off: each reader has its own switch and neither turns the other on or off, for VoiceOver reading inside a virtual machine such as Parallels. Either way one reader speaks at a time: while VoiceOver is on, Waypoint is quiet.").font(.caption)
             }
             // A plain section, not a disclosure group: the triangle took the focus but neither Return nor VO Space
             // opened it (Oliver, 28 Oct 2026: "I can't get into the experimental part").
             Section(header: Text("Experimental: readers per app, CoExist")) {
-                Toggle("CoExist: VoiceOver stays running alongside TurnOver", isOn: coexist)
-                Text("VoiceOver is kept quiet by an audio tap where TurnOver reads and keeps passwords and macOS's own prompts. Removed on 24 Oct 2026 and back as an experiment: it can leave a Mac silent if macOS asks for audio permission while VoiceOver is muted. Changing it restarts TurnOver.").font(.caption)
+                Toggle("CoExist: VoiceOver stays running alongside Waypoint", isOn: coexist)
+                Text("VoiceOver is kept quiet by an audio tap where Waypoint reads and keeps passwords and macOS's own prompts. Removed on 24 Oct 2026 and back as an experiment: it can leave a Mac silent if macOS asks for audio permission while VoiceOver is muted. Changing it restarts Waypoint.").font(.caption)
                 Toggle("Readers per app", isOn: model.bool("applications", "perAppReaders"))
-                Text("A list of apps for each reader, a mode (TurnOver in its apps, everywhere, or VoiceOver everywhere), and switching between the readers as you change apps. The list is under Tools in the TurnOver menu while this is on. Off, TurnOver reads everywhere while it is on.").font(.caption)
+                Text("A list of apps for each reader, a mode (Waypoint in its apps, everywhere, or VoiceOver everywhere), and switching between the readers as you change apps. The list is under Tools in the Waypoint menu while this is on. Off, Waypoint reads everywhere while it is on.").font(.caption)
             }
         }.formStyle(.grouped).navigationTitle("Screen reader behaviour")
     }
@@ -821,7 +821,7 @@ struct TurnOverSettingsApp: App {
         UserDefaults.standard.set(2, forKey: "AppleKeyboardUIMode")
     }
     var body: some Scene {
-        WindowGroup("TurnOver Settings") { ContentView().environmentObject(model) }
+        WindowGroup("Waypoint Settings") { ContentView().environmentObject(model) }
             .windowResizability(.contentSize)
     }
 }

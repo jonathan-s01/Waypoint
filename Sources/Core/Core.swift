@@ -111,7 +111,7 @@ public enum Core {
                 config.save(); Languages.forget()
                 Speech.player.voiceIdentifier = fallback
                 Speech.cancel()
-                Speech.speakMessage(String(localized: "\(name) doesn't speak in TurnOver, so TurnOver is back to \(AVSpeechSynthesisVoice(identifier: fallback)?.name ?? String(localized: "its usual voice", comment: "TurnOver's usual voice, when it has no name")). Choose another in the TurnOver menu, Settings, Speech.", comment: "A silent voice replaced: the voice, then the one used instead"))
+                Speech.speakMessage(String(localized: "\(name) doesn't speak in Waypoint, so Waypoint is back to \(AVSpeechSynthesisVoice(identifier: fallback)?.name ?? String(localized: "its usual voice", comment: "TurnOver's usual voice, when it has no name")). Choose another in the Waypoint menu, Settings, Speech.", comment: "A silent voice replaced: the voice, then the one used instead"))
             }
         }
         startStep = "the commands"

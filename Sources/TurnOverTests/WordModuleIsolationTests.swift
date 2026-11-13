@@ -105,7 +105,7 @@ func wordModuleIsolationTests() {
             guard let word = wordModule(pid: text.pid) else { return }
             defer { word.terminate() }
             text.owner = word
-            expect(Hints.forObject(text), "TurnOver Down reads from here; TurnOver H moves by heading.")
+            expect(Hints.forObject(text), "Waypoint Down reads from here; Waypoint H moves by heading.")
         }
     }
     test("spelling menu: another app can retain its native corrections through module policy") {

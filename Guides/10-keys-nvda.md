@@ -1,135 +1,149 @@
 # NVDA keys: every key
 
-This page is made from TurnOver's own command tables (`turnover-coretest --keys-reference`, 12 Nov 2026), so it matches the build it came with. Don't edit it by hand.
+This page is made from Waypoint's own command tables (`turnover-coretest --keys-reference`, 13 Nov 2026), so it matches the build it came with. Don't edit it by hand.
 
-The NVDA keys style (the Windows style): NVDA's own keys, doing what they do in NVDA. **TurnOver** in a key means the NVDA key: Caps Lock, or Control and Option together. NVDA's Alt is the Mac's Command key, by position. Keyboard help (the TurnOver menu, Keys) says what any key does without doing it; Command Control Comma, then Slash, lists the keys that work where you are.
+The NVDA keys style (the Windows style): NVDA's own keys, doing what they do in NVDA. **Waypoint** in a key means the NVDA key: Caps Lock, or Control and Option together. NVDA's Alt is the Mac's Command key, by position. Keyboard help (the Waypoint menu, Keys) says what any key does without doing it; Command Control Comma, then Slash, lists the keys that work where you are.
 
-Switch styles with Command Control Comma, then K. TurnOver's own commands behind Command Control Comma are the same in every style: see [The TurnOver layer](the-turnover-layer.html).
+Switch styles with Command Control Comma, then K. Waypoint's own commands behind Command Control Comma are the same in every style: see [The Waypoint layer](the-turnover-layer.html).
 
-## TurnOver
+## Waypoint
 
 | Key | What it does |
 |---|---|
+| Control Command 0 | Describes the app in front: its window and the parts of it; pressed twice, as a list to move to a part |
+| Control Command W | Says what is new in this part of the window since you left it; pressed twice, in every part of the app |
 | Option Command Escape | Force quit an application; lists the running applications to force quit one, with a confirmation (the Mac's Force Quit window, spoken) |
+| Waypoint Command A | Anywhere: type to find an app, a menu command, an action or a Waypoint command, and run it |
+| Waypoint Command Equals | Marks this moment in the log, for a report that something just sounded wrong (VO-Command-Equals) |
+| Waypoint Option B | Bookmarks the item you are on, so a key can bring you back to it |
+| Waypoint Option G | Lists your bookmarks, narrowed as you type; Return goes to one, in its app |
+| Waypoint Option I | After reading around a text field, puts the reviewed text into the field as it is |
+| Waypoint Option N | In a list of messages, files or results, switches Up and Down to skimming the items by their key words, quickly, and back; Return reads the item in full |
+| Waypoint Option P | Lists the places you stayed at recently, the one before this first; Return goes back to it |
+| Waypoint Option Q | After reading around a text field, puts the reviewed text into the field as a quote |
+| Waypoint Option R | Review layer: once, the next key reads around the field instead of typing; twice, the layer stays on until pressed again |
+| Waypoint Option S | After reading around a text field, says where the review cursor is |
+| Waypoint Option Y | After reading around a text field, copies the reviewed text |
+| Waypoint Option Command Shift Slash | Puts the second reader back with the keyboard: it follows the focus again, in this app and window (it stays where an area jump put it until then) |
 
 ## NVDA keys
 
 | Key | What it does |
 |---|---|
-| TurnOver 6 | Turns the review cursor following the caret on or off (NVDA+6) |
-| TurnOver 7 | Turns the review cursor following the focus on or off (NVDA+7) |
-| TurnOver B | Reads everything in the window in front (NVDA+B) |
-| TurnOver C | Reports the text on the clipboard (NVDA+C) |
-| TurnOver End | Moves the review cursor to the end of the line (NVDA+End) |
-| TurnOver F1 | Open the log; writes the navigator object's details to the log and opens the log (NVDA+F1) |
-| TurnOver F10 | Selects from the marked start to the review cursor; twice, copies it (NVDA+F10) |
-| TurnOver F2 | The next key goes to the application untouched (NVDA+F2) |
-| TurnOver F5 | Rebuilds the page's browse mode view (NVDA+F5) |
-| TurnOver F9 | Marks the review cursor as the start of text to copy (NVDA+F9) |
-| TurnOver Home | Moves the review cursor to the start of the line (NVDA+Home) |
-| TurnOver K | Reports where the link goes (NVDA+K) |
-| TurnOver M | Mouse tracking on or off; reads what is under the mouse pointer as it moves (NVDA+M) |
-| TurnOver Period | Reports the character at the review cursor; twice, spells it (NVDA+Period) |
-| TurnOver U | Progress bars: beeps that rise in pitch, the percentage spoken, both, or nothing (NVDA+U) |
-| TurnOver V | Screen layout on or off in browse mode: things side by side on one line (NVDA+V) |
-| TurnOver X | Repeats the last thing spoken (NVDA+X) |
-| TurnOver Command End | Moves the review cursor to the end of the selection (NVDA+Alt+End) |
-| TurnOver Command Home | Moves the review cursor to the start of the selection (NVDA+Alt+Home) |
-| TurnOver Command J | Braille auto scroll slower (NVDA+Alt+J) |
-| TurnOver Command K | Braille auto scroll on or off (NVDA+Alt+K) |
-| TurnOver Command L | Braille auto scroll faster (NVDA+Alt+L) |
-| TurnOver Command T | Braille mode; switches braille between following the cursors and showing speech (NVDA+Alt+T) |
-| TurnOver Control A | Opens TurnOver's Braille (NVDA+Control+A: Select Braille Display settings) |
-| TurnOver Control B | Opens TurnOver's Web pages (NVDA+Control+B: Browse Mode settings) |
-| TurnOver Control C | Saves the settings (NVDA+Control+C) |
-| TurnOver Control D | Opens TurnOver's Documents (NVDA+Control+D: Document Formatting settings) |
-| TurnOver Control End | Moves the review cursor to the bottom line (NVDA+Control+End) |
-| TurnOver Control F1 | Application and module; reports the application module and the application's name and version (NVDA+Control+F1) |
-| TurnOver Control F3 | Reloads the plugins (NVDA+Control+F3) |
-| TurnOver Control G | Opens TurnOver's Settings (NVDA+Control+G: General settings) |
-| TurnOver Control Home | Moves the review cursor to the top line (NVDA+Control+Home) |
-| TurnOver Control K | Opens TurnOver's Keyboard (NVDA+Control+K: Keyboard settings) |
-| TurnOver Control M | Opens TurnOver's Settings (NVDA+Control+M: Mouse settings) |
-| TurnOver Control O | Opens TurnOver's Item details (NVDA+Control+O: Object Presentation settings) |
-| TurnOver Control P | Configuration profiles: sets of speech, verbosity, web and braille settings, by hand or for an app (NVDA+Control+P) |
-| TurnOver Control Period | Reports the word at the review cursor; twice, spells it (NVDA+Control+Period) |
-| TurnOver Control R | Goes back to the settings last saved (NVDA+Control+R) |
-| TurnOver Control S | Opens TurnOver's Speech (NVDA+Control+S: Select Synthesizer settings) |
-| TurnOver Control Space | Back to the page; from something inside a page, back to the page in browse mode (NVDA+Control+Space) |
-| TurnOver Control T | Cycles what braille follows: automatically, the focus, or the review cursor (NVDA+Control+T) |
-| TurnOver Control U | Opens TurnOver's Sounds (NVDA+Control+U: Audio settings) |
-| TurnOver Control V | Opens TurnOver's Speech (NVDA+Control+V: Speech settings) |
-| TurnOver Down arrow | Moves the review cursor to the next line (NVDA+Down Arrow, laptop) |
-| TurnOver Left bracket | Clicks the left mouse button where the pointer is (NVDA+Left Bracket) |
-| TurnOver Option End | Moves the review cursor to the end of the selection (NVDA+Alt+End) |
-| TurnOver Option Home | Moves the review cursor to the start of the selection (NVDA+Alt+Home) |
-| TurnOver Option J | Braille auto scroll slower (NVDA+Alt+J) |
-| TurnOver Option K | Braille auto scroll on or off (NVDA+Alt+K) |
-| TurnOver Option L | Braille auto scroll faster (NVDA+Alt+L) |
-| TurnOver Option T | Braille mode; switches braille between following the cursors and showing speech (NVDA+Alt+T) |
-| TurnOver Right bracket | Clicks the right mouse button where the pointer is (NVDA+Right Bracket) |
-| TurnOver Shift A | Reads from the review cursor to the end of the text (NVDA+Shift+A) |
-| TurnOver Shift D | Audio ducking: no ducking, duck when outputting speech, always duck (NVDA+Shift+D) |
-| TurnOver Shift Delete | Where the item is on screen; reports where the item object navigation is on sits on the screen (NVDA+Shift+Delete) |
-| TurnOver Shift End | Reports the status bar, if the window has one (NVDA+Shift+End) |
-| TurnOver Shift F | Reports the formatting at the review cursor (NVDA+Shift+F) |
-| TurnOver Shift F9 | Moves the review cursor to the marked start (NVDA+Shift+F9) |
-| TurnOver Shift M | Pointer to this item; moves the mouse pointer to the item object navigation is on (NVDA+Shift+M) |
-| TurnOver Shift N | To the item under the pointer; moves object navigation to the item under the mouse pointer (NVDA+Shift+N) |
-| TurnOver Shift Period | Reports the line at the review cursor; twice, spells it (NVDA+Shift+Period) |
-| TurnOver Shift Space | Single-letter navigation on or off; turns single-letter navigation on or off for this page, so the page's own letter keys work (NVDA+Shift+Space) |
-| TurnOver Shift Z | Sleep mode on or off for this app: TurnOver says nothing and every key goes to the app (NVDA+Shift+Z) |
-| TurnOver Up arrow | Moves the review cursor to the previous line (NVDA+Up Arrow, laptop) |
-| TurnOver Control Left arrow | Moves the review cursor to the previous word (NVDA+Control+Left Arrow) |
-| TurnOver Control Left bracket | Holds the left mouse button down, or lets it go (NVDA+Control+Left Bracket) |
-| TurnOver Control Right arrow | Moves the review cursor to the next word (NVDA+Control+Right Arrow) |
-| TurnOver Control Right bracket | Holds the right mouse button down, or lets it go (NVDA+Control+Right Bracket) |
-| TurnOver Control Shift F1 | Marks the log; pressed again, copies the log from the mark (NVDA+Control+Shift+F1) |
-| TurnOver Control Shift Period | Reports the shortcut key of the item with focus (NVDA+Control+Shift+Period) |
-| TurnOver Shift Left bracket | Moves to the previous item, in and out of groups (NVDA+Shift+Left Bracket) |
-| TurnOver Shift Page down | Moves the review cursor to the next page (NVDA+Page Down; laptop: NVDA+Shift+Page Down) |
-| TurnOver Shift Page up | Moves the review cursor to the previous page (NVDA+Page Up; laptop: NVDA+Shift+Page Up) |
-| TurnOver Shift Right bracket | Moves to the next item, in and out of groups (NVDA+Shift+Right Bracket) |
-| TurnOver Control Shift Down arrow | Lowers the speech setting (NVDA+Shift+Control+Down Arrow) |
-| TurnOver Control Shift Left arrow | Previous speech setting (NVDA+Shift+Control+Left Arrow) |
-| TurnOver Control Shift Page down | Lowers the speech setting in a large step (NVDA+Shift+Control+Page Down) |
-| TurnOver Control Shift Page up | Raises the speech setting in a large step (NVDA+Shift+Control+Page Up) |
-| TurnOver Control Shift Right arrow | Next speech setting: voice, rate, volume, punctuation (NVDA+Shift+Control+Right Arrow) |
-| TurnOver Control Shift Up arrow | Raises the speech setting (NVDA+Shift+Control+Up Arrow) |
+| Waypoint 6 | Turns the review cursor following the caret on or off (NVDA+6) |
+| Waypoint 7 | Turns the review cursor following the focus on or off (NVDA+7) |
+| Waypoint B | Reads everything in the window in front (NVDA+B) |
+| Waypoint C | Reports the text on the clipboard (NVDA+C) |
+| Waypoint End | Moves the review cursor to the end of the line (NVDA+End) |
+| Waypoint F1 | Open the log; writes the navigator object's details to the log and opens the log (NVDA+F1) |
+| Waypoint F10 | Selects from the marked start to the review cursor; twice, copies it (NVDA+F10) |
+| Waypoint F2 | The next key goes to the application untouched (NVDA+F2) |
+| Waypoint F5 | Rebuilds the page's browse mode view (NVDA+F5) |
+| Waypoint F9 | Marks the review cursor as the start of text to copy (NVDA+F9) |
+| Waypoint Home | Moves the review cursor to the start of the line (NVDA+Home) |
+| Waypoint K | Reports where the link goes (NVDA+K) |
+| Waypoint M | Mouse tracking on or off; reads what is under the mouse pointer as it moves (NVDA+M) |
+| Waypoint Period | Reports the character at the review cursor; twice, spells it (NVDA+Period) |
+| Waypoint U | Progress bars: beeps that rise in pitch, the percentage spoken, both, or nothing (NVDA+U) |
+| Waypoint V | Screen layout on or off in browse mode: things side by side on one line (NVDA+V) |
+| Waypoint X | Repeats the last thing spoken (NVDA+X) |
+| Waypoint Command End | Moves the review cursor to the end of the selection (NVDA+Alt+End) |
+| Waypoint Command Home | Moves the review cursor to the start of the selection (NVDA+Alt+Home) |
+| Waypoint Command J | Braille auto scroll slower (NVDA+Alt+J) |
+| Waypoint Command K | Braille auto scroll on or off (NVDA+Alt+K) |
+| Waypoint Command L | Braille auto scroll faster (NVDA+Alt+L) |
+| Waypoint Command T | Braille mode; switches braille between following the cursors and showing speech (NVDA+Alt+T) |
+| Waypoint Control A | Opens Waypoint's Braille (NVDA+Control+A: Select Braille Display settings) |
+| Waypoint Control B | Opens Waypoint's Web pages (NVDA+Control+B: Browse Mode settings) |
+| Waypoint Control C | Saves the settings (NVDA+Control+C) |
+| Waypoint Control D | Opens Waypoint's Documents (NVDA+Control+D: Document Formatting settings) |
+| Waypoint Control End | Moves the review cursor to the bottom line (NVDA+Control+End) |
+| Waypoint Control F1 | Application and module; reports the application module and the application's name and version (NVDA+Control+F1) |
+| Waypoint Control F3 | Reloads the plugins (NVDA+Control+F3) |
+| Waypoint Control G | Opens Waypoint's Settings (NVDA+Control+G: General settings) |
+| Waypoint Control Home | Moves the review cursor to the top line (NVDA+Control+Home) |
+| Waypoint Control K | Opens Waypoint's Keyboard (NVDA+Control+K: Keyboard settings) |
+| Waypoint Control M | Opens Waypoint's Settings (NVDA+Control+M: Mouse settings) |
+| Waypoint Control O | Opens Waypoint's Item details (NVDA+Control+O: Object Presentation settings) |
+| Waypoint Control P | Configuration profiles: sets of speech, verbosity, web and braille settings, by hand or for an app (NVDA+Control+P) |
+| Waypoint Control Period | Reports the word at the review cursor; twice, spells it (NVDA+Control+Period) |
+| Waypoint Control R | Goes back to the settings last saved (NVDA+Control+R) |
+| Waypoint Control S | Opens Waypoint's Speech (NVDA+Control+S: Select Synthesizer settings) |
+| Waypoint Control Space | Back to the page; from something inside a page, back to the page in browse mode (NVDA+Control+Space) |
+| Waypoint Control T | Cycles what braille follows: automatically, the focus, or the review cursor (NVDA+Control+T) |
+| Waypoint Control U | Opens Waypoint's Sounds (NVDA+Control+U: Audio settings) |
+| Waypoint Control V | Opens Waypoint's Speech (NVDA+Control+V: Speech settings) |
+| Waypoint Down arrow | Moves the review cursor to the next line (NVDA+Down Arrow, laptop) |
+| Waypoint Left bracket | Clicks the left mouse button where the pointer is (NVDA+Left Bracket) |
+| Waypoint Option End | Moves the review cursor to the end of the selection (NVDA+Alt+End) |
+| Waypoint Option Home | Moves the review cursor to the start of the selection (NVDA+Alt+Home) |
+| Waypoint Option J | Braille auto scroll slower (NVDA+Alt+J) |
+| Waypoint Option K | Braille auto scroll on or off (NVDA+Alt+K) |
+| Waypoint Option L | Braille auto scroll faster (NVDA+Alt+L) |
+| Waypoint Option T | Braille mode; switches braille between following the cursors and showing speech (NVDA+Alt+T) |
+| Waypoint Right bracket | Clicks the right mouse button where the pointer is (NVDA+Right Bracket) |
+| Waypoint Shift A | Reads from the review cursor to the end of the text (NVDA+Shift+A) |
+| Waypoint Shift D | Audio ducking: no ducking, duck when outputting speech, always duck (NVDA+Shift+D) |
+| Waypoint Shift Delete | Where the item is on screen; reports where the item object navigation is on sits on the screen (NVDA+Shift+Delete) |
+| Waypoint Shift End | Reports the status bar, if the window has one (NVDA+Shift+End) |
+| Waypoint Shift F | Reports the formatting at the review cursor (NVDA+Shift+F) |
+| Waypoint Shift F9 | Moves the review cursor to the marked start (NVDA+Shift+F9) |
+| Waypoint Shift M | Pointer to this item; moves the mouse pointer to the item object navigation is on (NVDA+Shift+M) |
+| Waypoint Shift N | To the item under the pointer; moves object navigation to the item under the mouse pointer (NVDA+Shift+N) |
+| Waypoint Shift Period | Reports the line at the review cursor; twice, spells it (NVDA+Shift+Period) |
+| Waypoint Shift Space | Single-letter navigation on or off; turns single-letter navigation on or off for this page, so the page's own letter keys work (NVDA+Shift+Space) |
+| Waypoint Shift Z | Sleep mode on or off for this app: Waypoint says nothing and every key goes to the app (NVDA+Shift+Z) |
+| Waypoint Up arrow | Moves the review cursor to the previous line (NVDA+Up Arrow, laptop) |
+| Waypoint Control Left arrow | Moves the review cursor to the previous word (NVDA+Control+Left Arrow) |
+| Waypoint Control Left bracket | Holds the left mouse button down, or lets it go (NVDA+Control+Left Bracket) |
+| Waypoint Control Right arrow | Moves the review cursor to the next word (NVDA+Control+Right Arrow) |
+| Waypoint Control Right bracket | Holds the right mouse button down, or lets it go (NVDA+Control+Right Bracket) |
+| Waypoint Control Shift F1 | Marks the log; pressed again, copies the log from the mark (NVDA+Control+Shift+F1) |
+| Waypoint Control Shift Period | Reports the shortcut key of the item with focus (NVDA+Control+Shift+Period) |
+| Waypoint Shift Left bracket | Moves to the previous item, in and out of groups (NVDA+Shift+Left Bracket) |
+| Waypoint Shift Page down | Moves the review cursor to the next page (NVDA+Page Down; laptop: NVDA+Shift+Page Down) |
+| Waypoint Shift Page up | Moves the review cursor to the previous page (NVDA+Page Up; laptop: NVDA+Shift+Page Up) |
+| Waypoint Shift Right bracket | Moves to the next item, in and out of groups (NVDA+Shift+Right Bracket) |
+| Waypoint Control Shift Down arrow | Lowers the speech setting (NVDA+Shift+Control+Down Arrow) |
+| Waypoint Control Shift Left arrow | Previous speech setting (NVDA+Shift+Control+Left Arrow) |
+| Waypoint Control Shift Page down | Lowers the speech setting in a large step (NVDA+Shift+Control+Page Down) |
+| Waypoint Control Shift Page up | Raises the speech setting in a large step (NVDA+Shift+Control+Page Up) |
+| Waypoint Control Shift Right arrow | Next speech setting: voice, rate, volume, punctuation (NVDA+Shift+Control+Right Arrow) |
+| Waypoint Control Shift Up arrow | Raises the speech setting (NVDA+Shift+Control+Up Arrow) |
 
 ## Speech
 
 | Key | What it does |
 |---|---|
-| TurnOver 2 | Cycles speaking of typed characters: off, only in edit controls, always |
-| TurnOver 3 | Cycles speaking of typed words: off, only in edit controls, always |
-| TurnOver 4 | Turns speaking of command keys on or off |
-| TurnOver 5 | Turns reporting of dynamic content changes on or off |
-| TurnOver P | Cycles the punctuation and symbol level |
-| TurnOver S | Cycles speech modes: talk, beeps, off, on demand (NVDA+S) |
-| TurnOver Control Down arrow | Speaks slower |
-| TurnOver Control Up arrow | Speaks faster |
+| Waypoint 2 | Cycles speaking of typed characters: off, only in edit controls, always |
+| Waypoint 3 | Cycles speaking of typed words: off, only in edit controls, always |
+| Waypoint 4 | Turns speaking of command keys on or off |
+| Waypoint 5 | Turns reporting of dynamic content changes on or off |
+| Waypoint P | Cycles the punctuation and symbol level |
+| Waypoint S | Cycles speech modes: talk, beeps, off, on demand (NVDA+S) |
+| Waypoint Control Down arrow | Speaks slower |
+| Waypoint Control Up arrow | Speaks faster |
 
 ## System
 
 | Key | What it does |
 |---|---|
-| TurnOver 1 | Turns input help on or off: every key says what it does |
-| TurnOver F12 | Reports the time. Pressed twice, reports the date |
-| TurnOver N | Opens the TurnOver menu: settings, keys, tools, help, quit |
-| TurnOver Q | Quits TurnOver |
-| TurnOver R | Recognises the text in the window from the screen (OCR), to read with the arrows and click with Return. Pressed again in the result, recognises again. Pressed twice, its buttons, fields and icons instead |
-| TurnOver Slash | Shortcuts list; lists the shortcuts that work here, the application's own first; Enter runs one |
-| TurnOver T | Reports the title of the current window. Pressed twice, spells it |
-| TurnOver Tab | Reports the object with focus |
-| Control Command M | Opens the TurnOver menu: settings, keys, tools, help, quit |
-| TurnOver Shift B | Reports the battery level |
+| Waypoint 1 | Turns input help on or off: every key says what it does |
+| Waypoint F12 | Reports the time. Pressed twice, reports the date |
+| Waypoint N | Opens the Waypoint menu: settings, keys, tools, help, quit |
+| Waypoint Q | Quits Waypoint |
+| Waypoint R | Recognises the text in the window from the screen (OCR), to read with the arrows and click with Return. Pressed again in the result, recognises again. Pressed twice, its buttons, fields and icons instead |
+| Waypoint Slash | Shortcuts list; lists the shortcuts that work here, the application's own first; Enter runs one |
+| Waypoint T | Reports the title of the current window. Pressed twice, spells it |
+| Waypoint Tab | Reports the object with focus |
+| Control Command M | Opens the Waypoint menu: settings, keys, tools, help, quit |
+| Waypoint Shift B | Reports the battery level |
 
 ## Browse mode
 
 | Key | What it does |
 |---|---|
-| TurnOver Space | Switches between browse mode and focus mode in a document |
+| Waypoint Space | Switches between browse mode and focus mode in a document |
 
 ## Menus
 
@@ -141,52 +155,34 @@ Switch styles with Command Control Comma, then K. TurnOver's own commands behind
 
 | Key | What it does |
 |---|---|
-| TurnOver Backspace | Brings object navigation back to the focus |
-| TurnOver Enter | Activates the item object navigation is on: presses it, or puts the focus in it for typing |
-| TurnOver Left arrow | Moves to the previous item in the window |
-| TurnOver Right arrow | Next item in the window; moves to the next item in the window, whether or not it can take the focus |
-| TurnOver Shift Backspace | Move focus here; moves the keyboard focus to the item object navigation is on |
-| TurnOver Shift O | Reports the item object navigation is on |
-| TurnOver Shift Down arrow | Moves in, to the first item inside this one |
-| TurnOver Shift Left arrow | Moves to the previous item in the window |
-| TurnOver Shift Right arrow | Next item in the window; moves to the next item in the window, whether or not it can take the focus |
-| TurnOver Shift Up arrow | Moves out, to the item that contains this one |
+| Waypoint Backspace | Brings object navigation back to the focus |
+| Waypoint Enter | Activates the item object navigation is on: presses it, or puts the focus in it for typing |
+| Waypoint Left arrow | Moves to the previous item in the window |
+| Waypoint Right arrow | Next item in the window; moves to the next item in the window, whether or not it can take the focus |
+| Waypoint Shift Backspace | Move focus here; moves the keyboard focus to the item object navigation is on |
+| Waypoint Shift O | Reports the item object navigation is on |
+| Waypoint Shift Down arrow | Moves in, to the first item inside this one |
+| Waypoint Shift Left arrow | Moves to the previous item in the window |
+| Waypoint Shift Right arrow | Next item in the window; moves to the next item in the window, whether or not it can take the focus |
+| Waypoint Shift Up arrow | Moves out, to the item that contains this one |
 
 ## Text review
 
 | Key | What it does |
 |---|---|
-| TurnOver A | Reads from the caret to the end of the text |
-| TurnOver Delete | Reports where the caret is: the page and line where the application knows them |
-| TurnOver F | Reports the formatting at the caret (NVDA+F) |
-| TurnOver F3 | Finds the next match of the last search (VO-G; NVDA+F3) |
-| TurnOver G | Finds the next match of the last search (VO-G; NVDA+F3) |
-| TurnOver L | Reports the current line. Pressed twice, spells it |
-| TurnOver W | Reports the current word. Pressed twice, spells it |
-| TurnOver Control F | Finds text: type it, then Return; the match is where you are left (VO-F; NVDA+Control+F) |
-| TurnOver Shift F3 | Finds the previous match of the last search (VO-Shift-G; NVDA+Shift+F3) |
-| TurnOver Shift G | Finds the previous match of the last search (VO-Shift-G; NVDA+Shift+F3) |
-| TurnOver Shift L | Reports where the caret is: the page and line where the application knows them |
-| TurnOver Shift P | Reports the current paragraph |
-| TurnOver Shift S | Reports the selected text |
-
-## Waypoint
-
-| Key | What it does |
-|---|---|
-| Control Command 0 | Describes the app in front: its window and the parts of it; pressed twice, as a list to move to a part |
-| Control Command W | Says what is new in this part of the window since you left it; pressed twice, in every part of the app |
-| TurnOver Command A | Anywhere: type to find an app, a menu command, an action or a Waypoint command, and run it |
-| TurnOver Command Equals | Marks this moment in the log, for a report that something just sounded wrong (VO-Command-Equals) |
-| TurnOver Option B | Bookmarks the item you are on, so a key can bring you back to it |
-| TurnOver Option G | Lists your bookmarks, narrowed as you type; Return goes to one, in its app |
-| TurnOver Option I | After reading around a text field, puts the reviewed text into the field as it is |
-| TurnOver Option N | In a list of messages, files or results, switches Up and Down to skimming the items by their key words, quickly, and back; Return reads the item in full |
-| TurnOver Option P | Lists the places you stayed at recently, the one before this first; Return goes back to it |
-| TurnOver Option Q | After reading around a text field, puts the reviewed text into the field as a quote |
-| TurnOver Option R | Review layer: once, the next key reads around the field instead of typing; twice, the layer stays on until pressed again |
-| TurnOver Option S | After reading around a text field, says where the review cursor is |
-| TurnOver Option Y | After reading around a text field, copies the reviewed text |
+| Waypoint A | Reads from the caret to the end of the text |
+| Waypoint Delete | Reports where the caret is: the page and line where the application knows them |
+| Waypoint F | Reports the formatting at the caret (NVDA+F) |
+| Waypoint F3 | Finds the next match of the last search (VO-G; NVDA+F3) |
+| Waypoint G | Finds the next match of the last search (VO-G; NVDA+F3) |
+| Waypoint L | Reports the current line. Pressed twice, spells it |
+| Waypoint W | Reports the current word. Pressed twice, spells it |
+| Waypoint Control F | Finds text: type it, then Return; the match is where you are left (VO-F; NVDA+Control+F) |
+| Waypoint Shift F3 | Finds the previous match of the last search (VO-Shift-G; NVDA+Shift+F3) |
+| Waypoint Shift G | Finds the previous match of the last search (VO-Shift-G; NVDA+Shift+F3) |
+| Waypoint Shift L | Reports where the caret is: the page and line where the application knows them |
+| Waypoint Shift P | Reports the current paragraph |
+| Waypoint Shift S | Reports the selected text |
 
 ## Windows keys
 
@@ -195,7 +191,7 @@ Switch styles with Command Control Comma, then K. TurnOver's own commands behind
 | F10 | Opens the application's menus; closes them if open (Windows: Alt or F10). Also Command on its own |
 | Command F4 | Quits the application (Windows: Alt+F4) |
 | Control F4 | Closes the window or tab (Windows: Control+F4) |
-| Option B | Status menus; lists the status menus at the right of the menu bar, TurnOver's own item last (Windows: Windows+B) |
+| Option B | Status menus; lists the status menus at the right of the menu bar, Waypoint's own item last (Windows: Windows+B) |
 | Option D | Opens the Desktop folder in Finder, its items under the arrows (Windows: Windows+D) |
 | Option Tab | Application chooser; lists every application with a window, system alerts too, to switch to (Windows: Windows+Tab, Task View) |
 | Shift F10 | Opens the context menu, as Control+Return does (Windows: the Applications key, Shift+F10). Also right Option on its own |
@@ -279,7 +275,7 @@ Keys an app's own support adds at the app level, in that app only; the keys abov
 
 | Key | What it does |
 |---|---|
-| TurnOver Shift R | Reads Claude's latest reply |
+| Waypoint Shift R | Reads Claude's latest reply |
 
 ## Contacts
 
@@ -317,10 +313,10 @@ Keys an app's own support adds at the app level, in that app only; the keys abov
 
 | Key | What it does |
 |---|---|
-| TurnOver Command C | Reports the cell's note; twice, shows it to read line by line (NVDA+Alt+C) |
-| TurnOver F7 | Elements list; lists the workbook's sheets and the cells with notes; Enter goes there (NVDA+F7) |
-| TurnOver Option C | Reports the cell's note; twice, shows it to read line by line (NVDA+Alt+C) |
-| TurnOver Space | Cell review; reads the cells around with the arrows, protected ones too; Escape stops (NVDA+Space in Excel) |
+| Waypoint Command C | Reports the cell's note; twice, shows it to read line by line (NVDA+Alt+C) |
+| Waypoint F7 | Elements list; lists the workbook's sheets and the cells with notes; Enter goes there (NVDA+F7) |
+| Waypoint Option C | Reports the cell's note; twice, shows it to read line by line (NVDA+Alt+C) |
+| Waypoint Space | Cell review; reads the cells around with the arrows, protected ones too; Escape stops (NVDA+Space in Excel) |
 
 ## Finder
 
@@ -371,7 +367,7 @@ Keys an app's own support adds at the app level, in that app only; the keys abov
 | Space | While playing: the next or previous slide, read |
 | Up arrow | The previous or next slide, read (Keynote says nothing as it moves) |
 
-## Kindle
+## Lassen
 
 | Key | What it does |
 |---|---|
@@ -479,11 +475,11 @@ Keys an app's own support adds at the app level, in that app only; the keys abov
 | Space | Plays the item, or plays and pauses |
 | T | Jumps to the next item starting with the letter |
 | Tab | Next area: sidebar, page, player |
-| TurnOver Shift N | Says what is playing |
 | U | Jumps to the next item starting with the letter |
 | Up arrow | Previous item |
 | V | Jumps to the next item starting with the letter |
 | W | Jumps to the next item starting with the letter |
+| Waypoint Shift N | Says what is playing |
 | X | Jumps to the next item starting with the letter |
 | Y | Jumps to the next item starting with the letter |
 | Z | Jumps to the next item starting with the letter |
@@ -564,11 +560,11 @@ Keys an app's own support adds at the app level, in that app only; the keys abov
 | Space | Plays the item, or plays and pauses |
 | T | Jumps to the next item starting with the letter |
 | Tab | Next area: sidebar, page, player |
-| TurnOver Shift N | Says what is playing |
 | U | Jumps to the next item starting with the letter |
 | Up arrow | Previous item |
 | V | Jumps to the next item starting with the letter |
 | W | Jumps to the next item starting with the letter |
+| Waypoint Shift N | Says what is playing |
 | X | Jumps to the next item starting with the letter |
 | Y | Jumps to the next item starting with the letter |
 | Z | Jumps to the next item starting with the letter |
@@ -671,11 +667,11 @@ Keys an app's own support adds at the app level, in that app only; the keys abov
 | Space | Plays the item, or plays and pauses |
 | T | Jumps to the next item starting with the letter |
 | Tab | Next area: sidebar, page, player |
-| TurnOver Shift N | Says what is playing |
 | U | Jumps to the next item starting with the letter |
 | Up arrow | Previous item |
 | V | Jumps to the next item starting with the letter |
 | W | Jumps to the next item starting with the letter |
+| Waypoint Shift N | Says what is playing |
 | X | Jumps to the next item starting with the letter |
 | Y | Jumps to the next item starting with the letter |
 | Z | Jumps to the next item starting with the letter |
@@ -719,7 +715,7 @@ Keys an app's own support adds at the app level, in that app only; the keys abov
 | Escape | In the ribbon, sidebar, status bar or toolbar: back to the document |
 | Shift Tab | In a sheet: the previous control, its buttons included |
 | Tab | In a sheet: the next control, its buttons included |
-| TurnOver Down arrow | In a table: the cell below, the caret at its start (NVDA's table keys; TurnOver plus the arrows) |
-| TurnOver Left arrow | In a table: the previous cell in the row, the caret at its start (NVDA's table keys; TurnOver plus the arrows) |
-| TurnOver Right arrow | In a table: the next cell in the row, the caret at its start (NVDA's table keys; TurnOver plus the arrows) |
-| TurnOver Up arrow | In a table: the cell above, the caret at its start (NVDA's table keys; TurnOver plus the arrows) |
+| Waypoint Down arrow | In a table: the cell below, the caret at its start (NVDA's table keys; Waypoint plus the arrows) |
+| Waypoint Left arrow | In a table: the previous cell in the row, the caret at its start (NVDA's table keys; Waypoint plus the arrows) |
+| Waypoint Right arrow | In a table: the next cell in the row, the caret at its start (NVDA's table keys; Waypoint plus the arrows) |
+| Waypoint Up arrow | In a table: the cell above, the caret at its start (NVDA's table keys; Waypoint plus the arrows) |

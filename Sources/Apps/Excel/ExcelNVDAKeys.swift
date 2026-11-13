@@ -18,7 +18,7 @@ extension ExcelAppModule {
         if let error {
             Log.warning("Excel script error: \(error[NSAppleScript.errorNumber] ?? "?")")
             if (error[NSAppleScript.errorNumber] as? Int) == -1743 {
-                onMain { Speech.speakMessage(String(localized: "TurnOver needs permission to control Excel. In System Settings, Privacy and Security, Automation, turn on Microsoft Excel under TurnOver.", comment: "Spoken message")) }
+                onMain { Speech.speakMessage(String(localized: "Waypoint needs permission to control Excel. In System Settings, Privacy and Security, Automation, turn on Microsoft Excel under Waypoint.", comment: "Spoken message")) }
             }
             return nil
         }

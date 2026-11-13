@@ -101,7 +101,7 @@ final class ActivityFlow {
                         if still { self.end("The import wasn't confirmed; VoiceOver is as it was.", completion); return }
                         self.save(Marker(installed: apps != nil, apps: apps ?? [], touched: touchedNow, hush: apps != nil ? hush : nil, masks: apps != nil ? masksNow : nil, recipe: VoiceOverActivity.recipe))
                         try? FileManager.default.removeItem(at: file)
-                        self.end(apps == nil ? "VoiceOver has every app again." : "VoiceOver is quiet in TurnOver's apps.", completion)
+                        self.end(apps == nil ? "VoiceOver has every app again." : "VoiceOver is quiet in Waypoint's apps.", completion)
                     }
                 }
             }

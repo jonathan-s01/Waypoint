@@ -30,7 +30,7 @@ public enum PluginAI: String, CaseIterable {
     public static func start(_ ai: PluginAI, pid: pid_t) {
         guard let app = NSRunningApplication(processIdentifier: pid) else { return }
         let name = app.localizedName ?? "this app"
-        Speech.speakMessage(String(localized: "Looking at \(name)", comment: "Making a plugin: TurnOver gathers what the app shows"))
+        Speech.speakMessage(String(localized: "Looking at \(name)", comment: "Making a plugin: Waypoint gathers what the app shows"))
         let bundle = app.bundleIdentifier ?? ""
         PluginTry.grant(bundle: bundle)   // choosing this is the consent for the AI to try keys here (3 hours)
         let agent = ai == .claude ? nil : agentPath(ai)
@@ -65,7 +65,7 @@ public enum PluginAI: String, CaseIterable {
                 let site = ai == .chatGPT ? "https://chatgpt.com/" : "https://gemini.google.com/app"
                 NSWorkspace.shared.open(URL(string: site)!)
                 Log.info("plugin brief for \(ai.rawValue): \(text.count) characters on the clipboard")
-                Speech.speakMessage(String(localized: "The brief is copied, and \(ai.rawValue) is opening. Paste it, add what is wrong in \(name), and send. When it answers, copy the whole answer, then choose Install a plugin from the clipboard, in TurnOver's Plugins menu. The brief includes the names shown in \(name).", comment: "Making a plugin with a chat AI: the AI, then the app (twice)"))
+                Speech.speakMessage(String(localized: "The brief is copied, and \(ai.rawValue) is opening. Paste it, add what is wrong in \(name), and send. When it answers, copy the whole answer, then choose Install a plugin from the clipboard, in Waypoint's Plugins menu. The brief includes the names shown in \(name).", comment: "Making a plugin with a chat AI: the AI, then the app (twice)"))
             }
         }
     }
@@ -97,7 +97,7 @@ public enum PluginAI: String, CaseIterable {
     public static func startByHand(pid: pid_t) {
         guard let app = NSRunningApplication(processIdentifier: pid) else { return }
         let name = app.localizedName ?? "this app"
-        Speech.speakMessage(String(localized: "Looking at \(name)", comment: "Making a plugin: TurnOver gathers what the app shows"))
+        Speech.speakMessage(String(localized: "Looking at \(name)", comment: "Making a plugin: Waypoint gathers what the app shows"))
         let bundle = app.bundleIdentifier ?? ""
         PluginTry.grant(bundle: bundle)
         brief(pid: pid, failure: "Could not make the starter folder") { folder, _ in
@@ -132,7 +132,7 @@ public enum PluginAI: String, CaseIterable {
 
     /// Open the plugin guide in the app for text files.
     public static func openGuide() {
-        guard let g = PluginBrief.guideURL else { Speech.speakMessage(String(localized: "The plugin guide is not in this copy of TurnOver", comment: "Spoken message")); return }
+        guard let g = PluginBrief.guideURL else { Speech.speakMessage(String(localized: "The plugin guide is not in this copy of Waypoint", comment: "Spoken message")); return }
         NSWorkspace.shared.open(g)
     }
 

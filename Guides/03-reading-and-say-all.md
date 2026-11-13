@@ -4,7 +4,7 @@
 
 Web pages and email messages are read as a document. Up and Down go line by line; Option with the arrows, word by
 word. Single letters jump: in the Mac style, VoiceOver's Quick Nav letters (H heading, L link, F text field, T table,
-1 to 6 headings by level); in the Windows style, NVDA's. **TurnOver Space** switches between reading the page and
+1 to 6 headings by level); in the Windows style, NVDA's. **Waypoint Space** switches between reading the page and
 typing into it. Enter activates a link or button.
 
 ## Say all
@@ -18,7 +18,7 @@ style (Caps Lock Down Arrow with the desktop keyboard layout). It moves the care
 ## The say all voice
 
 Say all can read in a natural voice made on your Mac, while everything else (moving, typing, menus) stays in your
-usual voice, which answers at once. The TurnOver menu, Settings, Speech, **Say all voice**: "Same as speech", or a
+usual voice, which answers at once. The Waypoint menu, Settings, Speech, **Say all voice**: "Same as speech", or a
 natural voice. Natural voice speed is there too.
 
 The natural voice reads ahead: while one paragraph plays, the next ones are being made, so it never waits.
@@ -29,7 +29,7 @@ Natural voices speak English for now; other languages keep your Mac's voices.
 In Word, Pages and TextEdit, the arrows read as they move. **VO Command H** goes to the next heading (Shift for the
 previous). In Pages, a table's line says its size; **VO Shift Down** reads it cell by cell (the arrows move, each
 cell said with its row or column heading), and **VO Shift Up** or Escape comes back. Comments and highlights are
-said after the line that holds them. TurnOver says the page as you move onto it.
+said after the line that holds them. Waypoint says the page as you move onto it.
 
 ## PDFs in Preview (experimental)
 

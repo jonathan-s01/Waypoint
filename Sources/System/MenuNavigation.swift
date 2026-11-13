@@ -177,7 +177,7 @@ final class MenuNavigationPlugin: GlobalPlugin {
         // TurnOver's own item last, as in the list on Windows+B; it was missing here (9 Oct 2026).
         let me = getpid()
         heldBar = (pid, extras.map(\.element) + [AXUIElementCreateApplication(me)], 0)
-        heldStatus = (extras.map(\.name) + ["TurnOver"], extras.map(\.pid) + [me])
+        heldStatus = (extras.map(\.name) + ["Waypoint"], extras.map(\.pid) + [me])
         Speech.speakMessage(String(localized: "status menus, \(String(extras.count + 1))", comment: "The status menus list opened: how many"))
         sayBarTitle()
         Hints.schedule(String(localized: "Left and Right move along the status menus. Down opens one; Escape leaves.", comment: "Spoken message"))

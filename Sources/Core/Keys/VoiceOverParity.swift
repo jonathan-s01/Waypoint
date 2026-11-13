@@ -147,7 +147,7 @@ extension VoiceOverKeysPlugin {
             NSRunningApplication(processIdentifier: e.pid)?.activate()
             Speech.speakMessage(w.string(kAXTitleAttribute) ?? String(localized: "window", comment: "Spoken message"))
         }
-        add("saveLastPhrase", String(localized: "Save the last phrase to the Desktop; saves the last spoken phrase, with TurnOver's log, to a file on the Desktop (VO-Shift-Z)", comment: "A command, as the key list and keyboard help say it"), ["kb:turnover+shift+z"]) { _ in
+        add("saveLastPhrase", String(localized: "Save the last phrase to the Desktop; saves the last spoken phrase, with Waypoint's log, to a file on the Desktop (VO-Shift-Z)", comment: "A command, as the key list and keyboard help say it"), ["kb:turnover+shift+z"]) { _ in
             let desktop = FileManager.default.urls(for: .desktopDirectory, in: .userDomainMask)[0].appendingPathComponent("TurnOver last phrase.txt")
             try? (Speech.lastSpoken + "\n").write(to: desktop, atomically: true, encoding: .utf8)
             Speech.speakMessage(String(localized: "saved on the Desktop", comment: "Spoken message"))
@@ -180,7 +180,7 @@ extension VoiceOverKeysPlugin {
         add("describeImage", String(localized: "Describes the image or photo; anywhere else, what the window looks like (VO-Shift-L)", comment: "A command, as the key list and keyboard help say it"), ["kb:turnover+shift+l"]) { _ in ImageDescriber.describeCurrent() }
         // TurnOver's own: VoiceOver has no key that reads a window's text from the screen. VO-Shift-L did it off a
         // picture until Oliver chose VO-Shift-Y (2 Nov 2026: "describing an image is different to ocr").
-        add("recognizeScreen", String(localized: "Recognises the text in the window from the screen (OCR), to read with the arrows and click with Return; pressed twice, its buttons, fields and icons instead (VO-Shift-Y, TurnOver's own)", comment: "A command, as the key list and keyboard help say it"), ["kb:turnover+shift+y"]) { _ in
+        add("recognizeScreen", String(localized: "Recognises the text in the window from the screen (OCR), to read with the arrows and click with Return; pressed twice, its buttons, fields and icons instead (VO-Shift-Y, Waypoint's own)", comment: "A command, as the key list and keyboard help say it"), ["kb:turnover+shift+y"]) { _ in
             DispatchQueue.main.async { ScreenRecognition.shared.keyPressed() }
         }
     }
