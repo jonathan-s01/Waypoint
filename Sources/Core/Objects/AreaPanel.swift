@@ -103,7 +103,7 @@ enum AreaPanel {
         let wantGlobal = s.areaIndex != 0
         let snap = s.snap, pid = s.pid
         TurnOverMenu.shared.close()
-        if wantGlobal { AreaMenu.showTools(of: 0, in: snap) } else { AreaMenu.tools(pid: pid, global: false) }
+        if wantGlobal { AreaMenu.showTools(of: 0, in: snap) } else { AreaMenu.tools(pid: pid, global: false, second: snap.second) }
     }
 
     // MARK: Using a control
@@ -119,12 +119,14 @@ enum AreaPanel {
         session?.lastKey = key(e)
         switch e.role {
         case "AXSlider", "AXIncrementor": beginAdjust(ref, e)
-        case "AXSearchField": handOver(ref, e)
+        // For the second reader nothing takes the focus: a search field is typed into like any other.
+        case "AXSearchField" where session?.snap.second != true: handOver(ref, e)
+        case "AXSearchField": beginTyping(ref, e)
         case "AXTextField", "AXComboBox":
-            if e.subrole == "AXSearchField" || e.name.localizedCaseInsensitiveContains("search") || e.name.localizedCaseInsensitiveContains("find") { handOver(ref, e) }
+            if session?.snap.second != true, e.subrole == "AXSearchField" || e.name.localizedCaseInsensitiveContains("search") || e.name.localizedCaseInsensitiveContains("find") { handOver(ref, e) }
             else { beginTyping(ref, e) }
         default:
-            guard press(ref, role: e.role) else {
+            guard press(ref, role: e.role, mayFocus: session?.snap.second != true) else {
                 Speech.speakMessage(String(localized: "that control did not respond", comment: "Spoken message: a control in the tools list could not be pressed or focused"))
                 return
             }
@@ -132,10 +134,10 @@ enum AreaPanel {
         }
     }
 
-    private static func press(_ ref: AXUIElement, role: String) -> Bool {
+    private static func press(_ ref: AXUIElement, role: String, mayFocus: Bool) -> Bool {
         if AXUIElementPerformAction(ref, kAXPressAction as CFString) == .success { return true }
         if role == "AXPopUpButton", AXUIElementPerformAction(ref, "AXShowMenu" as CFString) == .success { return true }
-        return ref.set(kAXFocusedAttribute, kCFBooleanTrue) == .success
+        return mayFocus && ref.set(kAXFocusedAttribute, kCFBooleanTrue) == .success
     }
 
     /// A field the panel does not type into (a search box shows results as you type): the panel closes and it has the focus.
@@ -222,7 +224,7 @@ enum AreaPanel {
     private static func refresh(key k: String?, tab: Bool, say: String?, attempt: Int, before: [String]?) {
         guard let s = session else { return }
         let id = s.id
-        AreaMenu.snapshot(pid: s.pid) { snap in
+        AreaMenu.snapshot(pid: s.pid, second: s.snap.second) { snap in
             guard let s = session, s.id == id else { return }
             let now = snap.elements.map { label($0, tab: false) }
             if tab, let before, before == now, attempt < 4 {

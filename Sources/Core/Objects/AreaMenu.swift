@@ -16,6 +16,8 @@ public enum AreaMenu {
         var areas: [Area]
         var truncated: Bool
         var pid: pid_t
+        /// Read for the second reader: what it does stays in the window it is reading and never moves the keyboard's focus.
+        var second = false
     }
 
     private static let walkQueue = DispatchQueue(label: "turnover.areamenu", qos: .userInitiated)
@@ -79,9 +81,11 @@ public enum AreaMenu {
         return (sorted, order.map { refs[$0] }, window, truncated)
     }
 
-    static func snapshot(pid: pid_t, done: @escaping @MainActor (Snapshot) -> Void) {
+    static func snapshot(pid: pid_t, second: Bool = false, done: @escaping @MainActor (Snapshot) -> Void) {
+        var pid = pid
         let ax = AXUIElementCreateApplication(pid)
         var root = API.focusObject?.element.element(kAXWindowAttribute) ?? ax.element(kAXFocusedWindowAttribute) ?? ax.element(kAXMainWindowAttribute)
+        if second, let w = ReviewLayer.windowAndPid() { root = w.window; pid = w.pid }
         // A sheet or a dialog on the window is the only area there is while it is up.
         if let w = root, let sheet = w.elements(kAXChildrenAttribute).first(where: { $0.role == "AXSheet" }) { root = sheet }
         guard let root else { Speech.speakMessage(String(localized: "no window", comment: "Spoken message: the app in front has no window")); return }
@@ -90,7 +94,7 @@ public enum AreaMenu {
         walkQueue.async {
             let w = walk(root: root)
             let areas = AreaMap.classify(w.elements, window: w.window)
-            let snap = Snapshot(elements: w.elements, refs: w.refs, areas: areas, truncated: w.truncated, pid: pid)
+            let snap = Snapshot(elements: w.elements, refs: w.refs, areas: areas, truncated: w.truncated, pid: pid, second: second)
             let summary = areas.map { "\($0.name) (\($0.kind), \($0.tools.count) tools)" }.joined(separator: "; ")
             Log.io("areas: \(w.elements.count) elements\(w.truncated ? ", cut short" : ""), \(areas.count) areas: \(summary)")
             onMain { if mine == generation { done(snap) } }
@@ -100,7 +104,8 @@ public enum AreaMenu {
     // MARK: Using what the lists find
 
     /// Go to an area's element: the keyboard focus if it takes it, the rows of a list as a held list, otherwise the cursor.
-    static func go(to e: AXUIElement, name: String) {
+    static func go(to e: AXUIElement, name: String, second: Bool = false, area: CGRect? = nil) {
+        if second { ReviewLayer.jump(to: e, area: area); return }
         var settable: DarwinBoolean = false
         if AXUIElementIsAttributeSettable(e, kAXFocusedAttribute as CFString, &settable) == .success, settable.boolValue,
            e.set(kAXFocusedAttribute, kCFBooleanTrue) == .success { Speech.speakMessage(name); return }
@@ -124,7 +129,7 @@ public enum AreaMenu {
 
     /// The area the focus is in (an index into the areas), nil when it cannot be told.
     private static func currentArea(_ snap: Snapshot) -> Int? {
-        guard let f = API.focusObject, let r = TurnOverObject.frame(f.element), r.width > 0 || r.height > 0 else { return nil }
+        guard let at = snap.second ? ReviewLayer.cursorElement() : API.focusObject?.element, let r = TurnOverObject.frame(at), r.width > 0 || r.height > 0 else { return nil }
         return AreaMap.area(containing: CGPoint(x: r.midX, y: r.midY), in: snap.areas)
     }
 
@@ -139,14 +144,31 @@ public enum AreaMenu {
         AreaPanel.open(title: title, areaIndex: index, in: snap)
     }
 
-    static func tools(pid: pid_t, global: Bool) {
-        snapshot(pid: pid) { snap in
+    static func tools(pid: pid_t, global: Bool, second: Bool = false) {
+        snapshot(pid: pid, second: second) { snap in
             showTools(of: global ? 0 : (currentArea(snap) ?? 0), in: snap)
         }
     }
 
-    static func jump(pid: pid_t, number: Int) {
-        snapshot(pid: pid) { snap in
+    /// An area key. `second`: the second reader goes there and the keyboard stays where it is.
+    static func command(number n: Int, second: Bool) {
+        guard var pid = API.focusPid, pid != ProcessInfo.processInfo.processIdentifier,
+              !AXHandler.shared.isMenuOpen, !TurnOverMenu.shared.isOpen else { return }
+        if second, let w = ReviewLayer.windowAndPid() { pid = w.pid }
+        // An app with a panes recipe keeps its parts, numbered from 1; 0 is still the global area.
+        if n > 0, let view = PanesView.current(pid: pid) {
+            guard view.parts.indices.contains(n - 1) else {
+                Speech.speakMessage(String(localized: "this window has \(view.parts.count) parts", comment: "Spoken message: %lld is how many parts"))
+                return
+            }
+            if second { view.goSecond(to: n - 1) } else { view.go(to: n - 1) }
+            return
+        }
+        jump(pid: pid, number: n, second: second)
+    }
+
+    static func jump(pid: pid_t, number: Int, second: Bool = false) {
+        snapshot(pid: pid, second: second) { snap in
             guard snap.areas.indices.contains(number) else {
                 Speech.speakMessage(String(localized: "this window has \(snap.areas.count) areas", comment: "Spoken message: %lld is how many areas"))
                 return
@@ -154,41 +176,42 @@ public enum AreaMenu {
             let area = snap.areas[number]
             if AreaMap.isToolArea(area) { showTools(of: number, in: snap); return }
             guard let i = area.element else { showTools(of: 0, in: snap); return }
-            go(to: snap.refs[i], name: area.name)
+            go(to: snap.refs[i], name: area.name, second: second, area: area.frame)
         }
     }
 
     /// The biggest pane: where the content is, whatever the view.
-    static func mainContent(pid: pid_t) {
-        snapshot(pid: pid) { snap in
+    static func mainContent(pid: pid_t, second: Bool = false) {
+        snapshot(pid: pid, second: second) { snap in
             let panes = snap.areas.filter { $0.kind == .pane }
             guard let best = panes.max(by: { $0.frame.width * $0.frame.height < $1.frame.width * $1.frame.height }), let i = best.element else {
                 Speech.speakMessage(String(localized: "no main content found", comment: "Spoken message")); return
             }
-            go(to: snap.refs[i], name: best.name)
+            go(to: snap.refs[i], name: best.name, second: second, area: best.frame)
         }
     }
 
     /// The first list, table or outline: a sidebar, the chats, the mailboxes.
-    static func navigation(pid: pid_t) {
-        snapshot(pid: pid) { snap in
+    static func navigation(pid: pid_t, second: Bool = false) {
+        snapshot(pid: pid, second: second) { snap in
             let lists: Set<String> = ["AXOutline", "AXTable", "AXList", "AXBrowser"]
             guard let area = snap.areas.first(where: { $0.kind == .pane && $0.element.map { lists.contains(snap.elements[$0].role) } == true }), let i = area.element else {
                 Speech.speakMessage(String(localized: "no list found", comment: "Spoken message")); return
             }
-            go(to: snap.refs[i], name: area.name)
+            go(to: snap.refs[i], name: area.name, second: second)
         }
     }
 
     /// The window's search field: pressed, it takes the focus.
-    static func search(pid: pid_t) {
-        snapshot(pid: pid) { snap in
+    static func search(pid: pid_t, second: Bool = false) {
+        snapshot(pid: pid, second: second) { snap in
             let fields: Set<String> = ["AXSearchField", "AXTextField", "AXComboBox"]
             let found = snap.elements.indices.first { i in
                 let e = snap.elements[i]
                 return fields.contains(e.role) && (e.subrole == "AXSearchField" || e.role == "AXSearchField" || e.name.localizedCaseInsensitiveContains("search") || e.name.localizedCaseInsensitiveContains("find"))
             }
             guard let found else { Speech.speakMessage(String(localized: "no search field found", comment: "Spoken message")); return }
+            if second { ReviewLayer.jump(to: snap.refs[found]); return }
             use(snap.refs[found], role: snap.elements[found].role)
             Speech.speakMessage(snap.elements[found].name)
         }
@@ -204,37 +227,29 @@ final class AreaMenuPlugin: GlobalPlugin {
                 : String(localized: "Straight to part or area \(n) of the window (an app with a recipe, such as Teams, goes by its recipe's parts)", comment: "A command, as the key list and keyboard help say it: %lld is a number")
             // Always available, and the key never goes on to the app: Right Option keys are the user's keys (UserGestures),
             // which find a command by name and would type the character if it said no.
-            script("area\(n)", what, category: "Waypoint") { _ in
-                guard let pid = API.focusPid, pid != ProcessInfo.processInfo.processIdentifier,
-                      !AXHandler.shared.isMenuOpen, !TurnOverMenu.shared.isOpen else { return }
-                // An app with a panes recipe keeps its parts, numbered from 1; 0 is still the global area.
-                if n > 0, let view = PanesView.current(pid: pid) {
-                    if view.parts.indices.contains(n - 1) { view.go(to: n - 1) }
-                    else { Speech.speakMessage(String(localized: "this window has \(view.parts.count) parts", comment: "Spoken message: %lld is how many parts")) }
-                    return
-                }
-                AreaMenu.jump(pid: pid, number: n)
+            script("area\(n)", what, category: "Waypoint") { g in
+                AreaMenu.command(number: n, second: ReviewLayer.isSecond(g))
             }
         }
         script("areaTools", String(localized: "The controls of the area you are in, as a menu; pressed twice, those of the global area", comment: "A command, as the key list and keyboard help say it"),
-               gestures: ["kb:turnover+option+o"], category: "Waypoint") { _ in
+               gestures: ["kb:turnover+option+o"], category: "Waypoint") { g in
             guard let pid = API.focusPid else { return }
-            AreaMenu.tools(pid: pid, global: ScriptHandler.lastScriptRepeatCount > 0)
+            AreaMenu.tools(pid: pid, global: ScriptHandler.lastScriptRepeatCount > 0, second: ReviewLayer.isSecond(g))
         }.isAvailable = { API.focusPid != nil && !TurnOverMenu.shared.isOpen }
         script("areaMain", String(localized: "Straight to the main content of the window, whatever view the app is showing", comment: "A command, as the key list and keyboard help say it"),
-               gestures: ["kb:turnover+option+m"], category: "Waypoint") { _ in
+               gestures: ["kb:turnover+option+m"], category: "Waypoint") { g in
             guard let pid = API.focusPid else { return }
-            AreaMenu.mainContent(pid: pid)
+            AreaMenu.mainContent(pid: pid, second: ReviewLayer.isSecond(g))
         }.isAvailable = { API.focusPid != nil && !TurnOverMenu.shared.isOpen }
         script("areaNavigation", String(localized: "Straight to the first list of the window: the sidebar, the chats, the mailboxes", comment: "A command, as the key list and keyboard help say it"),
-               gestures: ["kb:turnover+option+a"], category: "Waypoint") { _ in
+               gestures: ["kb:turnover+option+a"], category: "Waypoint") { g in
             guard let pid = API.focusPid else { return }
-            AreaMenu.navigation(pid: pid)
+            AreaMenu.navigation(pid: pid, second: ReviewLayer.isSecond(g))
         }.isAvailable = { API.focusPid != nil && !TurnOverMenu.shared.isOpen }
         script("areaSearch", String(localized: "Straight to the search field of the window", comment: "A command, as the key list and keyboard help say it"),
-               gestures: ["kb:turnover+option+f"], category: "Waypoint") { _ in
+               gestures: ["kb:turnover+option+f"], category: "Waypoint") { g in
             guard let pid = API.focusPid else { return }
-            AreaMenu.search(pid: pid)
+            AreaMenu.search(pid: pid, second: ReviewLayer.isSecond(g))
         }.isAvailable = { API.focusPid != nil && !TurnOverMenu.shared.isOpen }
     }
 }

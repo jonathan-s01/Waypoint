@@ -55,6 +55,8 @@ public final class BrowseModeDocument: ScriptableObject {
     public let buffer: WebBuffer
     /// The virtual caret, an offset in the document. Remembered per page address, so returning to a page
     /// (Back after a link) lands where the reading was, as a file tree keeps its selection.
+    /// False for the second reader's copy of a page: its place is not the page's remembered one (the keyboard's).
+    var remembersPlace = true
     public var position: Int = 0 {
         // Not while the page is empty (still arriving after Back): "the top of nothing" overwrote the place it was
         // left, so Back on MacRumors started at the top (3 Oct 2026).
@@ -62,7 +64,7 @@ public final class BrowseModeDocument: ScriptableObject {
             positionMovedAt = Date()
             // A read of the page again goes on at least this far (a long chat read on past its first part, issue 227).
             buffer.readingAt = position
-            if buffer.text.length > 0 { BrowseModeHandler.shared.remember(url: lastURL, position: position, text: lineText(at: position)) }
+            if remembersPlace, buffer.text.length > 0 { BrowseModeHandler.shared.remember(url: lastURL, position: position, text: lineText(at: position)) }
         }
     }
     /// When the reading position last moved: a keyboard focus that moved since (Tab onto a control the buffer does

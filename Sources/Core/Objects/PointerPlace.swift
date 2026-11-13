@@ -17,6 +17,14 @@ nonisolated public enum PointerPlaceLogic {
         if extraHold != 0, flags & extraHold == extraHold { return true }
         return false
     }
+
+    /// Whether the click is the second reader's: the layer's own keys held, or Right Option with the TurnOver key (as
+    /// for its commands). Any other click that places is the keyboard's reading.
+    public static func isSecond(flags: UInt, turnOverHeld: Bool, layerHold: UInt) -> Bool {
+        let held = flags & ReviewLayerLogic.Device.all
+        if layerHold != 0, held & layerHold == layerHold { return true }
+        return turnOverHeld && held & ReviewLayerLogic.Device.rightOption != 0 && held & ReviewLayerLogic.Device.leftOption == 0
+    }
 }
 
 enum PointerPlace {
@@ -91,12 +99,13 @@ enum PointerPlace {
             // TurnOver's own clicks (VO-Shift-Space) are not the person's.
             if event.getIntegerValueField(.eventSourceUnixProcessID) == Int64(getpid()) { return false }
             let s = settings
+            let flags = UInt(event.flags.rawValue), turnOverHeld = KeyboardGesture.turnOverHeld?() ?? false
             guard s.enabled,
-                  PointerPlaceLogic.captures(flags: UInt(event.flags.rawValue), turnOverHeld: KeyboardGesture.turnOverHeld?() ?? false,
-                                             layerHold: s.layerHold, extraHold: s.extraHold) else { return false }
+                  PointerPlaceLogic.captures(flags: flags, turnOverHeld: turnOverHeld, layerHold: s.layerHold, extraHold: s.extraHold) else { return false }
             swallowing = true
             let p = event.location
-            onMain { place(at: p) }
+            let second = PointerPlaceLogic.isSecond(flags: flags, turnOverHeld: turnOverHeld, layerHold: s.layerHold)
+            onMain { place(at: p, second: second) }
             return true
         case .leftMouseDragged, .rightMouseDragged:
             return swallowing
@@ -111,17 +120,18 @@ enum PointerPlace {
 
     // MARK: Placing
 
-    /// The cursor to what is at `p` (the screen's top-left coordinates, as accessibility has them), said.
-    static func place(at p: CGPoint) {
+    /// The cursor to what is at `p` (the screen's top-left coordinates, as accessibility has them), said: the keyboard's
+    /// reading, or the second reader's (which leaves the keyboard's cursor and focus alone).
+    static func place(at p: CGPoint, second: Bool = false) {
         guard let e = VoiceOverKeysPlugin.element(at: p) else {
             Log.io("pointer place: nothing at (\(Int(p.x)), \(Int(p.y)))")
             Speech.speakMessage(String(localized: "nothing under the pointer", comment: "Spoken message"))
             return
         }
-        Log.io("pointer place: \(e.role) at (\(Int(p.x)), \(Int(p.y)))")
+        Log.io("pointer place: \(e.role) at (\(Int(p.x)), \(Int(p.y))) for the \(second ? "second" : "first") reader")
         Speech.cancel()
-        ObjectNavigator.shared.moveTo(e)
-        ReviewLayer.place(e, at: p)
+        if second { ReviewLayer.place(e, at: p) }
+        else { ObjectNavigator.shared.placeReading(on: e, at: p) }
     }
 
     // MARK: The keys

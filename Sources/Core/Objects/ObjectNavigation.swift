@@ -803,6 +803,26 @@ public final class ObjectNavigator {
         focusNear(target, within: region, inPage: web != nil)
     }
 
+    /// The keyboard's reading (the first layer) to what is under the pointer, so the arrows go on from there at once:
+    /// the cursor lands, the reading goes into the page with it (out of focus mode, the keyboard staying where it is),
+    /// and, in a page, the position is the character or the nearest part the page's text has, and is said from there.
+    package func placeReading(on target: AXUIElement, at point: CGPoint) {
+        defer { PanesView.current(pid: target.pid)?.readingPlaced(on: target) }
+        let web = Self.outermostWebArea(target)
+        let keyboardAlreadyThere = Self.takesTyping(target) && Self.hasKeyboard(target)
+        land(on: target, followFocus: web == nil, speaking: web == nil)
+        guard web != nil else { return }
+        moveReading(to: target, in: web, keyboardAlreadyThere: keyboardAlreadyThere)
+        if let d = API.focusTreeInterceptor, !d.passThrough, d.isAlive, !d.buffer.lines.isEmpty,
+           let at = ReviewLayer.offset(of: target, at: point, in: d) {
+            d.position = at
+            d.speakQuickNavText(at: at, link: false)
+            return
+        }
+        Log.io("review: the pointer's item (\(target.role)) is not in the page being read; the cursor is on it")
+        report(target)
+    }
+
     /// One press of VO-J or a window-spot key gets this long to ask the app, all its walks together. A press in a busy
     /// Music took 1.9 s and 892 questions, with TurnOver silent throughout (a review, 8 Nov 2026). Past it, each walk
     /// stops with what it has found: a landing nearer the top of a pane is better than a reader that doesn't answer.
@@ -1353,12 +1373,12 @@ public final class ObjectNavigator {
         currentPid = e.pid
     }
 
-    private func land(on e: AXUIElement, followFocus: Bool = true) {
+    private func land(on e: AXUIElement, followFocus: Bool = true, speaking: Bool = true) {
         landedByStep = false
         current = e
         currentPid = e.pid
         labelSource = ProfileStore.shared.labelDetail(for: e, pid: e.pid)?.source
-        report(e)
+        if speaking { report(e) }
         if followFocus { follow(e) }
     }
 

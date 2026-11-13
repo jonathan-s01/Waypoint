@@ -71,6 +71,18 @@ func readWhileTypingTests() {
         check(!P.captures(flags: 0, turnOverHeld: false, layerHold: layer, extraHold: Layer.Device.rightControl), "a plain click is the app's")
     }
 
+    test("pointer place: the layer's keys or Right Option with the TurnOver key place the second reader, other clicks the keyboard's") {
+        typealias P = PointerPlaceLogic
+        let layer = held
+        check(P.isSecond(flags: held, turnOverHeld: false, layerHold: layer), "the layer's keys")
+        check(P.isSecond(flags: held | Layer.Device.rightOption, turnOverHeld: true, layerHold: layer), "the layer's keys and the TurnOver key")
+        check(P.isSecond(flags: Layer.Device.rightOption, turnOverHeld: true, layerHold: layer), "Right Option with the TurnOver key")
+        check(!P.isSecond(flags: 0, turnOverHeld: true, layerHold: layer), "the TurnOver key alone is the keyboard's")
+        check(!P.isSecond(flags: Layer.Device.leftOption, turnOverHeld: true, layerHold: layer), "Left Option with the TurnOver key is the keyboard's")
+        check(!P.isSecond(flags: Layer.Device.rightOption, turnOverHeld: false, layerHold: layer), "Right Option alone is not")
+        check(!P.isSecond(flags: held, turnOverHeld: false, layerHold: 0), "layer off: its keys are nothing")
+    }
+
     test("review layer: the chord can be changed") {
         let mine = Layer.Chord(hold: Layer.Device.rightControl, reverse: Layer.Device.leftShift, word: Layer.Device.leftOption)
         expect(Layer.decide(flags: Layer.Device.rightControl, keyName: "h", chord: mine, armed: false, turnOverKey: false), .review("kb:h"))

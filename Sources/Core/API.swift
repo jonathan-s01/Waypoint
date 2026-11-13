@@ -35,6 +35,7 @@ public enum API {
         lock.lock(); _focus = obj; _ancestors = ancestors; _interceptor = interceptor; lock.unlock()
         focusedPidValue.value = pid
         if let interceptor, interceptor.buffer.status == .cancelled { interceptor.buffer.build() }
+        if let interceptor, previous !== interceptor { ReviewLayer.prepare(for: interceptor) }
     }
     nonisolated private static let focusedPidValue = Locked<pid_t>(0)
     /// The focused element's process, for the keyboard thread (0: none known). The Dock, a status menu or Spotlight
