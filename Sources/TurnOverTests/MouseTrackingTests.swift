@@ -72,14 +72,14 @@ func mouseTrackingTests() {
         expect(old?.presentation.mouseMovesCursor, true, "a file from before the setting existed")
     }
 
-    test("mouse tracking: interrupting other speech is off unless asked for, and kept in the file once set") {
-        expect(Config().presentation.mouseInterruptsSpeech, false)
+    test("mouse tracking: interrupting other speech is on in Waypoint, and kept in the file once changed") {
+        expect(Config().presentation.mouseInterruptsSpeech, true)
         var c = Config()
-        c.presentation.mouseInterruptsSpeech = true
+        c.presentation.mouseInterruptsSpeech = false
         let kept = try? JSONDecoder().decode(Config.self, from: JSONEncoder().encode(c))
-        expect(kept?.presentation.mouseInterruptsSpeech, true)
+        expect(kept?.presentation.mouseInterruptsSpeech, false)
         let old = try? JSONDecoder().decode(Config.self, from: Data("{\"presentation\":{\"mouseTracking\":true}}".utf8))
-        expect(old?.presentation.mouseInterruptsSpeech, false, "a file from before the setting existed")
+        expect(old?.presentation.mouseInterruptsSpeech, true, "a file from before the setting existed")
     }
 
     test("mouse tracking: a file with the removed blank-sound and watchdog settings still loads") {

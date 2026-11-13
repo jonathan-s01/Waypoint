@@ -519,7 +519,7 @@ public struct Config: Codable {
         /// change, typing echo). Off: only the pointer's own speech gives way, so a notification is not lost. On: the
         /// pointer is heard at once, not after whatever else is talking (a tester, 10 Nov 2026: other speech kept
         /// talking over the pointer).
-        public var mouseInterruptsSpeech = false
+        public var mouseInterruptsSpeech = true   // Waypoint: on, as VoiceOver; upstream ships it off (13 Nov 2026: Copilot's chat kept reading over the pointer)
         public init() {}
         enum Keys: String, CodingKey { case verbosity, verbosityByApp, reportObjectDescriptions, reportKeyboardShortcuts, reportObjectPositionInformation, reportDynamicContentChanges, speakHints, reportNotifications, announcePlugins, progressBars, mouseTracking, mouseMovesCursor, mouseInterruptsSpeech }
         // Each setting falls back on its own: a settings file from before speakHints keeps the others.
@@ -540,7 +540,7 @@ public struct Config: Codable {
             progressBars = (try? c.decodeIfPresent(String.self, forKey: .progressBars)).flatMap { ProgressOutput.modes.contains($0) ? $0 : nil } ?? "beep"
             mouseTracking = (try? c.decodeIfPresent(Bool.self, forKey: .mouseTracking)) ?? false
             mouseMovesCursor = (try? c.decodeIfPresent(Bool.self, forKey: .mouseMovesCursor)) ?? true
-            mouseInterruptsSpeech = (try? c.decodeIfPresent(Bool.self, forKey: .mouseInterruptsSpeech)) ?? false
+            mouseInterruptsSpeech = (try? c.decodeIfPresent(Bool.self, forKey: .mouseInterruptsSpeech)) ?? true
         }
         public func encode(to encoder: Encoder) throws {
             var c = encoder.container(keyedBy: Keys.self)
