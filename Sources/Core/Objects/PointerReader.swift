@@ -37,6 +37,10 @@ nonisolated package struct PointerSnapshot: Sendable, Equatable {
     /// What a group holds, when it was counted in time.
     package var groupItemCount: Int?
     package var isGroup = false
+    /// A heading's level, when the app says it.
+    package var headingLevel: Int?
+    /// What a text or image is inside (a link, a heading, a button, a cell), said after its words.
+    package var context: [String] = []
 
     package var isSecure: Bool { subrole == "AXSecureTextField" }
 }
@@ -70,7 +74,7 @@ nonisolated package enum PointerReader {
     /// The spoken text: name, role, value, states, and a group's count.
     package static func compose(_ s: PointerSnapshot) -> String {
         // A text is its words ("Home", not "Home, text"). Never a secure field's.
-        if s.axRole == "AXStaticText", !s.isSecure, !s.value.isEmpty { return s.value }
+        if s.axRole == "AXStaticText", !s.isSecure, !s.value.isEmpty { return ([s.value] + s.context).joined(separator: ", ") }
         let name = [s.title, s.description].first { !$0.isEmpty } ?? ""
         var parts: [String] = []
         if !name.isEmpty { parts.append(name) }
@@ -82,6 +86,7 @@ nonisolated package enum PointerReader {
            !(s.number != nil && numberStates.contains(s.axRole)) { parts.append(s.value) }
         parts.append(contentsOf: stateWords(s))
         if let n = s.groupItemCount, s.isGroup { parts.append(Phrases.items(n)) }
+        parts.append(contentsOf: s.context)
         if parts.isEmpty { return role }
         return parts.joined(separator: ", ")
     }
@@ -94,7 +99,8 @@ nonisolated package enum PointerReader {
         return String(head)
     }
 
-    private static func roleWord(_ s: PointerSnapshot) -> String {
+    static func roleWord(_ s: PointerSnapshot) -> String {
+        if s.axRole == "AXHeading", let level = s.headingLevel, level > 0 { return Phrases.headingLevel(level) }
         if !s.roleDescription.isEmpty { return s.roleDescription }
         if s.axRole.hasPrefix("AX"), s.axRole.count > 2 { return String(s.axRole.dropFirst(2)).lowercased() }
         return s.axRole == "?" ? "" : s.axRole
@@ -133,6 +139,7 @@ nonisolated package enum PointerReader {
         guard Date() < deadline else { return nil }
         AXUIElementSetMessagingTimeout(e, messagingTimeout)
         var s = snapshot(e)
+        if ["AXStaticText", "AXImage"].contains(s.axRole), Date() < deadline { s.context = PointerContext.words(above: e, deadline: deadline) }
         if countsGroups, Date() < deadline, isGroup(e, s) {
             s.isGroup = true
             // The children, in one question: not the keyboard's walk of every item, which a pointer sweep cannot wait on.
@@ -144,7 +151,7 @@ nonisolated package enum PointerReader {
 
     private static func snapshot(_ e: AXUIElement) -> PointerSnapshot {
         let names = [kAXRoleAttribute, kAXSubroleAttribute, kAXTitleAttribute, kAXDescriptionAttribute, kAXValueAttribute,
-                     kAXHelpAttribute, kAXRoleDescriptionAttribute, kAXEnabledAttribute, kAXSelectedAttribute, kAXExpandedAttribute]
+                     kAXHelpAttribute, kAXRoleDescriptionAttribute, kAXEnabledAttribute, kAXSelectedAttribute, kAXExpandedAttribute, "AXHeadingLevel"]
         let a = e.attrs(names)
         func text(_ k: String) -> String { (a[k] as? String) ?? "" }
         var s = PointerSnapshot()
@@ -164,6 +171,7 @@ nonisolated package enum PointerReader {
         s.enabled = (a[kAXEnabledAttribute] as? Bool) ?? true
         s.selected = (a[kAXSelectedAttribute] as? Bool) ?? false
         s.expanded = a[kAXExpandedAttribute] as? Bool
+        s.headingLevel = (a["AXHeadingLevel"] as? NSNumber)?.intValue
         return s
     }
 

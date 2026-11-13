@@ -49,6 +49,35 @@ func pointerReaderTests() {
     test("pointer reader: nothing to say falls back to the role word") {
         expect(PointerReader.compose(snap("AXImage")), "image")
     }
+    test("pointer reader: a text inside a link or heading says so after its words") {
+        expect(PointerReader.compose(snap("AXStaticText") { $0.value = "Discover"; $0.context = ["link"] }), "Discover, link")
+        expect(PointerReader.compose(snap("AXStaticText") { $0.value = "News"; $0.context = [Phrases.headingLevel(2), "link"] }),
+               "News, \(Phrases.headingLevel(2)), link")
+        expect(PointerReader.compose(snap("AXImage") { $0.title = "Logo"; $0.context = ["link"] }), "Logo, image, link")
+    }
+
+    test("pointer reader: a heading is said with its level") {
+        expect(PointerReader.compose(snap("AXHeading") { $0.title = "Discover"; $0.headingLevel = 2 }), "Discover, \(Phrases.headingLevel(2))")
+        expect(PointerReader.compose(snap("AXHeading") { $0.title = "Discover" }), "Discover, heading")
+    }
+
+    test("pointer context: which elements above a text count") {
+        expect(PointerContext.kind(role: "AXLink", subrole: "", named: false, distance: 3), .control)
+        expect(PointerContext.kind(role: "AXHeading", subrole: "", named: false, distance: 1), .control)
+        expect(PointerContext.kind(role: "AXCell", subrole: "", named: false, distance: 2), .container)
+        expect(PointerContext.kind(role: "AXGroup", subrole: "AXListItem", named: false, distance: 2), .container)
+        expect(PointerContext.kind(role: "AXGroup", subrole: "", named: true, distance: 1), .container)
+        expect(PointerContext.kind(role: "AXGroup", subrole: "", named: true, distance: 2), .none)
+        expect(PointerContext.kind(role: "AXGroup", subrole: "", named: false, distance: 1), .none)
+        expect(PointerContext.kind(role: "AXScrollArea", subrole: "", named: true, distance: 1), .none)
+    }
+
+    test("pointer context: words for an element above a text") {
+        expect(PointerContext.word(role: "AXHeading", subrole: "", roleDescription: "heading", headingLevel: 3), Phrases.headingLevel(3))
+        expect(PointerContext.word(role: "AXLink", subrole: "", roleDescription: "link", headingLevel: nil), "link")
+        expect(PointerContext.word(role: "AXButton", subrole: "", roleDescription: "", headingLevel: nil), "button")
+    }
+
     test("pointer reader: a long text is cut at a word, never inside one") {
         expect(PointerReader.clip("one two three", limit: 100), "one two three")
         expect(PointerReader.clip("one two three", limit: 9), "one two")
