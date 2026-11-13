@@ -304,9 +304,7 @@ open class TurnOverObject: ScriptableObject {
         if let e = element.attr(kAXExpandedAttribute) as? Bool { s.insert(e ? .expanded : .collapsed) }
         if let d = element.attr("AXDisclosing") as? Bool, role == .treeViewItem {
             // Finder's list view: only a row that can disclose (a folder) is expanded or collapsed.
-            var settable: DarwinBoolean = false
-            AXUIElementIsAttributeSettable(element, "AXDisclosing" as CFString, &settable)
-            if settable.boolValue || d { s.insert(d ? .expanded : .collapsed) }
+            if element.attributeSettableResult("AXDisclosing").value == true || d { s.insert(d ? .expanded : .collapsed) }
         }
         if let m = element.string("AXMenuItemMarkChar"), !m.isEmpty { s.insert(.checked) }
         if role == .menuItem, element.elements(kAXChildrenAttribute).contains(where: { $0.role == "AXMenu" }) { s.insert(.hasPopup) }
@@ -345,9 +343,8 @@ open class TurnOverObject: ScriptableObject {
         var p = PositionInfo()
         if role == .treeViewItem, let level = element.int("AXDisclosureLevel"), level > 0 { p.level = level + 1 }   // NVDA-style: the top level goes without saying
         if let parent = element.element(kAXParentAttribute) {
-            var count: CFIndex = 0
             let attr = parent.role == "AXTable" || parent.role == "AXOutline" ? "AXRows" : kAXChildrenAttribute
-            if AXUIElementGetAttributeValueCount(parent, attr as CFString, &count) == .success, count > 0 {
+            if let count = parent.attributeValueCountResult(attr).value, count > 0 {
                 if count <= 200, let siblings = parent.attr(attr) as? [AXUIElement] {
                     // Only siblings of the same role count, and a menu's separators (untitled, disabled items) don't.
                     let same = siblings.filter { s in
@@ -549,7 +546,7 @@ open class TurnOverObject: ScriptableObject {
         let editable = hasNavigableText && !states.contains(.readOnly)
         if inWord, hasNavigableText, Speech.typedWordSoFar.isEmpty, !Speech.typedWordWasEdited {
             // (A key held back starts its word where the field put it, not at the caret, which is past it by now.)
-            Self.wordStart = Self.replayWordStart ?? (try? makeTextInfo(.caret))?.start
+            Self.wordStart = Self.replayWordStart ?? (try? liveField.makeTextInfo(.caret))?.start
             Self.replayWordStart = nil   // only for the first word after the word that waited
         }
         guard !inWord, ch != "\u{8}", hasNavigableText, !Speech.typedWordSoFar.isEmpty || Speech.typedWordWasEdited else {
@@ -563,7 +560,7 @@ open class TurnOverObject: ScriptableObject {
         func attempt(_ n: Int) {
             var found = (taken: false, word: String?.none, next: Int?.none)
             var nextStart: Int?
-            if let info = try? makeTextInfo(.caret) {
+            if let info = try? liveField.makeTextInfo(.caret) {
                 let from = max(0, info.start - 80)
                 found = Speech.fieldWord(endedBy: ch, before: info.textRange(from, info.start), notBefore: start.map { $0 - from })
                 nextStart = found.next.map { $0 + from }
@@ -580,6 +577,11 @@ open class TurnOverObject: ScriptableObject {
             Self.replayWordStart = nil
         }
         attempt(0)
+    }
+    /// The field typed into: this object, or the focus that took its place if the page rebuilt the field (RebuiltField).
+    private var liveField: TurnOverObject {
+        guard RebuiltField.isGone(element), let f = API.focusObject, f.pid == pid, f.role == role else { return self }
+        return f
     }
     /// Where the caret was when the word being typed began, so its end is told from the word before's.
     private static var wordStart: Int?
