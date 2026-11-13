@@ -31,4 +31,21 @@ func typingRecorderTests() {
         expect(lines.contains("said 1"), true)
         expect(lines.contains("speech cuts 1"), true)
     }
+    test("stale focus: a group the application no longer has focused gives way to the field the keys go to") {
+        expect(StaleFocus.shouldTake(heldIsEditable: false, heldHasText: false, namedIsEditable: true, same: false), true)
+        expect(StaleFocus.shouldTake(heldIsEditable: false, heldHasText: false, namedIsEditable: true, same: true), false)
+        expect(StaleFocus.shouldTake(heldIsEditable: true, heldHasText: true, namedIsEditable: true, same: false), false)
+        expect(StaleFocus.shouldTake(heldIsEditable: false, heldHasText: true, namedIsEditable: true, same: false), false)
+        expect(StaleFocus.shouldTake(heldIsEditable: false, heldHasText: false, namedIsEditable: false, same: false), false)
+    }
+    test("stale focus: an editable field that is gone gives way to the one the keys go to") {
+        expect(StaleFocus.shouldTake(heldIsEditable: true, heldHasText: true, heldIsGone: true, namedIsEditable: true, same: false), true)
+        expect(StaleFocus.shouldTake(heldIsEditable: true, heldHasText: true, heldIsGone: false, namedIsEditable: true, same: false), false)
+    }
+    test("stale focus: typed characters, Backspace and the arrows act on a field") {
+        expect(StaleFocus.actsOnField(typedCharacter: "a", keyName: "a"), true)
+        expect(StaleFocus.actsOnField(typedCharacter: nil, keyName: "leftArrow"), true)
+        expect(StaleFocus.actsOnField(typedCharacter: nil, keyName: "backspace"), true)
+        expect(StaleFocus.actsOnField(typedCharacter: nil, keyName: "escape"), false)
+    }
 }

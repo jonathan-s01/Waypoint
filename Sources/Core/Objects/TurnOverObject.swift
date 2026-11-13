@@ -560,13 +560,16 @@ open class TurnOverObject: ScriptableObject {
         func attempt(_ n: Int) {
             var found = (taken: false, word: String?.none, next: Int?.none)
             var nextStart: Int?
+            var looked = "no caret"
             if let info = try? liveField.makeTextInfo(.caret) {
                 let from = max(0, info.start - 80)
-                found = Speech.fieldWord(endedBy: ch, before: info.textRange(from, info.start), notBefore: start.map { $0 - from })
+                let before = info.textRange(from, info.start)
+                found = Speech.fieldWord(endedBy: ch, before: before, notBefore: start.map { $0 - from })
                 nextStart = found.next.map { $0 + from }
+                looked = "the word began at \(start.map(String.init) ?? "?"), the caret is at \(info.start), \(before.count) characters read, the last is \(before.last.map { $0 == ch ? "the key" : "not the key" } ?? "none")"
             }
             if !found.taken, n < 10 { DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) { attempt(n + 1) }; return }
-            if !found.taken { Log.io("typed word: the field hadn't taken the key after 100 ms; the letters typed") }
+            if !found.taken { Log.io("typed word: the field hadn't taken the key after 100 ms; the letters typed (\(looked))") }
             Speech.speakTypedCharacter(ch, inEditable: editable, wordBefore: { found.word })
             Self.waitingForField = false
             Self.replayWordStart = nextStart
