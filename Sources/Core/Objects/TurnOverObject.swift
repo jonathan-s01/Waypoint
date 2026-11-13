@@ -571,7 +571,10 @@ open class TurnOverObject: ScriptableObject {
                 let from = max(0, info.start - 80)
                 // (A field whose caret trails its text puts the key just past the caret: read a few characters on.)
                 let before = info.textRange(from, info.start + (start == nil && !relaxed ? 0 : Self.caretLagReach))
-                found = Speech.fieldWord(endedBy: ch, before: before, notBefore: start.map { $0 - from } ?? (relaxed ? max(0, info.start - 1 - from) : nil))
+                found = Speech.fieldWord(endedBy: ch, before: before, notBefore: start.map { $0 - from } ?? (relaxed ? max(0, info.start - 1 - from) : nil), skippingEmpty: !Speech.typedWordSoFar.isEmpty)
+                // The word just echoed again, for letters that spell another: the field still shows the word before.
+                if found.taken, let w = found.word, w == Speech.lastTypedWordSpoken, !Speech.typedWordSoFar.isEmpty,
+                   Speech.typedWordSoFar.lowercased() != w.lowercased() { found = (false, nil, nil) }
                 nextStart = found.next.map { $0 + from }
                 looked = "the word began at \(start.map(String.init) ?? "?"), the caret is at \(info.start), \(before.count) characters read, the last is \(before.last.map { $0 == ch ? "the key" : "not the key" } ?? "none")"
                 if found.taken { Self.nextWordStart = nextStart; Self.nextWordStartAt = Date() }

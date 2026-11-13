@@ -276,6 +276,21 @@ open class EditableText: TurnOverObject {
         }
     }
 
+    /// Where a field's caret was seen to stop at the end although its text is longer, for one process and one length.
+    struct StuckEnd: Equatable { var pid: pid_t; var length: Int; var caret: Int }
+    static var stuckEnd: StuckEnd?
+
+    /// The end the caret can reach. GitHub Copilot's chat box counts one more character than its caret ever passes, so
+    /// Right and Down at its end waited out the caret's patience, and a quick second key cut that wait short with no bump
+    /// (13 Nov 2026). Once the caret has stopped short of the end, the same length and place are the end.
+    public nonisolated static func reachableEnd(length: Int, pid: Int32, learned: (pid: Int32, length: Int, caret: Int)?) -> Int {
+        guard let l = learned, l.pid == pid, l.length == length, l.caret < length else { return length }
+        return l.caret
+    }
+
+    /// Whether a caret that did not move is at a hidden tail: at the end but for a character or two it cannot reach.
+    public nonisolated static func isHiddenTail(caret: Int, length: Int) -> Bool { caret >= 0 && length - caret >= 1 && length - caret <= 2 }
+
     func caretMovement(_ gesture: KeyboardGesture, _ unit: TextUnit) {
         // Google Docs, Sheets, Slides: the text box is a hidden typing target; Google says the move itself.
         if GoogleDocs.isEditor(element) { gesture.send(); return }
@@ -289,7 +304,9 @@ open class EditableText: TurnOverObject {
         // arrow at the end of a selection collapses it, and swallowing it made the next letter replace the text
         // (a code review on 17 Oct). The key still goes, unwaited, so the app and VoiceOver's own boundary sound see it.
         let key = gesture.keyName
-        let length = info.storyLength()
+        let rawLength = info.storyLength()
+        let learned = Self.stuckEnd.map { (pid: Int32($0.pid), length: $0.length, caret: $0.caret) }
+        let length = Self.reachableEnd(length: rawLength, pid: element.pid, learned: learned)
         let collapsed = (try? makeTextInfo(.selection))?.isCollapsed ?? true
         let backwards = key == "upArrow" || key == "home" || key == "pageUp"
         let forwards = key == "downArrow" || key == "end" || key == "pageDown"
@@ -376,7 +393,10 @@ open class EditableText: TurnOverObject {
                 case .stayed: break
                 }
             }
-            Log.io("edge: caret did not move (old line \(oldLine.start)-\(oldLine.end), caret \(newInfo?.start ?? -1))")
+            Log.io("edge: caret did not move (old line \(oldLine.start)-\(oldLine.end), caret \(newInfo?.start ?? -1) of \(rawLength))")
+            if collapsed, forwards || key == "rightArrow", let c = newInfo?.start, Self.isHiddenTail(caret: c, length: rawLength) {
+                Self.stuckEnd = StuckEnd(pid: element.pid, length: rawLength, caret: c)
+            }
             Tones.edge(keySent: true, sound: boundarySound)
             caretMoved(speak: unit == .line && readsLineAtEdge ? .line : nil, gesture: gesture, info: newInfo)
             return

@@ -742,7 +742,11 @@ public enum Speech {
     /// the word began, a UTF-16 offset into `text`, as the caret's are): the first one there, whatever was typed on
     /// after it (a space after a full stop, the next word). A straight double quote also matches the curly ones the
     /// field puts in its place.
-    public static func fieldWord(endedBy ch: Character, before text: String, notBefore: Int? = nil) -> (taken: Bool, word: String?, next: Int?) {
+    ///
+    /// `skippingEmpty`: letters were typed, so an ending character with no word before it is an old one the lagging
+    /// caret put the start before, and the next is looked for (GitHub Copilot, 13 Nov 2026: a word's start fell on the
+    /// space before it, the next word's start was set to that word's own, and every word after read as the one before).
+    public static func fieldWord(endedBy ch: Character, before text: String, notBefore: Int? = nil, skippingEmpty: Bool = false) -> (taken: Bool, word: String?, next: Int?) {
         func inWord(_ c: Character) -> Bool { c.isLetter || c.isNumber || c == "'" || c == "’" }
         func ends(_ c: Character) -> Bool { c == ch || (ch.isNewline && c.isNewline) || (ch == "\"" && "“”„".contains(c)) }
         let t = Array(text)
@@ -750,7 +754,7 @@ public enum Speech {
         if let start = notBefore {
             var offset = 0
             for (k, c) in t.enumerated() {
-                if offset >= start, ends(c) { found = k; break }
+                if offset >= start, ends(c), !(skippingEmpty && (k == 0 || !inWord(t[k - 1]))) { found = k; break }
                 offset += String(c).utf16.count
             }
         } else if let i = t.lastIndex(where: ends), i == t.count - 1 {

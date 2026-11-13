@@ -75,4 +75,14 @@ func typingRecorderTests() {
         expect(early.word, "want")
         expect(Speech.fieldWord(endedBy: " ", before: "want", notBefore: 3).taken, false)
     }
+    test("typed word: a start that fell on the space before the word skips that space, and the next start is past the word") {
+        // "2,  there ": the caret trailed by one, so the start (192) lay on the old space at 191.
+        let text = "2,  there "
+        let old = Speech.fieldWord(endedBy: " ", before: text, notBefore: 2)
+        expect(old.word, nil)
+        let r = Speech.fieldWord(endedBy: " ", before: text, notBefore: 2, skippingEmpty: true)
+        expect(r.taken, true)
+        expect(r.word, "there")
+        expect(r.next, text.utf16.count)
+    }
 }
