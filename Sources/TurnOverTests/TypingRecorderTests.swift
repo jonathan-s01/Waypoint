@@ -23,4 +23,12 @@ func typingRecorderTests() {
         let kept = TypingRecorder.window([entry(5, "d"), entry(-31, "a"), entry(-30, "b"), entry(30, "e"), entry(31, "f"), entry(-1, "c")], markedAt: mark)
         expect(kept.map(\.text), ["b", "c", "d", "e"])
     }
+    test("typing recorder: the summary counts keys, speech and cuts") {
+        let at = Date(timeIntervalSince1970: 1000)
+        let all = ["KEY", "KEY", "SAID", "CANCEL"].map { TypingRecorder.Entry(at: at, kind: $0, text: "x") }
+        let lines = TypingRecorder.summary(all).split(separator: "\n").map(String.init)
+        expect(lines.contains("keys 2"), true)
+        expect(lines.contains("said 1"), true)
+        expect(lines.contains("speech cuts 1"), true)
+    }
 }

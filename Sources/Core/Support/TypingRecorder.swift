@@ -105,8 +105,8 @@ nonisolated public enum TypingRecorder {
     }
 
     /// A few counts up front, so a reader of the file knows where to look.
-    static func summary(_ entries: [Entry]) -> String {
-        func count(_ kind: String, _ needle: String = "") -> Int { entries.filter { $0.kind == kind && $0.text.contains(needle) }.count }
+    public static func summary(_ entries: [Entry]) -> String {
+        func count(_ kind: String, _ needle: String = "") -> Int { entries.filter { $0.kind == kind && (needle.isEmpty || $0.text.contains(needle)) }.count }
         return [
             "keys \(count("KEY"))", "typed-character events \(count("LOG", "event typedCharacter"))",
             "said \(count("SAID"))", "speech cuts \(count("CANCEL"))",
