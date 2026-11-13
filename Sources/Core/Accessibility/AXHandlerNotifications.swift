@@ -32,6 +32,10 @@ extension AXHandler {
             announceNotificationsSoon()
             return
         }
+        if name == kAXValueChangedNotification || name == kAXSelectedTextChangedNotification,
+           let f = API.focusObject, f.isSameElement(as: element) {
+            TypingRecorder.news(name, info: info)
+        }
         switch name {
         case kAXFocusedUIElementChangedNotification:
             if API.focusTreeInterceptor != nil, element.role == "AXWebArea" {

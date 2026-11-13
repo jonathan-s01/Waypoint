@@ -85,4 +85,9 @@ func typingRecorderTests() {
         expect(r.word, "there")
         expect(r.next, text.utf16.count)
     }
+    test("typing recorder: notification detail is written out, with its text and nesting") {
+        expect(TypingRecorder.describeNews("AXValueChanged", info: nil), "ValueChanged (no detail)")
+        let line = TypingRecorder.describeNews("AXValueChanged", info: ["AXTextChangeValue": "a", "AXTextStateChangeType": 1, "AXTextChangeValues": [["AXTextChangeValue": "b"]]])
+        expect(line, "ValueChanged {TextChangeValue: \"a\", TextChangeValues: [{TextChangeValue: \"b\"}], TextStateChangeType: 1}")
+    }
 }
