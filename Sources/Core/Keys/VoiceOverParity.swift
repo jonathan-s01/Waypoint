@@ -134,8 +134,7 @@ extension VoiceOverKeysPlugin {
         add("cursorToMouse", String(localized: "The VoiceOver cursor to the item under the mouse pointer (VO-Shift-F5)", comment: "A command, as the key list and keyboard help say it"), ["kb:turnover+shift+f5"]) { _ in
             let p = Self.mouseLocation()
             guard let e = Self.element(at: p) else { Speech.speakMessage(String(localized: "nothing under the pointer", comment: "Spoken message")); return }
-            ObjectNavigator.shared.moveTo(e)
-            ReviewLayer.place(e, at: p)
+            ObjectNavigator.shared.placeReading(on: e, at: p)
         }
         add("mouseToCursor", String(localized: "The mouse pointer to the VoiceOver cursor (VO-Command-F5)", comment: "A command, as the key list and keyboard help say it"), ["kb:turnover+command+f5"]) { _ in
             guard let e = Self.cursorElement(), let r = TurnOverObject.frame(e) else { return }

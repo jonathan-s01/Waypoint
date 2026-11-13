@@ -144,6 +144,11 @@ enum ReviewLayer {
     /// Where the latest message began when the review last started from a field; a later one has arrived when it moves.
     private static var messageStart: Int?
     private static var windowDocuments: Set<ObjectIdentifier> = []
+    /// The second reader's own copies of the pages the keyboard reads in browse mode, so the two keep separate places
+    /// and modes: neither is in the browse handler's list (which is the keyboard's), and a copy's place is not
+    /// remembered as the page's. A copy hears nothing of the page changing; it is read again when the layer returns
+    /// after a pause, as the window documents are.
+    private static var copies: [BrowseModeDocument] = []
     /// The document the second reader was put in on purpose (an area jump): it stays there, whatever the keyboard does and
     /// whichever app is in front, until the reset key. Without one it follows the focus, as it always did.
     private static var pinned: BrowseModeDocument?
@@ -253,7 +258,7 @@ enum ReviewLayer {
         return true
     }
 
-    static func reset() { pinned = nil; armed = false; latched = false; syncedFocus = nil; messageStart = nil; syncedDocument = nil; windowDocuments = [] }
+    static func reset() { pinned = nil; for c in copies { c.cancelBuffer() }; copies = []; armed = false; latched = false; syncedFocus = nil; messageStart = nil; syncedDocument = nil; windowDocuments = [] }
 
     static func toggleEnabled() {
         enabled.toggle()
@@ -315,8 +320,38 @@ enum ReviewLayer {
         Log.io("review layer: chord hold \(c.hold) reverse \(c.reverse) word \(c.word)")
     }
 
+    static let resetScript = "reviewLayerReset"
+    static let resetDefaultKey = "kb:turnover+option+command+shift+/"
+
+    /// Takes the next key as the one that puts the second reader back with the keyboard, and takes the old one away:
+    /// the standard one is TurnOver's own and stays unless it is given up here.
+    static func captureResetKey() {
+        TurnOverMenu.captureKey(prompt: String(localized: "Press the key that puts the second reader back with the keyboard", comment: "Spoken message: waiting for a key")) { g in
+            if UserGestures.isProtected(g) {
+                Speech.speakMessage(String(localized: "\(g.displayName) is one of TurnOver's essential keys and can't be changed", comment: "Spoken message: %@ is the command"))
+                return
+            }
+            clearResetKey()
+            UserGestures.set(g, to: .script(resetScript))
+            let id = UserGestures.storedIdentifier(of: g)
+            if id != UserGestures.normal(resetDefaultKey) {
+                config.keyboard.userGestures[UserGestures.normal(resetDefaultKey)] = UserGestures.Target.removed.stored
+                config.save()
+            }
+            Speech.speakMessage(String(localized: "\(UserGestures.spoken(id)) now puts the second reader back with the keyboard", comment: "Spoken message: %@ is the key"))
+        }
+    }
+
+    /// Back to the standard reset key: any key chosen for it, and any removal of the standard one, go.
+    private static func clearResetKey() {
+        for (id, target) in config.keyboard.userGestures where target == "script:" + resetScript { config.keyboard.userGestures[id] = nil }
+        if config.keyboard.userGestures[UserGestures.normal(resetDefaultKey)] == UserGestures.Target.removed.stored { config.keyboard.userGestures[UserGestures.normal(resetDefaultKey)] = nil }
+        config.save()
+    }
+
     static func resetChord() {
         setChord(.standard)
+        clearResetKey()
         Speech.speakMessage(String(localized: "review layer keys back to Left Option and Right Shift", comment: "Spoken message"))
     }
 
@@ -387,25 +422,51 @@ enum ReviewLayer {
         }
     }
 
-    /// The reading position to an element (the pointer's: a click that only places the cursor), so the layer's keys
-    /// read on from there. Nothing happens where the element is not in the document being read.
-    static func place(_ e: AXUIElement, at point: CGPoint) {
-        guard enabled, let doc = document() else { return }
+    /// Where an element (or the nearest parent the document has) is in the document, the character under `point` when
+    /// it is a text area's own text.
+    static func offset(of e: AXUIElement, at point: CGPoint, in doc: BrowseModeDocument) -> Int? {
         var candidate: AXUIElement? = e
         var hops = 0
         while let c = candidate, hops < 4 {
             if var at = doc.buffer.offset(of: c) {
                 if hops == 0, let inside = characterOffset(in: doc, of: c, segmentStart: at, point: point) { at = inside }
-                doc.position = at
-                placedAt = Date()
-                lastUsed = Date()
-                Log.io("review layer: position placed by the pointer on \(c.role) (offset \(at))")
-                return
+                return at
             }
             candidate = c.element(kAXParentAttribute)
             hops += 1
         }
-        Log.io("review layer: the pointer's item (\(e.role)) is not in the document being read")
+        return nil
+    }
+
+    /// The second reader to an element under the pointer (a click that only places the cursor): it keeps the place,
+    /// says what is there, and the keyboard's focus does not move. `pin: false` (VO-Shift-F5) only sets the position.
+    /// A place the pinned document has not got is looked for in the document of the keyboard's window, then by reading
+    /// the window again.
+    static func place(_ e: AXUIElement, at point: CGPoint, pin: Bool = true) {
+        guard enabled else { return }
+        var doc = document()
+        var at = doc.flatMap { offset(of: e, at: point, in: $0) }
+        if at == nil, pinned != nil {
+            pinned = nil
+            doc = document()
+            at = doc.flatMap { offset(of: e, at: point, in: $0) }
+        }
+        if at == nil, let d = doc {
+            d.rebuildKeepingPlace(anchor: e)
+            at = offset(of: e, at: point, in: d)
+        }
+        guard let doc, let at else {
+            Log.io("review layer: the pointer's item (\(e.role)) is not in the document being read")
+            if pin { Speech.speakMessage(String(localized: "that part is not in what the second reader can read", comment: "Spoken message: the review layer cannot go to the part")) }
+            return
+        }
+        doc.position = at
+        placedAt = Date()
+        lastUsed = Date()
+        Log.io("review layer: position placed by the pointer on \(e.role) (offset \(at))")
+        guard pin else { return }
+        pinned = doc
+        doc.speakQuickNavText(at: at, link: false)
     }
 
     /// In a text area, the character under the pointer, only when the document's text there is the field's own text.
@@ -436,6 +497,29 @@ enum ReviewLayer {
 
     // MARK: The document it reads
 
+    /// The second reader's own document over the page the keyboard reads in browse mode, made once per page.
+    @discardableResult
+    static func ownCopy(of d: BrowseModeDocument) -> BrowseModeDocument {
+        copies.removeAll { !$0.isAlive }
+        if let c = copies.first(where: { $0.webArea.isSame(d.webArea) }) { return c }
+        let c = BrowseModeDocument(webArea: d.webArea)
+        c.remembersPlace = false
+        copies.append(c)
+        if copies.count > 6 { let old = copies.removeFirst(); old.cancelBuffer(); windowDocuments.remove(ObjectIdentifier(old)) }
+        windowDocuments.insert(ObjectIdentifier(c))
+        Log.io("review layer: its own copy of the page in pid \(d.webArea.pid)")
+        return c
+    }
+
+    /// Reading the page ahead for the second reader, once the keyboard has settled in it, so its first key finds it read.
+    static func prepare(for d: BrowseModeDocument) {
+        guard enabled else { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            guard enabled, API.focusTreeInterceptor === d, d.isAlive else { return }
+            ownCopy(of: d)
+        }
+    }
+
     /// The page's reading document (a chat in a browser), or one over the focused window (a native app), made once.
     static func document() -> BrowseModeDocument? {
         if let p = pinned {
@@ -446,7 +530,12 @@ enum ReviewLayer {
             pinned = nil
         }
         let doc: BrowseModeDocument
-        if let d = API.focusTreeInterceptor, d.isAlive, !d.buffer.lines.isEmpty {
+        if let page = API.focusTreeInterceptor, page.isAlive {
+            let d = ownCopy(of: page)
+            if d.buffer.lines.isEmpty {
+                if d.buffer.isLoading { Speech.speakMessage(String(localized: "second reader loading", comment: "Spoken message: the review layer is still reading the page")) }
+                return nil
+            }
             doc = d
         } else {
             guard let focus = API.focusObject else { return nil }
@@ -515,9 +604,12 @@ final class ReviewLayerPlugin: GlobalPlugin {
         script("reviewLayerArm", String(localized: "Review layer: once, the next key reads around the field instead of typing; twice, the layer stays on until pressed again", comment: "A command, as the key list and keyboard help say it"), gestures: ["kb:turnover+option+r"], category: category) { _ in
             ReviewLayer.armCommand()
         }
-        script("reviewLayerReset", String(localized: "Puts the second reader back with the keyboard: it follows the focus again, in this app and window (it stays where an area jump put it until then)", comment: "A command, as the key list and keyboard help say it"),
-               gestures: ["kb:turnover+option+command+shift+/"], category: category) { _ in
+        script(ReviewLayer.resetScript, String(localized: "Puts the second reader back with the keyboard: it follows the focus again, in this app and window (it stays where an area jump put it until then)", comment: "A command, as the key list and keyboard help say it"),
+               gestures: [ReviewLayer.resetDefaultKey], category: category) { _ in
             ReviewLayer.unpin()
+        }
+        script("reviewLayerSetResetKey", String(localized: "Chooses the key that puts the second reader back with the keyboard (now Caps Lock, Option, Command, Shift and slash)", comment: "A command, as the key list and keyboard help say it"), category: category) { _ in
+            ReviewLayer.captureResetKey()
         }
         script("reviewLayerEnable", String(localized: "Turns the review layer (hold Left Option and Right Shift to read around a text field) on or off", comment: "A command, as the key list and keyboard help say it"), category: category) { _ in
             ReviewLayer.toggleEnabled()

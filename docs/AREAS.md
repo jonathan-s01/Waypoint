@@ -64,6 +64,14 @@ After a jump the second reader stays in that window, even when the keyboard move
 reset key. Without a jump it follows the focus as before. The chord's hold keys cannot include Right Option (the
 capture refuses). A chord with other keys still works; the area jump is the chord's hold keys + Right Option + a digit.
 
+In a web page the second reader has its own copy of the browse document (`ReviewLayer.ownCopy`), so the two readers
+keep separate places. A copy is not the page's remembered place, hears nothing of the page changing, and is read again
+after a pause. The reset key is changed with the command "Chooses the key that puts the second reader back with the
+keyboard"; it also gives up the standard key. "Puts the review layer's keys back" restores the standard one.
+
+Clicking with VO (or the chord's keys, or VO + Right Option) puts the keyboard's reader (or the second reader) at the
+pointer; the second reader's click never moves the keyboard's focus.
+
 Not known yet: whether macOS lets the second reader read a full-screen window on another space (it is expected to
 work only while that window is visible to accessibility); if not, the per-window position is the fallback.
 
