@@ -28,15 +28,22 @@ open class SelectableList: TurnOverObject {
     /// Return in a list (Windows: Enter opens the item). Mac lists often ignore it (Safari's Reading List opens an
     /// item only by a click), so when nothing answers the key, the selected item is pressed.
     private func activate(_ g: KeyboardGesture) {
-        g.send()
-        if Poll.pumping(every: 0.01, limit: 0.5, { EventHandler.isPending(.gainFocus) || EventHandler.isPending(.selection) || EventHandler.isPending(.foreground) || EventHandler.isPending(.valueChange) }) { return }
         // The row TurnOver walked to, when the list won't select (Freeform's boards).
         let walked = virtualRow.flatMap { i -> AXUIElement? in let rows = rowsAndKey.0; return rows.indices.contains(i) ? rows[i] : nil }
-        guard let row = element.elements(rowsAndKey.1).first ?? walked else { return }
         func pressable(_ e: AXUIElement) -> Bool {
             var names: CFArray?
             return AXUIElementCopyActionNames(e, &names) == .success && ((names as? [String]) ?? []).contains(kAXPressAction as String)
         }
+        // The list's own selection is not on the row TurnOver walked to (Copilot's session list, 13 Nov 2026: the
+        // arrows said each chat, and Return opened the one the app still had selected): the row heard is the one opened.
+        if let walked, !(element.elements(rowsAndKey.1).first?.isSame(walked) ?? false),
+           let target = pressable(walked) ? walked : walked.elements(kAXChildrenAttribute).first(where: pressable) {
+            Log.io("list: Return on the row TurnOver walked to; pressing it")
+            if AXUIElementPerformAction(target, kAXPressAction as CFString) == .success { Tones.press(); return }
+        }
+        g.send()
+        if Poll.pumping(every: 0.01, limit: 0.5, { EventHandler.isPending(.gainFocus) || EventHandler.isPending(.selection) || EventHandler.isPending(.foreground) || EventHandler.isPending(.valueChange) }) { return }
+        guard let row = element.elements(rowsAndKey.1).first ?? walked else { return }
         guard let target = pressable(row) ? row : row.elements(kAXChildrenAttribute).first(where: pressable) else { return }
         Log.io("list: Return did nothing; pressing the selected item")
         if AXUIElementPerformAction(target, kAXPressAction as CFString) == .success { Tones.press() }

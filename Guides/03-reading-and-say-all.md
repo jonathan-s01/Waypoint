@@ -7,6 +7,12 @@ word. Single letters jump: in the Mac style, VoiceOver's Quick Nav letters (H he
 1 to 6 headings by level); in the Windows style, NVDA's. **TurnOver Space** switches between reading the page and
 typing into it. Enter activates a link or button.
 
+**Which letters** (Waypoint): Settings, Web pages, "Single-letter keys on a page" chooses VoiceOver's letters, NVDA's
+(K link, L list, D landmark, I list item, B button, F form field…) or whichever the keyboard style uses; any keyboard
+style can use either. To give one kind your own letter, add it to `virtualBuffers.quickNavKeys` in the settings file,
+by kind name, for example `"quickNavKeys": {"Landmark": "y"}`; that kind's usual letter then stops working. Shift
+goes back. In a field you are typing into, letters are typed, not commands.
+
 ## Say all
 
 Say all reads from where you are to the end: **VO A** in the Mac style, **Caps Lock A** in the Windows

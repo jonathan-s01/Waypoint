@@ -235,12 +235,17 @@ enum ReviewLayer {
     /// The second reader to an element, on purpose: it keeps the place and says what is there. The keyboard's focus
     /// does not move. `area`: in a chat, to the newest message inside that frame rather than its top.
     @discardableResult
-    static func jump(to e: AXUIElement, area: CGRect? = nil) -> Bool {
+    static func jump(to e: AXUIElement, area: CGRect? = nil, retried: Bool = false) -> Bool {
         guard let doc = document() else { Tones.edge(); return false }
         var at = doc.buffer.offset(of: e)
-        if at == nil {
-            doc.rebuildKeepingPlace(anchor: e)
-            at = doc.buffer.offset(of: e)
+        if at == nil, !retried {
+            // The copy is older than the part. The read is asynchronous: go once it is done, not now (the copy is
+            // never the keyboard's page, so the document's own follow-up would not move it).
+            doc.buffer.build { [weak doc] in
+                guard let doc, pinned == nil || pinned === doc else { return }
+                jump(to: e, area: area, retried: true)
+            }
+            return false
         }
         guard var offset = at else {
             Speech.speakMessage(String(localized: "that part is not in what the second reader can read", comment: "Spoken message: the review layer cannot go to the part"))
@@ -525,10 +530,23 @@ enum ReviewLayer {
         }
     }
 
+    /// A copy with nothing read yet is read now (it stays empty until something asks: the first read can come back
+    /// empty, or a page change can empty it), and the key says so instead of doing nothing (Copilot's chat, 13 Nov
+    /// 2026: Shift+H and Shift+Tab with the layer held bumped, and no key started the read again).
+    private static func readyToRead(_ d: BrowseModeDocument, why: String) -> Bool {
+        if d.isAlive, d.refreshIfNavigated() { Log.io("review layer: the page changed under the second reader; reading it again") }
+        guard d.buffer.lines.isEmpty else { return true }
+        if !d.buffer.isLoading { d.buffer.build() }
+        Log.io("review layer: nothing read yet (\(why)); reading now")
+        Speech.speakMessage(String(localized: "second reader loading", comment: "Spoken message: the review layer is still reading the page"))
+        return false
+    }
+
     /// The page's reading document (a chat in a browser), or one over the focused window (a native app), made once.
     static func document() -> BrowseModeDocument? {
         if let p = pinned {
-            if p.isAlive, !p.buffer.lines.isEmpty {
+            if p.isAlive {
+                guard readyToRead(p, why: "pinned") else { return nil }
                 if windowDocuments.contains(ObjectIdentifier(p)), Date().timeIntervalSince(lastUsed) > 4, Date().timeIntervalSince(p.buffer.builtAt) > 4 { p.rebuildKeepingPlace() }
                 return p
             }
@@ -537,16 +555,13 @@ enum ReviewLayer {
         let doc: BrowseModeDocument
         if let page = API.focusTreeInterceptor, page.isAlive {
             let d = ownCopy(of: page)
-            if d.buffer.lines.isEmpty {
-                if d.buffer.isLoading { Speech.speakMessage(String(localized: "second reader loading", comment: "Spoken message: the review layer is still reading the page")) }
-                return nil
-            }
+            guard readyToRead(d, why: "page copy") else { return nil }
             doc = d
         } else {
-            guard let focus = API.focusObject else { return nil }
+            guard let focus = API.focusObject else { Log.io("review layer: no focus to read from"); return nil }
             let window = focus.element.element(kAXWindowAttribute)
                 ?? AXUIElementCreateApplication(focus.pid).element(kAXFocusedWindowAttribute)
-            guard let window else { return nil }
+            guard let window else { Log.io("review layer: no window to read"); return nil }
             let d = BrowseModeHandler.shared.document(root: window)
             guard d.isAlive else { return nil }
             let id = ObjectIdentifier(d)
@@ -558,9 +573,9 @@ enum ReviewLayer {
                 d.rebuildKeepingPlace()
                 Log.io("review layer: window read again in \(Int(Date().timeIntervalSince(t0) * 1000)) ms, \(d.buffer.lines.count) lines")
             }
+            guard readyToRead(d, why: "window") else { return nil }
             doc = d
         }
-        guard !doc.buffer.lines.isEmpty else { return nil }
         // A new field: reading starts there. Within the same field the cursor stays where it was left.
         if let focus = API.focusObject {
             let sameDoc = syncedDocument == ObjectIdentifier(doc)
