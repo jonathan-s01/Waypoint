@@ -53,6 +53,8 @@ func pointerReaderTests() {
         expect(PointerReader.clip("one two three", limit: 100), "one two three")
         expect(PointerReader.clip("one two three", limit: 9), "one two")
         expect(PointerReader.clip("everything", limit: 5), "every")
-        expect(PointerReader.clip(String(repeating: "word ", count: 600)).count <= 2000, true)
+        let long = String(repeating: "word ", count: 600)
+        expect(PointerReader.clip(long), long)
+        expect(PointerReader.clip(String(repeating: "word ", count: 6000)).count <= 20000, true)
     }
 }
