@@ -9,10 +9,8 @@ Changes made in the Waypoint fork, on top of TurnOver 2.0, build 24.1.
 ### Fixed
 
 - Braille: the cursor no longer blinks by default (Braille, Blink turns it back on). A saved choice is kept.
-- Mouse tracking: a look's watchdog gives up only on its own look. A watchdog left over from an earlier look could
-  drop a later look that was on its way, and the pointer resting there said nothing.
-- Mouse tracking: a group under the pointer is counted for at most 80 ms. Counting a long group, such as a chat
-  window, held up the next item, and the group's speech was cut short; now it is said without the count.
+- Mouse tracking: a text or image inside a conversation row or table cell that was just said is silent, so the row is
+  not broken up line by line as the pointer crosses it. A named group around a page does not silence what is in it.
 
 ## 2.0, build 25
 
@@ -97,13 +95,19 @@ Features wait for a whole build; point releases carry fixes only (27 Oct 2026).
   keyboard style) reads each item the pointer crosses, as VoiceOver's cursor following the mouse pointer does. The
   keyboard focus never moves with the pointer. "Mouse pointer moves the review cursor" (on by default) also takes the
   cursor to the item, as NVDA's review cursor follows the mouse. A blank place (a window's background, a group with no
-  name) can make the empty space sound the trackpad's explore makes, once ("Mouse tracking: sound over blank places", off by default: it added a lot of extra noise), and coming back to an item reads it again.
+  name) is silent, and coming back to an item reads it again. The pointer's own speech is interrupted by the next item,
+  and nothing else is: notifications, focus changes and typing echo are left alone. A tester found that other speech
+  then kept talking over the pointer, so "Mouse pointer interrupts other speech" (off by default) makes the pointer cut
+  that off too.
+  The whole lookup, the item's name, role, value, state and a group's item count, is read off the main thread under one
+  deadline, and only the finished text is handed back, so an app that stops answering cannot freeze TurnOver. This
+  reads less than the keyboard does: app-specific names (Mail, Excel, Finder, Calendar, Dock, Terminal and others),
+  plugin and profile labels, the Item details order and toggles, position information and the "goes in" hint are left
+  out.
   What it says is private: it is not kept in the speech history, and the log holds only the kind of item and the app,
   never its words. It watches the pointer only while TurnOver is the reader, and it waits while Say All or the
   trackpad's explore is reading. If an app holds the lookup for over a second, the lookup is given up and the
-  pointer is read again ("Mouse tracking: give up on a stuck lookup", on by default). Off by default.
-- Deleted text by pitch: Settings, Speech, "Lower the pitch for deleted text, instead of saying deleted" says a
-  deleted character or word lower, as VoiceOver does, without the word "deleted". Off by default.
+  pointer is read again. Off by default.
 - Searching in the App Store, Music and Podcasts: Return in the search field reads the results as a plain list, from
   Apple's public catalog, and Return on one opens its page. The App Store's own results page couldn't be read reliably
   on macOS 27.2. When the catalog can't answer, the page is read instead. TV keeps its own page, as Apple TV+ isn't in
