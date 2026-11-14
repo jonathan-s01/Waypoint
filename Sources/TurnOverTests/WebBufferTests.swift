@@ -191,6 +191,24 @@ func webBufferTests() {
         expect(buffer.status, .complete, "reactivation resumes even when the interceptor identity is unchanged")
     }
 
+    test("browse mode: a copy of a page that the handler does not list reads and moves its own place") {
+        let fixture = AXFixture(app: "Public sample", bundle: "test.copy", recorded: "", root: 90, application: nil, focus: nil, nodes: [
+            .init(id: 90, attrs: ["AXRole": .string("AXWebArea"), "AXChildren": .elements([91])]),
+            .init(id: 91, attrs: ["AXRole": .string("AXStaticText"), "AXValue": .string("A public sample paragraph."), "AXParent": .element(90)]),
+        ])
+        AXReplay.load(fixture)
+        defer { BrowseModeHandler.shared.forget(pid: 900_090); AXReplay.unload() }
+        let keyboards = BrowseModeHandler.shared.document(root: AXReplay.root!)
+        waitForBuffer(keyboards.buffer)
+        let copy = BrowseModeDocument(webArea: AXReplay.root!)
+        waitForBuffer(copy.buffer)
+        keyboards.position = 2
+        copy.position = 9
+        check(copy.rootObject.document === copy, "its root object belongs to it, not to the keyboard's document for the same element")
+        expect(copy.makeTextInfo(.caret)?.start, 9, "its text positions start at its own place")
+        expect(keyboards.makeTextInfo(.caret)?.start, 2, "the keyboard's keep theirs")
+    }
+
     test("browse mode: single letters follow the chosen set and the user's own letters") {
         let saved = (config.virtualBuffers.quickNavLetters, config.virtualBuffers.quickNavKeys, config.general.keyboardStyle)
         defer { (config.virtualBuffers.quickNavLetters, config.virtualBuffers.quickNavKeys, config.general.keyboardStyle) = saved }

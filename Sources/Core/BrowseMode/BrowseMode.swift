@@ -472,7 +472,7 @@ public final class BrowseModeDocument: ScriptableObject {
     // MARK: The document object and its text
 
     /// A fresh object for the root, so TextInfos read the live page (any root: a web area, or a content pane).
-    public var rootObject: WebArea { WebArea(element: webArea) }
+    public var rootObject: WebArea { let o = WebArea(element: webArea); o.owner = self; return o }
     public func makeTextInfo(_ p: TextPosition) -> TextInfo? { try? rootObject.makeTextInfo(p) }
     public var isAlive: Bool { webArea.role != "?" }
 

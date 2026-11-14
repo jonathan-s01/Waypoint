@@ -108,7 +108,11 @@ open class WebArea: TurnOverObject, WebBridged {
     /// Browse mode reads the virtual buffer; without a document (not in browse mode) WebKit's own text.
     open override var textInfoClass: TextInfo.Type { document != nil ? BufferTextInfo.self : WebTextInfo.self }
     /// The browse-mode document holding the virtual caret, when one exists for this web area.
-    public var document: BrowseModeDocument? { BrowseModeHandler.shared.existingDocument(for: element) }
+    public var document: BrowseModeDocument? { owner ?? BrowseModeHandler.shared.existingDocument(for: element) }
+    /// The document this object was made by. Set by `BrowseModeDocument.rootObject`: the review layer's own copy of a
+    /// page is not in the handler's list, so looking up by element found the keyboard's document, and the second
+    /// reader's arrows spoke from the keyboard's place (Chrome, 13 Nov 2026: every arrow said the focused "Bold").
+    public weak var owner: BrowseModeDocument?
     open override var name: String { element.string(kAXTitleAttribute) ?? "" }
 }
 
