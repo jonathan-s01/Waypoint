@@ -563,7 +563,23 @@ open class TurnOverObject: ScriptableObject {
         // A word typed over after a Backspace has no known start. In a field that missed lately (a lagging caret), its
         // ending key is looked for from just before the caret on, and not only as the last thing read.
         let relaxed = start == nil && sinceMiss < 20
-        func attempt(_ n: Int) {
+        // The application's own news of what was typed (TextNews) tells the word without the field: waited for up to
+        // 80 ms, then the field is read as before. Only a word it agrees with the letters typed on is taken.
+        let newsLooks = TextNews.isLive(pid: pid) ? 8 : 0
+        let typed = Speech.typedWordSoFar, edited = Speech.typedWordWasEdited
+        func attempt(_ look: Int) {
+            if look < newsLooks {
+                if let w = TextNews.takeBoundary(for: ch, typed: typed, edited: edited) {
+                    TypingRecorder.note("NEWS", "typed word from the application's news after \(Int(Date().timeIntervalSince(began) * 1000)) ms")
+                    Self.nextWordStart = nil
+                    finish(w, next: nil)
+                } else {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) { attempt(look + 1) }
+                }
+                return
+            }
+            if look == newsLooks, newsLooks > 0 { TypingRecorder.note("NEWS", "typed word: no news that agreed in 80 ms, the field is read") }
+            let n = look - newsLooks
             var found = (taken: false, word: String?.none, next: Int?.none)
             var nextStart: Int?
             var looked = "no caret"
@@ -579,7 +595,7 @@ open class TurnOverObject: ScriptableObject {
                 looked = "the word began at \(start.map(String.init) ?? "?"), the caret is at \(info.start), \(before.count) characters read, the last is \(before.last.map { $0 == ch ? "the key" : "not the key" } ?? "none")"
                 if found.taken { Self.nextWordStart = nextStart; Self.nextWordStartAt = Date() }
             }
-            if !found.taken, n < attempts { DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) { attempt(n + 1) }; return }
+            if !found.taken, n < attempts { DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) { attempt(look + 1) }; return }
             if !found.taken {
                 Self.lastFieldMiss = Date()
                 Self.nextWordStart = nil   // (the word after a missed one starts where the caret says, not after the last)
@@ -587,7 +603,10 @@ open class TurnOverObject: ScriptableObject {
                 let direct = "value \(f.string(kAXValueAttribute).map { String($0.count) } ?? "unreadable") characters, selection \(cfRange(f.attr(kAXSelectedTextRangeAttribute)).map { "\($0.location)+\($0.length)" } ?? "unreadable")"
                 Log.io("typed word: the field hadn't taken the key after \(Int(Date().timeIntervalSince(began) * 1000)) ms and \(n + 1) looks; the letters typed (\(looked); read directly: \(direct))")
             }
-            Speech.speakTypedCharacter(ch, inEditable: editable, wordBefore: { found.word })
+            finish(found.word, next: nextStart)
+        }
+        func finish(_ word: String?, next nextStart: Int?) {
+            Speech.speakTypedCharacter(ch, inEditable: editable, wordBefore: { word })
             Self.waitingForField = false
             Self.replayWordStart = nextStart
             while !Self.waitingForField, !Self.heldTyped.isEmpty {

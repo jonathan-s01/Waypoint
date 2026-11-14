@@ -498,7 +498,23 @@ open class EditableText: TurnOverObject {
             }
             else { test.expand(unit); chunk = test.text }
         }
+        let sentAt = Date()
+        let news = unit == .character && TextNews.isLive(pid: pid)
         gesture.send()
+        // The character the application says it deleted, where it sends that: the one before a lagging caret, read
+        // beforehand, is not always it (GitHub Copilot, 13 Nov 2026: "f" for "e").
+        if news {
+            var deleted: String?
+            while deleted == nil, Date().timeIntervalSince(sentAt) < 0.06, !ScriptHandler.isScriptWaiting {
+                EventHandler.pumpPendingEvents()
+                deleted = TextNews.takeDeletion(since: sentAt)
+                if deleted == nil { usleep(2000) }
+            }
+            if let d = deleted, d.count == 1 {
+                if d != chunk { TypingRecorder.note("NEWS", "Backspace said the deleted character from the news (\(Symbols.name(of: d.first!))), not the one read before (\(chunk.isEmpty ? "none" : Symbols.name(of: chunk.first!)))") }
+                chunk = d
+            } else { TypingRecorder.note("NEWS", "Backspace: no single deleted character in the news in 60 ms") }
+        }
         Speech.speakTypedCharacter("\u{8}", inEditable: true)
         let c = chunk.replacingOccurrences(of: "\r\n", with: "\n")
         // Said at once, before the caret is waited for: with something before the caret the deletion is certain, and
@@ -512,7 +528,10 @@ open class EditableText: TurnOverObject {
         }
         let (moved, newInfo) = hasCaretMoved(from: bookmark)
         guard moved else { return }
+        // (The application's account of the word is kept: its deletion is part of it, and caretMoved forgets it.)
+        let kept = TextNews.snapshot()
         caretMoved(speak: nil, gesture: gesture, info: newInfo)
+        TextNews.restore(kept)
         // caretMoved forgets the word being typed; a deletion changes it, and the next space or punctuation says the
         // word as it now is ("think", Backspace, Space: "thin"; a tester).
         Speech.noteBackspace()

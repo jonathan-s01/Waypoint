@@ -35,6 +35,11 @@ extension AXHandler {
         if name == kAXValueChangedNotification || name == kAXSelectedTextChangedNotification,
            let f = API.focusObject, f.isSameElement(as: element) {
             TypingRecorder.news(name, info: info)
+            if name == kAXValueChangedNotification { TextNews.record(info: info, pid: pid) }
+        } else if name == kAXValueChangedNotification, info?["AXTextChangeValues"] != nil, let f = API.focusObject, f.pid == pid,
+                  AXUIElementCreateApplication(pid).element(kAXFocusedUIElementAttribute)?.isSame(element) == true {
+            // GitHub Copilot's chat box: the system's focus is on the field the reader's focus object is not (13 Nov 2026).
+            TextNews.record(info: info, pid: pid)
         }
         switch name {
         case kAXFocusedUIElementChangedNotification:

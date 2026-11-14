@@ -774,7 +774,7 @@ public enum Speech {
         return (true, word.isEmpty ? nil : word, String(t[..<j]).utf16.count)
     }
 
-    public static func clearTypedWordBuffer() { typedWord.removeAll(); backspacedSinceWord = false }
+    public static func clearTypedWordBuffer() { typedWord.removeAll(); backspacedSinceWord = false; TextNews.reset() }
     /// Something before the caret was deleted: the next word end reads the word from the text.
     public static func noteBackspace() { typedWord.removeAll(); backspacedSinceWord = true }
     private static var backspacedSinceWord = false
