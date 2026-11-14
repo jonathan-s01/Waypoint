@@ -153,7 +153,7 @@ public enum SettingsBridge {
         if let l = patch["_launcher"] as? [String: Any] { LauncherSettings.apply(l) }
         if let on = patch["_coexist"] as? Bool, on != Coexist.wouldBeOn {
             UserDefaults.standard.set(on, forKey: "coexist")
-            Speech.speakMessage(on ? String(localized: "CoExist on. TurnOver restarts.", comment: "Spoken message") : String(localized: "CoExist off. TurnOver restarts.", comment: "Spoken message"))
+            Speech.speakMessage(on ? String(localized: "CoExist on. Waypoint restarts.", comment: "Spoken message") : String(localized: "CoExist off. Waypoint restarts.", comment: "Spoken message"))
             Log.info("settings app: CoExist \(on ? "on" : "off"); restarting")
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { (restart ?? TurnOverMenu.shared.relaunch)?() }
             return
@@ -220,7 +220,7 @@ public enum SettingsBridge {
             DispatchQueue.main.asyncAfter(deadline: .now() + 5) { if pendingSection == section { pendingSection = nil } }
         }
         let url = Bundle.main.bundleURL.appendingPathComponent("Contents/Applications/TurnOver Settings.app")
-        guard FileManager.default.fileExists(atPath: url.path) else { Speech.speakMessage(String(localized: "TurnOver Settings isn't in this build", comment: "Spoken message")); return }
+        guard FileManager.default.fileExists(atPath: url.path) else { Speech.speakMessage(String(localized: "Waypoint Settings isn't in this build", comment: "Spoken message")); return }
         NSWorkspace.shared.openApplication(at: url, configuration: NSWorkspace.OpenConfiguration()) { _, error in
             if let error { Log.warning("settings app: couldn't open: \(error)") }
         }

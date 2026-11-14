@@ -536,7 +536,7 @@ public final class ScreenRecognition {
             let size = NSSize(width: 400, height: 80)
             let image = NSImage(size: size, flipped: false) { r in
                 NSColor.white.setFill(); r.fill()
-                ("TurnOver reads the screen" as NSString).draw(at: NSPoint(x: 10, y: 25), withAttributes: [.font: NSFont.systemFont(ofSize: 28), .foregroundColor: NSColor.black])
+                ("Waypoint reads the screen" as NSString).draw(at: NSPoint(x: 10, y: 25), withAttributes: [.font: NSFont.systemFont(ofSize: 28), .foregroundColor: NSColor.black])
                 return true
             }
             guard let cg = image.cgImage(forProposedRect: nil, context: nil, hints: nil) else { return }
@@ -846,7 +846,7 @@ public enum ScreenCapturePermission {
     public static func ensure() -> Bool {
         if CGPreflightScreenCaptureAccess() { return true }
         if !asked { asked = true; _ = CGRequestScreenCaptureAccess() }
-        Speech.speakMessage(String(localized: "TurnOver needs Screen Recording to read the screen. Opening Privacy and Security, Screen and System Audio Recording: switch on TurnOver, then quit and reopen TurnOver.", comment: "Spoken message"))
+        Speech.speakMessage(String(localized: "Waypoint needs Screen Recording to read the screen. Opening Privacy and Security, Screen and System Audio Recording: switch on Waypoint, then quit and reopen Waypoint.", comment: "Spoken message"))
         if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture") {
             DispatchQueue.main.asyncAfter(deadline: .now() + 1) { NSWorkspace.shared.open(url) }
         }

@@ -87,6 +87,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// it can be taken in a piece at a time (12 Oct 2026: "one long list"). Ordinary alerts, so VoiceOver
     /// (still running) reads each one.
     private func welcomeOnFirstRun() {
+        // Off by its own key, nothing reads the pages and VoiceOver is not started for them: they wait for a start that is on.
+        guard !WaypointPause.isPaused else { Log.info("welcome: Waypoint is off; the pages wait"); return }
         // Coexisting, VoiceOver must be on for the welcome and for every app TurnOver doesn't read (the code review, 17 Oct 2026).
         if Coexist.on, !NSWorkspace.shared.isVoiceOverEnabled { Log.info("welcome: VoiceOver is off; turning it on first"); HandOver.turnVoiceOverOn() }
         let key = "welcomed-\(Edition.version)"
@@ -115,23 +117,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // One page for the keys when the version changes (it was four, of nineteen: "a bit much").
         let keysPages: [(String, String)] = [
             (String(localized: "The keys", comment: "A welcome page's title after an update"),
-             String(localized: "Command Control Period turns TurnOver on and off, from anywhere.\nCommand Control Comma is the way in to everything: then M for the menu, S for Settings, K for your keyboard style, H for the guides.\nThe keys are VoiceOver's, NVDA's or JAWS's: Command Control Comma, then K, changes the style.", comment: "The welcome page about keys after an update")),
+             String(localized: "Command Control Period turns Waypoint on and off, from anywhere.\nCommand Control Comma is the way in to everything: then M for the menu, S for Settings, K for your keyboard style, H for the guides.\nThe keys are VoiceOver's, NVDA's or JAWS's: Command Control Comma, then K, changes the style.", comment: "The welcome page about keys after an update")),
         ]
         // The order (7 Nov 2026, Oliver): the two keys everything hangs on come straight after the welcome, before the
         // permissions and the rest. One point a line, read with Up and Down (WelcomeWindow).
         let firstRunPages: [(String, String)] = [
-            (String(localized: "Welcome to TurnOver", comment: "The first welcome page's title"),
-             String(localized: "TurnOver is a screen reader for the Mac. It reads every app with its own voice, and the keys you already know.\nRead each page with the Up and Down arrows.\nTab reaches the buttons: Next, Back and Skip. Return goes to the next page, Escape skips the rest.", comment: "The first welcome page")),
+            (String(localized: "Welcome to Waypoint", comment: "The first welcome page's title"),
+             String(localized: "Waypoint is a screen reader for the Mac. It reads every app with its own voice, and the keys you already know.\nRead each page with the Up and Down arrows.\nTab reaches the buttons: Next, Back and Skip. Return goes to the next page, Escape skips the rest.", comment: "The first welcome page")),
             (String(localized: "Two keys to remember", comment: "A welcome page's title"),
-             String(localized: "Command Control Period turns TurnOver on and off, from anywhere. When it's off, VoiceOver reads as usual.\nCommand Control Comma is the way in to everything. Press it, hear TurnOver, then a letter:\nM, the TurnOver menu.\nS, the Settings window.\nK, your keyboard style.\nH, the guides.\nPress Command Control Comma twice to hear every letter.\nCommand Control M opens the menu in one press.", comment: "A welcome page: the two keys")),
+             String(localized: "Command Control Period turns Waypoint on and off, from anywhere. When it's off, VoiceOver reads as usual.\nCommand Control Comma is the way in to everything. Press it, hear Waypoint, then a letter:\nM, the Waypoint menu.\nS, the Settings window.\nK, your keyboard style.\nH, the guides.\nPress Command Control Comma twice to hear every letter.\nCommand Control M opens the menu in one press.", comment: "A welcome page: the two keys")),
             (String(localized: "Two permissions", comment: "A welcome page's title"),
-             String(localized: "Next, TurnOver needs two permissions: \(accessName), and Input Monitoring.\nmacOS asks for the first.\nFor the second, if no question appears, TurnOver shows you where to turn it on.\nBoth are in System Settings, Privacy and Security.", comment: "A welcome page: the permissions; %@ is macOS's name for Accessibility")),
+             String(localized: "Next, Waypoint needs two permissions: \(accessName), and Input Monitoring.\nmacOS asks for the first.\nFor the second, if no question appears, Waypoint shows you where to turn it on.\nBoth are in System Settings, Privacy and Security.", comment: "A welcome page: the permissions; %@ is macOS's name for Accessibility")),
             (String(localized: "Your keys", comment: "A welcome page's title"),
-             String(localized: "TurnOver speaks VoiceOver's keys, NVDA's or JAWS's. Command Control Comma, then K, moves between them.\nThe VO keys do what they do in VoiceOver.", comment: "A welcome page: keyboard styles")),
-            (String(localized: "TurnOver and VoiceOver", comment: "A welcome page's title"),
-             String(localized: "While TurnOver is on, it reads everything, and VoiceOver is off.\nTurnOver turns VoiceOver off as it starts and back on as it quits, so you are never without speech. To change that: Settings, Screen reader behaviour.\nCommand Control Shift T keeps the app in front with VoiceOver, or gives it back to TurnOver, and remembers it.", comment: "A welcome page: TurnOver and VoiceOver")),
+             String(localized: "Waypoint speaks VoiceOver's keys, NVDA's or JAWS's. Command Control Comma, then K, moves between them.\nThe VO keys do what they do in VoiceOver.", comment: "A welcome page: keyboard styles")),
+            (String(localized: "Waypoint and VoiceOver", comment: "A welcome page's title"),
+             String(localized: "While Waypoint is on, it reads everything, and VoiceOver is off.\nWaypoint turns VoiceOver off as it starts and back on as it quits, so you are never without speech. To change that: Settings, Screen reader behaviour.\nCommand Control Shift T keeps the app in front with VoiceOver, or gives it back to Waypoint, and remembers it.", comment: "A welcome page: Waypoint and VoiceOver")),
             (String(localized: "Help, and helping", comment: "A welcome page's title"),
-             String(localized: "Command Control Comma, then H, opens the guides.\nIf TurnOver ever stops responding, VoiceOver comes on within a few seconds and TurnOver starts again.\nTo report a problem: Send feedback, in the TurnOver menu.\nTo help TurnOver read an app better: This app, then Help improve this app, in the TurnOver menu.", comment: "The last welcome page")),
+             String(localized: "Command Control Comma, then H, opens the guides.\nIf Waypoint ever stops responding, VoiceOver comes on within a few seconds and Waypoint starts again.\nTo report a problem: Send feedback, in the Waypoint menu.\nTo help Waypoint read an app better: This app, then Help improve this app, in the Waypoint menu.", comment: "The last welcome page")),
         ]
         // An update: the version's pages (keys that moved, once per version), then this build's new things and what
         // to test. A first install: the first-run pages, and this build's are marked seen.
@@ -142,12 +144,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         } else {
             pages = versionWelcomed ? [] : keysPages
             pages += NewToTry.pagesDue || !versionWelcomed ? NewToTry.summaryPages() : []
-            if !pages.isEmpty { pages.insert((String(localized: "Welcome to TurnOver build \(String(build))", comment: "A welcome page's title after an update: the build"),
-                          String(localized: "A few short pages: what's new, and what to test.\nRead each page with the Up and Down arrows. Return goes to the next page, Escape skips the rest.\nThe details are in the TurnOver menu (Command Control Comma, then M), under What to test in build \(String(build)).", comment: "A welcome page")), at: 0) }
+            if !pages.isEmpty { pages.insert((String(localized: "Welcome to Waypoint build \(String(build))", comment: "A welcome page's title after an update: the build"),
+                          String(localized: "A few short pages: what's new, and what to test.\nRead each page with the Up and Down arrows. Return goes to the next page, Escape skips the rest.\nThe details are in the Waypoint menu (Command Control Comma, then M), under What to test in build \(String(build)).", comment: "A welcome page")), at: 0) }
         }
         if keyboardNavigationTurnedOn {
             pages.append((String(localized: "Tab reaches every control", comment: "A welcome page's title"),
-                          String(localized: "Keyboard navigation was off on this Mac, so Tab reached only text fields and lists. TurnOver has turned it on: Tab now reaches buttons, pop-ups and sliders too, as on Windows. Apps already open pick it up when they next start. It is in System Settings, Keyboard, if you want it off.", comment: "A welcome page")))
+                          String(localized: "Keyboard navigation was off on this Mac, so Tab reached only text fields and lists. Waypoint has turned it on: Tab now reaches buttons, pop-ups and sliders too, as on Windows. Apps already open pick it up when they next start. It is in System Settings, Keyboard, if you want it off.", comment: "A welcome page")))
         }
         // Help make TurnOver (9 Nov 2026, Oliver: "a call to action to really get this open sourced"): once on this Mac,
         // the last page, after an update's pages or a new user's first welcome; its button opens TurnOver on GitHub.
@@ -189,7 +191,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         } catch {
             Log.error("could not start: \(error)")
             // Said, not only logged: VoiceOver reads the alert (code review, 16 Oct 2026; before, TurnOver "did nothing").
-            let a = NSAlert(); a.messageText = String(localized: "TurnOver could not start", comment: "An alert's title"); a.informativeText = String(localized: "\(String(describing: error))\n\nVoiceOver is still on. Check for an update from the TurnOver menu next time, or send feedback.", comment: "An alert: %@ is the error")
+            let a = NSAlert(); a.messageText = String(localized: "Waypoint could not start", comment: "An alert's title"); a.informativeText = String(localized: "\(String(describing: error))\n\nVoiceOver is still on. Check for an update from the Waypoint menu next time, or send feedback.", comment: "An alert: %@ is the error")
             a.addButton(withTitle: String(localized: "Quit", comment: "An alert's button")); a.runModal(); NSApp.terminate(nil)
         }
     }
@@ -199,7 +201,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Only while TurnOver is reading: opened under VoiceOver, the menu sat open unseen and would have taken every
         // key on the next switch to Mail (4 Oct 2026).
         // Opened again from Applications: say so and offer the menu, whichever reader has the app (the code review, 17 Oct 2026).
-        VoiceOverSpeak.say(String(localized: "TurnOver is running", comment: "TurnOver opened again while running"))
+        VoiceOverSpeak.say(String(localized: "Waypoint is running", comment: "Waypoint opened again while running"))
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { MenuAnywhere.shared.layer() }
         return false
     }
@@ -209,6 +211,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
         let reason = NSAppleEventManager.shared().currentAppleEvent?.attributeDescriptor(forKeyword: AEKeyword(kAEQuitReason))?.enumCodeValue ?? 0
         let systemReasons: [OSType] = [OSType(kAELogOut), OSType(kAEReallyLogOut), OSType(kAEShowRestartDialog), OSType(kAEShowShutdownDialog), OSType(kAERestart), OSType(kAEShutDown)]
+        // A deliberate quit ends "Waypoint off": VoiceOver comes back below, and the next start is on. A logout or
+        // restart keeps it, so Waypoint is still off at the next login.
+        if !systemReasons.contains(reason) { WaypointPause.set(false) }
         if !systemReasons.contains(reason), !FileManager.default.fileExists(atPath: AppPaths.file("restarting").path) {
             DistributedNotificationCenter.default().postNotificationName(Notification.Name("com.turnover.quitting"), object: nil, userInfo: nil, deliverImmediately: true)
         }
@@ -236,6 +241,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let flag = AppPaths.file("restarting")
         if FileManager.default.fileExists(atPath: flag.path) { try? FileManager.default.removeItem(at: flag); Log.info("restart: VoiceOver left as it is"); return }
         guard !HandOver.voiceOverReading else { return }
+        guard !WaypointPause.isPaused else { Log.info("quitting: Waypoint is off, so VoiceOver is left as it is (a logout or restart)"); return }
         guard swapAtQuit.value else { Log.info("quitting: VoiceOver left as it is (the swap is off)"); return }
         // macOS's flag can stay on with VoiceOver gone (quit by script, or crashed): then it is started, not toggled,
         // or the toggle turns the flag off and nobody speaks (a code review, 25 Oct 2026).

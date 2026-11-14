@@ -67,7 +67,7 @@ public final class TurnOverMenu {
     /// where TurnOver reads. Needs a restart.
     public static func setCoexist(_ on: Bool) {
         UserDefaults.standard.set(on, forKey: "coexist")
-        Speech.speakMessage(on ? String(localized: "CoExist on. TurnOver restarts, then VoiceOver Utility opens and closes by itself to set VoiceOver up.", comment: "CoExist turned on") : String(localized: "CoExist off. TurnOver restarts, and VoiceOver's settings are put back.", comment: "CoExist turned off"))
+        Speech.speakMessage(on ? String(localized: "CoExist on. Waypoint restarts, then VoiceOver Utility opens and closes by itself to set VoiceOver up.", comment: "CoExist turned on") : String(localized: "CoExist off. Waypoint restarts, and VoiceOver's settings are put back.", comment: "CoExist turned off"))
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { TurnOverMenu.shared.relaunch?() }
     }
     /// Starts TurnOver again (set by the app): after a change of CoExist.
@@ -77,7 +77,7 @@ public final class TurnOverMenu {
     public var onScreenCurtainChanged: (() -> Void)?
 
     public func open() {
-        let title = String(localized: "TurnOver menu", comment: "The TurnOver menu, as it opens")
+        let title = String(localized: "Waypoint menu", comment: "The Waypoint menu, as it opens")
         stack = [(title, rootItems(), 0)]
         isOpen = true
         Speech.cancel()
@@ -150,7 +150,7 @@ public final class TurnOverMenu {
         let hook = onClose; onClose = nil
         Braille.releaseItem()
         hook?()
-        Speech.speakMessage(String(localized: "closed", comment: "The TurnOver menu or a list closed"))
+        Speech.speakMessage(String(localized: "closed", comment: "The Waypoint menu or a list closed"))
     }
 
     private var hintWork: DispatchWorkItem?
@@ -412,14 +412,14 @@ public final class TurnOverMenu {
         if let app = thisAppItem() { items.append(app) }
         items.append(MenuItem("Settings", .action { SettingsBridge.open() }, hint: "Every setting, in a window with sections down the side"))
         items.append(MenuItem("Keys", .submenu { self.keysItems() }, hint: "Every shortcut here, keyboard help, and your own keys"))
-        items.append(MenuItem("Tools", .submenu { self.toolItems() }, hint: "The apps TurnOver reads, the VoiceOver settings copy, feedback, force quit, plugins"))
-        items.append(MenuItem("Help", .submenu { self.helpItems() }, hint: "The guide, about TurnOver, updates and previous builds"))
+        items.append(MenuItem("Tools", .submenu { self.toolItems() }, hint: "The apps Waypoint reads, the VoiceOver settings copy, feedback, force quit, plugins"))
+        items.append(MenuItem("Help", .submenu { self.helpItems() }, hint: "The guide, about Waypoint, updates and previous builds"))
         items.append(Self.supportItem)
         items.append(contentsOf: extraItems)
         // Your developer build beside the published TurnOver (issue 248, 7 Nov 2026): shown only when the other is installed.
         if let item = DeveloperSwitch.menuItem { items.append(item) }
-        items.append(MenuItem("Quit TurnOver", .action { Speech.speakMessage(String(localized: "TurnOver quitting", comment: "TurnOver is about to quit")); DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { (TurnOverMenu.shared.quit ?? { NSApp.terminate(nil) })() } },
-                              hint: "VoiceOver takes over everywhere. Command Control Period starts TurnOver again"))
+        items.append(MenuItem("Quit Waypoint", .action { Speech.speakMessage(String(localized: "Waypoint quitting", comment: "Waypoint is about to quit")); DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { (TurnOverMenu.shared.quit ?? { NSApp.terminate(nil) })() } },
+                              hint: "VoiceOver takes over everywhere. Command Control Period starts Waypoint again"))
         return items
     }
 
@@ -428,15 +428,15 @@ public final class TurnOverMenu {
         var items: [MenuItem] = []
         // Help make TurnOver (9 Nov 2026): the welcome's page about the ways to help, again, its button opening GitHub.
         if HelpMakeTurnOver.show != nil {
-            items.append(MenuItem("Help make TurnOver", .action { DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { MainActor.assumeIsolated { HelpMakeTurnOver.show?() } } },
-                                  hint: "The ways to help, from telling us what works to writing code, and TurnOver on GitHub"))
+            items.append(MenuItem("Help make Waypoint", .action { DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { MainActor.assumeIsolated { HelpMakeTurnOver.show?() } } },
+                                  hint: "The ways to help, from telling us what works to writing code, and Waypoint on GitHub"))
         }
         if let l = NewToTry.latest { items.append(MenuItem("What to test in build \(String(describing: l.build))", .submenu { NewToTry.menuItems() })) }
-        items.append(MenuItem("About TurnOver", .action {
+        items.append(MenuItem("About Waypoint", .action {
             let version = String(describing: Edition.version), build = String(describing: Edition.build)
             Speech.speakMessage(Coexist.on
-                ? String(localized: "TurnOver \(version), build \(build), a screen reader for the Mac. It reads the apps you give it under Tools; with CoExist on, VoiceOver reads the rest. Feature requests and bug reports through GitHub.", comment: "About TurnOver")
-                : String(localized: "TurnOver \(version), build \(build), a screen reader for the Mac. It reads the apps you give it under Tools. Feature requests and bug reports through GitHub.", comment: "About TurnOver"))
+                ? String(localized: "Waypoint \(version), build \(build), a screen reader for the Mac. It reads the apps you give it under Tools; with CoExist on, VoiceOver reads the rest. Feature requests and bug reports through GitHub.", comment: "About Waypoint")
+                : String(localized: "Waypoint \(version), build \(build), a screen reader for the Mac. It reads the apps you give it under Tools. Feature requests and bug reports through GitHub.", comment: "About Waypoint"))
         }))
         items.append(contentsOf: aboutItems)
         return items
@@ -527,7 +527,7 @@ public final class TurnOverMenu {
         return MenuItem(experimental ? "This app: \(name), experimental support" : "This app: \(name)", .submenu {
             var items: [MenuItem] = []
             let turnOver = self.readsApp?(bundle) ?? config.applications.listedForTurnOver(bundle)
-            let reader = turnOver ? "TurnOver" : "VoiceOver", other = turnOver ? "VoiceOver" : "TurnOver"
+            let reader = turnOver ? "Waypoint" : "VoiceOver", other = turnOver ? "VoiceOver" : "Waypoint"
             items.append(MenuItem("\(name) is read by \(reader)", .action { self.switchReader?() },
                                   hint: "Return gives it to \(other), and remembers"))
             items += own
@@ -541,7 +541,7 @@ public final class TurnOverMenu {
             // Help improve this app (7 Nov 2026): tell the project what's wrong, build the app's module with your own AI
             // or by hand, or ask for a building block. It took over from Ask for this app to be tuned, which emailed.
             items.append(MenuItem("Help improve \(name)", .submenu { HelpImprove.menuItems(pid: pid, name: name) },
-                                  hint: "Tell the project what's wrong, build \(name)'s module with your AI or by hand, or ask for something TurnOver needs"))
+                                  hint: "Tell the project what's wrong, build \(name)'s module with your AI or by hand, or ask for something Waypoint needs"))
             return items
         })
     }
@@ -552,17 +552,17 @@ public final class TurnOverMenu {
             MenuItem("Keyboard help", .action { InputManager.toggleInputHelp() }, hint: "Each key says what it does, without doing it; VO-K turns it off again"),
             // Back (19 Oct 2026): it went with the small TurnOver of 16 Oct and stayed out when the full one came back,
             // though testers used it (a tester).
-            MenuItem("My own keys", .submenu { self.userKeyItems() }, hint: "Give any key to a command or an app, or take a key away from TurnOver"),
+            MenuItem("My own keys", .submenu { self.userKeyItems() }, hint: "Give any key to a command or an app, or take a key away from Waypoint"),
         ]
     }
 
     /// Support TurnOver: opens Ko-fi, which needs no account. (GitHub Sponsors joins it as a second item once
     /// GitHub has approved the project's profile; Edition.sponsorsURL is ready for that.)
     static var supportItem: MenuItem {
-        MenuItem("Support TurnOver", .action {
+        MenuItem("Support Waypoint", .action {
             NSWorkspace.shared.open(URL(string: Edition.kofiURL)!)
-            Speech.speakMessage(String(localized: "Ko-fi is open in your browser", comment: "Support TurnOver opened the tip page"))
-        }, hint: "TurnOver is free, made in spare time; a tip on Ko-fi helps cover its running costs. No account needed")
+            Speech.speakMessage(String(localized: "Ko-fi is open in your browser", comment: "Support Waypoint opened the tip page"))
+        }, hint: "Waypoint is free, made in spare time; a tip on Ko-fi helps cover its running costs. No account needed")
     }
 
     private func feedbackItems() -> [MenuItem] {
@@ -570,15 +570,15 @@ public final class TurnOverMenu {
         if !Feedback.marks.isEmpty {
             let n = Feedback.marks.count
             items.append(MenuItem(n == 1 ? "Send your 1 marked moment" : "Send your \(String(n)) marked moments", .action { Self.saveFeedback(includeSpeech: true) },
-                                  hint: "The moments you marked, with what TurnOver said"))
+                                  hint: "The moments you marked, with what Waypoint said"))
             // Marks only went with a report, so they mounted up (13 on one Mac, a tester's too, 13 Oct 2026): forget them here.
             items.append(MenuItem(n == 1 ? "Forget the 1 marked moment" : "Forget the \(String(n)) marked moments", .action {
                 Feedback.clearMarks(); Speech.speakMessage(String(localized: "marked moments forgotten", comment: "Feedback: the marked moments cleared"))
             }, hint: "Starts the count again without sending anything"))
         }
-        items.append(MenuItem("Send a report with what TurnOver said", .action { Self.saveFeedback(includeSpeech: true) },
-                              hint: "Best for finding a problem. It includes what TurnOver said in the last 15 minutes and around your marked moments, which may be the text of emails and pages you read"))
-        items.append(MenuItem("Send a report without what TurnOver said", .action { Self.saveFeedback(includeSpeech: false) },
+        items.append(MenuItem("Send a report with what Waypoint said", .action { Self.saveFeedback(includeSpeech: true) },
+                              hint: "Best for finding a problem. It includes what Waypoint said in the last 15 minutes and around your marked moments, which may be the text of emails and pages you read"))
+        items.append(MenuItem("Send a report without what Waypoint said", .action { Self.saveFeedback(includeSpeech: false) },
                               hint: "Keeps what you were reading private"))
         return items
     }
@@ -586,12 +586,12 @@ public final class TurnOverMenu {
     private func toolItems() -> [MenuItem] {
         var items: [MenuItem] = []
         if config.applications.perAppReaders {
-            items.append(MenuItem("Apps TurnOver reads", .submenu { self.applicationItems() }, hint: "Which apps TurnOver reads, and which VoiceOver reads (readers per app, Settings, Experimental)"))
+            items.append(MenuItem("Apps Waypoint reads", .submenu { self.applicationItems() }, hint: "Which apps Waypoint reads, and which VoiceOver reads (readers per app, Settings, Experimental)"))
         }
         items += [
             Self.copyVoiceOverItem,
-            MenuItem("Send feedback", .submenu { self.feedbackItems() }, hint: "A report in TurnOver's reports folder, and the problem form on GitHub"),
-            MenuItem("Force quit an app", .action { ForceQuit.open() }, hint: "Lists the apps that are running; the Mac's own window is silent while TurnOver reads"),
+            MenuItem("Send feedback", .submenu { self.feedbackItems() }, hint: "A report in Waypoint's reports folder, and the problem form on GitHub"),
+            MenuItem("Force quit an app", .action { ForceQuit.open() }, hint: "Lists the apps that are running; the Mac's own window is silent while Waypoint reads"),
         ]
         if let h = handOverItem { items.append(h) }
         if Edition.includesPlugins { items.append(MenuItem("Plugins", .submenu { self.pluginItems() }, hint: "Make, install and reload plugins")) }
@@ -610,10 +610,10 @@ public final class TurnOverMenu {
                 let zip = try Feedback.save(includeSpeech: includeSpeech)
                 defer { Feedback.clearMarks() }   // in this report now (and in the email's text, written below)
                 let name = zip.deletingPathExtension().lastPathComponent
-                let where_ = includeSpeech ? String(localized: "Report saved in TurnOver's reports folder, open in Finder, as \(name). It includes what TurnOver said, which may be the text of emails and pages: issues are public, so attach it only if nothing private was read.", comment: "Feedback: where the report is, with speech; %@ is its name")
+                let where_ = includeSpeech ? String(localized: "Report saved in Waypoint's reports folder, open in Finder, as \(name). It includes what Waypoint said, which may be the text of emails and pages: issues are public, so attach it only if nothing private was read.", comment: "Feedback: where the report is, with speech; %@ is its name")
                     : String(localized: "Report saved on your Desktop, as \(name).", comment: "Feedback: where the report is; %@ is its name")
                 if Feedback.compose(with: zip, includesSpeech: includeSpeech) {
-                    Speech.speakMessage(String(localized: "\(where_) TurnOver's problem form is open in your browser: say what happened, and drag the report in if you like.", comment: "Feedback: %@ says where the report is"))
+                    Speech.speakMessage(String(localized: "\(where_) Waypoint's problem form is open in your browser: say what happened, and drag the report in if you like.", comment: "Feedback: %@ says where the report is"))
                 } else {
                     Speech.speakMessage(String(localized: "\(where_) Report the problem at github.com/TurnOver-For-Mac/turnover/issues.", comment: "Feedback: %@ says where the report is"))
                 }
@@ -628,10 +628,10 @@ public final class TurnOverMenu {
     static var copyVoiceOverItem: MenuItem {
         MenuItem("Copy VoiceOver settings", .submenu { [
             MenuItem("Copy", .action { VoiceOverSettings.startFlow() },
-                     hint: "Your VoiceOver voice, rate, pitch, volume, verbosity and typing echo, into TurnOver. About ten seconds; VoiceOver Utility opens and closes by itself"),
+                     hint: "Your VoiceOver voice, rate, pitch, volume, verbosity and typing echo, into Waypoint. About ten seconds; VoiceOver Utility opens and closes by itself"),
             MenuItem("Revert", .action { Speech.speakMessage(VoiceOverSettings.undo()) },
-                     hint: "Puts back TurnOver's settings from before the last copy"),
-        ] }, hint: "Copy your VoiceOver settings into TurnOver, or revert the last copy")
+                     hint: "Puts back Waypoint's settings from before the last copy"),
+        ] }, hint: "Copy your VoiceOver settings into Waypoint, or revert the last copy")
     }
 
     /// Making, reloading and listing plugins (the plugin design notes).
@@ -641,14 +641,14 @@ public final class TurnOverMenu {
             let name = app.bundleIdentifier == Games.steamHelperBundle ? "Steam" : (app.localizedName ?? String(localized: "this app", comment: "An application with no name"))   // Big Picture's process, to the person: Steam
             for ai in PluginAI.allCases {
                 items.append(MenuItem("Make a plugin for \(name) with \(ai.rawValue)", .action { PluginAI.start(ai, pid: pid) },
-                                      hint: "Gives \(ai.rawValue) the window's labels, text and menus, and TurnOver's log with typing and speech left out"))
+                                      hint: "Gives \(ai.rawValue) the window's labels, text and menus, and Waypoint's log with typing and speech left out"))
             }
             items.append(MenuItem("Write a plugin for \(name) yourself", .action { PluginAI.startByHand(pid: pid) }, hint: "A starter folder with the guide, a snapshot of the app and its menus"))
         }
         items.append(MenuItem("Plugin library", .action { DispatchQueue.main.async { PluginLibrary.open() } }, hint: "Plugins others have made, checked and signed; each says what it can do before it installs"))
         items.append(MenuItem("Open the plugin guide", .action { DispatchQueue.main.async { PluginAI.openGuide() } }))
         if Trackpad.available {
-            items.append(MenuItem("Gesture control", .toggle(get: { Trackpad.controlOn }, set: { Trackpad.set($0) }), hint: "The trackpad's gestures: VoiceOver's, or NVDA's in the Windows style. Also Command Control Comma, G; or hold the TurnOver key and turn two fingers, clockwise for on"))
+            items.append(MenuItem("Gesture control", .toggle(get: { Trackpad.controlOn }, set: { Trackpad.set($0) }), hint: "The trackpad's gestures: VoiceOver's, or NVDA's in the Windows style. Also Command Control Comma, G; or hold the Waypoint key and turn two fingers, clockwise for on"))
         }
         if PluginTry.anyConsent {
             items.append(MenuItem("Stop AIs trying keys", .action { PluginTry.revokeAll() }, hint: "Making a plugin let an AI try keys in that app for three hours; this ends it now"))
@@ -676,7 +676,7 @@ public final class TurnOverMenu {
                 if let view = p.profile?.view { title += String(localized: ", a \(String(describing: view.kind)) view", comment: "A plugin's kind of view (chat, media)") }
                 // A fix that ships inside TurnOver (Resources/fixes) can't be moved out of the app: no Remove for it.
                 let shipped = ProfileStore.shippedFixes.map { folder.path.hasPrefix($0.path) } ?? false
-                if shipped { title += String(localized: ", comes with TurnOver", comment: "A plugin that ships inside TurnOver") }
+                if shipped { title += String(localized: ", comes with Waypoint", comment: "A plugin that ships inside Waypoint") }
                 items.append(MenuItem(verbatim: title, .submenu {
                     var sub: [MenuItem] = [
                     MenuItem("About", .action {
@@ -724,17 +724,17 @@ public final class TurnOverMenu {
         var items: [MenuItem] = []
         if let app = AppRequest.frontApp, let bundle = app.bundleIdentifier {
             let turnOver = readsApp?(bundle) ?? config.applications.listedForTurnOver(bundle)
-            let reader = turnOver ? "TurnOver" : "VoiceOver", other = turnOver ? "VoiceOver" : "TurnOver"
+            let reader = turnOver ? "Waypoint" : "VoiceOver", other = turnOver ? "VoiceOver" : "Waypoint"
             let front = app.localizedName ?? String(localized: "The app in front", comment: "The application in front, when it has no name")
             items.append(MenuItem("\(front), the app in front: read by \(reader)", .action { self.switchReader?() },
                                   hint: "Return gives it to \(other)"))
         }
-        items.append(MenuItem("Switch between TurnOver and VoiceOver as I change apps", .toggle(get: { config.applications.automaticHandOver }, set: { config.applications.automaticHandOver = $0 })))
+        items.append(MenuItem("Switch between Waypoint and VoiceOver as I change apps", .toggle(get: { config.applications.automaticHandOver }, set: { config.applications.automaticHandOver = $0 })))
         // Who reads, everywhere at once (wishlist 2): also Command Control Comma, then A.
         items.append(MenuItem("Who reads", .cycle(options: Config.Applications.leadModes.map(Config.Applications.leadModeName),
             get: { Config.Applications.leadModes.firstIndex(of: config.applications.leadMode) ?? 0 },
             set: { i in config.applications.leadMode = Config.Applications.leadModes[i]; config.save(); self.leadModeChanged?() }),
-            hint: "TurnOver in its apps, TurnOver everywhere, or VoiceOver everywhere. Command Control Comma, then A, does this anywhere"))
+            hint: "Waypoint in its apps, Waypoint everywhere, or VoiceOver everywhere. Command Control Comma, then A, does this anywhere"))
         let installed = Self.installedApps()
         func name(_ b: String) -> String {
             if let n = (Edition.supportedApps + Edition.devApps).first(where: { $0.bundle == b })?.name { return Self.plainName(n) }
@@ -748,8 +748,8 @@ public final class TurnOverMenu {
                 }
                 config.applications.give(b, toTurnOver: toTurnOver)
                 config.save()
-                let reader = toTurnOver ? "TurnOver" : "VoiceOver"
-                Speech.speakMessage(String(localized: "\(name(b)): \(reader) reads it now", comment: "An app moved to a reader: %1$@ is the app, %2$@ TurnOver or VoiceOver"))
+                let reader = toTurnOver ? "Waypoint" : "VoiceOver"
+                Speech.speakMessage(String(localized: "\(name(b)): \(reader) reads it now", comment: "An app moved to a reader: %1$@ is the app, %2$@ Waypoint or VoiceOver"))
             }
         }
         let apps = config.applications
@@ -758,27 +758,27 @@ public final class TurnOverMenu {
         let byTurnOver = known.filter { b in b != Bundle.main.bundleIdentifier && apps.listedForTurnOver(b)
             && (apps.leadMode == "apps" || NSWorkspace.shared.urlForApplication(withBundleIdentifier: b) != nil) }
             .sorted { name($0).lowercased() < name($1).lowercased() }
-        items.append(MenuItem(byTurnOver.count == 1 ? "Read by TurnOver, 1 app" : "Read by TurnOver, \(String(byTurnOver.count)) apps", .submenu {
+        items.append(MenuItem(byTurnOver.count == 1 ? "Read by Waypoint, 1 app" : "Read by Waypoint, \(String(byTurnOver.count)) apps", .submenu {
             byTurnOver.isEmpty ? [MenuItem("None yet", .action {})] : byTurnOver.map { b in
-                MenuItem(verbatim: Edition.isVerified(b) ? name(b) : String(localized: "\(name(b)), not yet checked", comment: "An app not yet checked with TurnOver"), move(b, toTurnOver: false),
-                         hint: String(localized: "Return gives it to VoiceOver", comment: "A hint in the TurnOver menu"))
+                MenuItem(verbatim: Edition.isVerified(b) ? name(b) : String(localized: "\(name(b)), not yet checked", comment: "An app not yet checked with Waypoint"), move(b, toTurnOver: false),
+                         hint: String(localized: "Return gives it to VoiceOver", comment: "A hint in the Waypoint menu"))
             }
         }))
         let supported = (Edition.supportedApps + Edition.devApps).filter { a in
             !apps.listedForTurnOver(a.bundle) && NSWorkspace.shared.urlForApplication(withBundleIdentifier: a.bundle) != nil
         }
         items.append(MenuItem(supported.count == 1 ? "Read by VoiceOver, supported, 1 app" : "Read by VoiceOver, supported, \(String(supported.count)) apps", .submenu {
-            supported.isEmpty ? [MenuItem("None: TurnOver reads them all", .action {})] : supported.map { a in
-                MenuItem(verbatim: a.name.contains("preview") ? String(localized: "\(Self.plainName(a.name)), preview", comment: "An app TurnOver reads as a preview") : Self.plainName(a.name), move(a.bundle, toTurnOver: true),
-                         hint: String(localized: "Return gives it to TurnOver", comment: "A hint in the TurnOver menu"))
+            supported.isEmpty ? [MenuItem("None: Waypoint reads them all", .action {})] : supported.map { a in
+                MenuItem(verbatim: a.name.contains("preview") ? String(localized: "\(Self.plainName(a.name)), preview", comment: "An app Waypoint reads as a preview") : Self.plainName(a.name), move(a.bundle, toTurnOver: true),
+                         hint: String(localized: "Return gives it to Waypoint", comment: "A hint in the Waypoint menu"))
             }
-        }, hint: "Apps TurnOver works with, which VoiceOver reads for now"))
+        }, hint: "Apps Waypoint works with, which VoiceOver reads for now"))
         let others = installed.filter { !Edition.isVerified($0.0) && !apps.listedForTurnOver($0.0) }
         items.append(MenuItem("Other apps on this Mac, \(String(others.count))", .submenu {
             others.sorted { $0.1.lowercased() < $1.1.lowercased() }.map { a in
-                MenuItem(verbatim: a.1, move(a.0, toTurnOver: true), hint: String(localized: "Not yet checked with TurnOver; it may read badly. Return gives it to TurnOver", comment: "A hint in the TurnOver menu"))
+                MenuItem(verbatim: a.1, move(a.0, toTurnOver: true), hint: String(localized: "Not yet checked with Waypoint; it may read badly. Return gives it to Waypoint", comment: "A hint in the Waypoint menu"))
             }
-        }, hint: "Not yet checked with TurnOver. Type the start of a name to move to it"))
+        }, hint: "Not yet checked with Waypoint. Type the start of a name to move to it"))
         items += requestItem()
         return items
     }
@@ -841,7 +841,7 @@ public final class TurnOverMenu {
         return [
             MenuItem("Bluetooth displays", .toggle(get: { config.braille.bluetooth }, set: {
                 config.braille.bluetooth = $0
-                if $0 { Speech.speakMessage(String(localized: "Looking for a paired braille display. macOS may ask whether TurnOver can use Bluetooth.", comment: "Bluetooth braille displays turned on")); BrailleDisplays.shared.lookNow() }
+                if $0 { Speech.speakMessage(String(localized: "Looking for a paired braille display. macOS may ask whether Waypoint can use Bluetooth.", comment: "Bluetooth braille displays turned on")); BrailleDisplays.shared.lookNow() }
             })),
             MenuItem("Braille table", .submenu {
                 @MainActor func item(_ t: (id: String, name: String)) -> MenuItem {
@@ -854,13 +854,13 @@ public final class TurnOverMenu {
                     TOBrailleTranslatorTables.otherLanguages().map { lang in MenuItem(verbatim: lang.language, .submenu { lang.tables.map(item) }) }
                 })]
             }),
-            MenuItem("Typing on the braille keyboard", .cycle(options: [String(localized: "contracted, a word at a time", comment: "A choice in the TurnOver menu"), String(localized: "uncontracted, letter by letter", comment: "A choice in the TurnOver menu")],
+            MenuItem("Typing on the braille keyboard", .cycle(options: [String(localized: "contracted, a word at a time", comment: "A choice in the Waypoint menu"), String(localized: "uncontracted, letter by letter", comment: "A choice in the Waypoint menu")],
                 get: { config.braille.contractedInput ? 0 : 1 }, set: { config.braille.contractedInput = $0 == 0 })),
-            MenuItem("Speak braille typing", .cycle(options: [String(localized: "words", comment: "A choice in the TurnOver menu"), String(localized: "characters", comment: "A choice in the TurnOver menu"), String(localized: "characters and words", comment: "A choice in the TurnOver menu"), String(localized: "off", comment: "A choice in the TurnOver menu")],
+            MenuItem("Speak braille typing", .cycle(options: [String(localized: "words", comment: "A choice in the Waypoint menu"), String(localized: "characters", comment: "A choice in the Waypoint menu"), String(localized: "characters and words", comment: "A choice in the Waypoint menu"), String(localized: "off", comment: "A choice in the Waypoint menu")],
                 get: { ["words", "characters", "both", "off"].firstIndex(of: config.braille.inputEcho) ?? 0 },
                 set: { config.braille.inputEcho = ["words", "characters", "both", "off"][$0] })),
             MenuItem("Messages", .submenu { [
-                MenuItem("Messages on the display", .cycle(options: [String(localized: "for a time", comment: "A choice in the TurnOver menu"), String(localized: "until a key is pressed", comment: "A choice in the TurnOver menu"), String(localized: "off", comment: "A choice in the TurnOver menu")],
+                MenuItem("Messages on the display", .cycle(options: [String(localized: "for a time", comment: "A choice in the Waypoint menu"), String(localized: "until a key is pressed", comment: "A choice in the Waypoint menu"), String(localized: "off", comment: "A choice in the Waypoint menu")],
                     get: { ["timeout", "indefinitely", "off"].firstIndex(of: config.braille.showMessages) ?? 0 },
                     set: { config.braille.showMessages = ["timeout", "indefinitely", "off"][$0] })),
                 MenuItem("How long", .number(get: { Double(config.braille.messageSeconds) }, set: { config.braille.messageSeconds = Int($0) },
@@ -872,7 +872,7 @@ public final class TurnOverMenu {
                 MenuItem("Blink", .toggle(get: { config.braille.blinkCursor }, set: { config.braille.blinkCursor = $0; Braille.refreshSoon() })),
                 MenuItem("Blink rate", .number(get: { Double(config.braille.blinkRateMs) }, set: { config.braille.blinkRateMs = Int($0) },
                     step: 100, min: 200, max: 2000, format: { String(localized: "\(String(Int($0.rounded()))) milliseconds", comment: "A time") })),
-                MenuItem("Shape", .cycle(options: [String(localized: "dots 7 and 8", comment: "A choice in the TurnOver menu"), String(localized: "dot 8", comment: "A choice in the TurnOver menu"), String(localized: "all dots", comment: "A choice in the TurnOver menu")],
+                MenuItem("Shape", .cycle(options: [String(localized: "dots 7 and 8", comment: "A choice in the Waypoint menu"), String(localized: "dot 8", comment: "A choice in the Waypoint menu"), String(localized: "all dots", comment: "A choice in the Waypoint menu")],
                     get: { ["78", "8", "all"].firstIndex(of: config.braille.cursorShape) ?? 0 },
                     set: { config.braille.cursorShape = ["78", "8", "all"][$0]; Braille.refreshSoon() })),
                 MenuItem("Selection with dots 7 and 8", .toggle(get: { config.braille.showSelection }, set: { config.braille.showSelection = $0; Braille.refreshSoon() })),
@@ -887,7 +887,7 @@ public final class TurnOverMenu {
         var items = [
             MenuItem("Give a key to a command", .action { [weak self] in self?.chooseCommandForKey() }),
             MenuItem("Give a key to open an app", .action { [weak self] in self?.chooseAppForKey() }, hint: "Right Option keys work, as in VoiceOver's Keyboard Commander"),
-            MenuItem("Take a key away from TurnOver, so it goes to the app", .action { Self.captureKey(prompt: String(localized: "Press the key to take away", comment: "Taking a key away from TurnOver")) { g in
+            MenuItem("Take a key away from Waypoint, so it goes to the app", .action { Self.captureKey(prompt: String(localized: "Press the key to take away", comment: "Taking a key away from Waypoint")) { g in
                 let had = ScriptHandler.findScript(for: g)?.description
                 UserGestures.set(g, to: .removed)
                 let key = UserGestures.spoken(UserGestures.storedIdentifier(of: g))
@@ -900,7 +900,7 @@ public final class TurnOverMenu {
         for (id, stored) in mine {
             guard let t = UserGestures.Target(stored) else { continue }
             items.append(MenuItem("\(UserGestures.spoken(id)): \(UserGestures.describe(t)). Return to remove", .select {
-                UserGestures.clear(id); Speech.speakMessage(String(localized: "\(UserGestures.spoken(id)) is back to TurnOver's own", comment: "A key of your own removed: %@ is the key"))
+                UserGestures.clear(id); Speech.speakMessage(String(localized: "\(UserGestures.spoken(id)) is back to Waypoint's own", comment: "A key of your own removed: %@ is the key"))
             }))
         }
         return items
@@ -960,11 +960,11 @@ public final class TurnOverMenu {
             MenuItem("Mouse moves the cursor", .toggle(get: { config.presentation.mouseMovesCursor }, set: { config.presentation.mouseMovesCursor = $0 }), hint: "With mouse tracking, the review cursor goes to what the pointer is over; the keyboard focus never does"),
             MenuItem("Mouse interrupts other speech", .toggle(get: { config.presentation.mouseInterruptsSpeech }, set: { config.presentation.mouseInterruptsSpeech = $0 }), hint: "With mouse tracking, the pointer also cuts off other speech, such as notifications; off, only the pointer's own speech gives way"),
             MenuItem("Mouse reads the whole paragraph", .toggle(get: { config.presentation.mouseReadsParagraphs }, set: { config.presentation.mouseReadsParagraphs = $0 }), hint: "With mouse tracking, text in a web page is read as its whole paragraph, so bold, emphasized or linked words in it do not start a new announcement; a link is still said as a link"),
-            MenuItem("Progress bars", .cycle(options: [String(localized: "beep", comment: "A choice in the TurnOver menu"), String(localized: "speak the percentage", comment: "A choice in the TurnOver menu"), String(localized: "beep and speak", comment: "A choice in the TurnOver menu"), String(localized: "off", comment: "A choice in the TurnOver menu")],
+            MenuItem("Progress bars", .cycle(options: [String(localized: "beep", comment: "A choice in the Waypoint menu"), String(localized: "speak the percentage", comment: "A choice in the Waypoint menu"), String(localized: "beep and speak", comment: "A choice in the Waypoint menu"), String(localized: "off", comment: "A choice in the Waypoint menu")],
                 get: { ProgressOutput.modes.firstIndex(of: config.presentation.progressBars) ?? 0 },
                 set: { config.presentation.progressBars = ProgressOutput.modes[$0] }), hint: "Beeps that rise in pitch as a progress bar moves, the percentage spoken, both, or nothing"),
             // A tester T, 7 Oct 2026: "AppleVis, heading level 1", as VoiceOver, rather than NVDA's "heading level 1, AppleVis".
-            MenuItem("Heading, link and button: when to say them", .cycle(options: [String(localized: "by keyboard style", comment: "A choice in the TurnOver menu"), String(localized: "before the words, as NVDA", comment: "A choice in the TurnOver menu"), String(localized: "after the words, as VoiceOver", comment: "A choice in the TurnOver menu")],
+            MenuItem("Heading, link and button: when to say them", .cycle(options: [String(localized: "by keyboard style", comment: "A choice in the Waypoint menu"), String(localized: "before the words, as NVDA", comment: "A choice in the Waypoint menu"), String(localized: "after the words, as VoiceOver", comment: "A choice in the Waypoint menu")],
                 get: { ["auto", "before", "after"].firstIndex(of: config.documentFormatting.roleOrder) ?? 0 },
                 set: { config.documentFormatting.roleOrder = ["auto", "before", "after"][$0] }), hint: "By keyboard style: after the words in the Mac style, before them in the Windows style"),
         ]

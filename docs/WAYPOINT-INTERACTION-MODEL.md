@@ -27,6 +27,7 @@ predictable behaviour from saved rules rather than AI guesses.
 
 | Part | State | Where |
 | --- | --- | --- |
+| Waypoint off and on without VoiceOver, kept across restarts | Built | `Core/Support/WaypointPause.swift` |
 | Focus memory (app and region, kept a week, survives restarts) | Built | `FocusMemory*.swift` |
 | Areas: jump to any window area without a recipe, and the Tools list | Built | `AreaMap`, `AreaMenu`, `AreaPanel` |
 | Second reader (review layer): read around a text field without leaving it | Built | `ReviewLayer*.swift`, `ReadWhileTyping.swift` |
@@ -54,6 +55,7 @@ predictable behaviour from saved rules rather than AI guesses.
 
 | Keys | What it does |
 | --- | --- |
+| Right Option + Right Shift + / | Waypoint off or on. Off is silent, VoiceOver is not started, and it stays off after a restart; Command Control Period still quits and hands to VoiceOver |
 | Right Option 1 to 9 | Jump to a pane or band of the window, in layout order; the side panel is last |
 | Right Option 0 | The Global area: the app's bars and every toolbar button, as a list |
 | VO-Option-O, M, A, F | Tools of this area; main content; first list (navigation); the window's search field |

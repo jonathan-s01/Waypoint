@@ -172,7 +172,7 @@ public final class KeypadCommands: ScriptableObject {
     private override init() {
         super.init()
         let cat = "Keypad"
-        script("keypad_guide", String(localized: "Opens the TurnOver guide (keypad Minus, as VoiceOver's)", comment: "A command, as the key list and keyboard help say it"), category: cat) { _ in TurnOverGuide.open() }
+        script("keypad_guide", String(localized: "Opens the Waypoint guide (keypad Minus, as VoiceOver's)", comment: "A command, as the key list and keyboard help say it"), category: cat) { _ in TurnOverGuide.open() }
         script("keypad_windows", String(localized: "The window chooser (keypad Slash, as VoiceOver's)", comment: "A command, as the key list and keyboard help say it"), category: cat) { _ in VoiceOverKeysPlugin.windowChooser() }
         for (name, forward) in [("keypad_previousWord", false), ("keypad_nextWord", true)] {
             script(name, forward ? String(localized: "Next word (Command keypad 8)", comment: "A command, as the key list and keyboard help say it") : String(localized: "Previous word (Command keypad 7)", comment: "A command, as the key list and keyboard help say it"), category: cat) { _ in
@@ -193,7 +193,7 @@ public final class KeypadCommands: ScriptableObject {
         }
         for (name, what) in [("keypad_selectText", String(localized: "Selecting the text under the VoiceOver cursor", comment: "A VoiceOver feature")), ("keypad_tableHeader", String(localized: "Moving to the table's header", comment: "A VoiceOver feature")),
                              ("keypad_reviewModes", String(localized: "Review modes", comment: "A VoiceOver feature"))] {
-            script(name, String(localized: "\(what): not in TurnOver yet", comment: "A VoiceOver feature TurnOver lacks: %@ is the feature"), category: cat) { _ in Speech.speakMessage(String(localized: "\(what) isn't available in TurnOver yet", comment: "A VoiceOver feature TurnOver lacks: %@ is the feature")) }
+            script(name, String(localized: "\(what): not in Waypoint yet", comment: "A VoiceOver feature Waypoint lacks: %@ is the feature"), category: cat) { _ in Speech.speakMessage(String(localized: "\(what) isn't available in Waypoint yet", comment: "A VoiceOver feature Waypoint lacks: %@ is the feature")) }
         }
         // NVDA's keypad 1 and 3: review by character anywhere (Caps Lock Left and Right do it only in text).
         script("keypad_reviewPreviousCharacter", String(localized: "Moves the review cursor to the previous character (keypad 1)", comment: "A command, as the key list and keyboard help say it"), category: cat) { _ in TextReview.move(.character, -1) }

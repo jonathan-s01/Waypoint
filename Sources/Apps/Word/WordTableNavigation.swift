@@ -61,10 +61,10 @@ extension WordAppModule {
         }
         for (name, dr, dc, keys) in [("table_nextColumn", 0, 1, ["kb:turnover+rightArrow"]), ("table_previousColumn", 0, -1, ["kb:turnover+leftArrow"]),
                                      ("table_nextRow", 1, 0, ["kb:turnover+downArrow"]), ("table_previousRow", -1, 0, ["kb:turnover+upArrow"])] {
-            let description = dr == 0 ? (dc > 0 ? String(localized: "In a table: the next cell in the row, the caret at its start (NVDA's table keys; TurnOver plus the arrows)", comment: "A command, as the key list and keyboard help say it")
-                                                : String(localized: "In a table: the previous cell in the row, the caret at its start (NVDA's table keys; TurnOver plus the arrows)", comment: "A command, as the key list and keyboard help say it"))
-                : (dr > 0 ? String(localized: "In a table: the cell below, the caret at its start (NVDA's table keys; TurnOver plus the arrows)", comment: "A command, as the key list and keyboard help say it")
-                          : String(localized: "In a table: the cell above, the caret at its start (NVDA's table keys; TurnOver plus the arrows)", comment: "A command, as the key list and keyboard help say it"))
+            let description = dr == 0 ? (dc > 0 ? String(localized: "In a table: the next cell in the row, the caret at its start (NVDA's table keys; Waypoint plus the arrows)", comment: "A command, as the key list and keyboard help say it")
+                                                : String(localized: "In a table: the previous cell in the row, the caret at its start (NVDA's table keys; Waypoint plus the arrows)", comment: "A command, as the key list and keyboard help say it"))
+                : (dr > 0 ? String(localized: "In a table: the cell below, the caret at its start (NVDA's table keys; Waypoint plus the arrows)", comment: "A command, as the key list and keyboard help say it")
+                          : String(localized: "In a table: the cell above, the caret at its start (NVDA's table keys; Waypoint plus the arrows)", comment: "A command, as the key list and keyboard help say it"))
             script(name, description, gestures: keys, category: "Microsoft Word") { [weak self] _ in
                 self?.liveCell()?.move(dr, dc)
             }.isAvailable = { [weak self] in

@@ -333,7 +333,7 @@ enum ReviewLayer {
     static func captureResetKey() {
         TurnOverMenu.captureKey(prompt: String(localized: "Press the key that puts the second reader back with the keyboard", comment: "Spoken message: waiting for a key")) { g in
             if UserGestures.isProtected(g) {
-                Speech.speakMessage(String(localized: "\(g.displayName) is one of TurnOver's essential keys and can't be changed", comment: "Spoken message: %@ is the command"))
+                Speech.speakMessage(String(localized: "\(g.displayName) is one of Waypoint's essential keys and can't be changed", comment: "Spoken message: %@ is the command"))
                 return
             }
             clearResetKey()

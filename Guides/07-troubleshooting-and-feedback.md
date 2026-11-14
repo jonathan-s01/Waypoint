@@ -1,8 +1,8 @@
 # Troubleshooting and feedback
 
-## TurnOver stops answering
+## Waypoint stops answering
 
-VoiceOver comes back by itself within a few seconds, and your keys work again; if TurnOver is still stuck, it
+VoiceOver comes back by itself within a few seconds, and your keys work again; if Waypoint is still stuck, it
 restarts itself. **Command Control Period** stops or starts it from anywhere.
 
 ## No sound at all
@@ -13,7 +13,7 @@ If even VoiceOver is silent, macOS's sound service may have stopped. In Terminal
 sudo killall coreaudiod
 ```
 
-Or restart the Mac. Then press Command Control Period to start TurnOver.
+Or restart the Mac. Then press Command Control Period to start Waypoint.
 
 ## Force quit, spoken
 
@@ -22,17 +22,17 @@ Command Option Escape lists the running apps: choose one, then force quit it, as
 ## Sending feedback
 
 - The moment something goes wrong: **Command Control Comma, J** marks it, and you carry on.
-- When you're ready: the TurnOver menu, Send feedback. A report is saved to your Desktop, and TurnOver's problem form
+- When you're ready: the Waypoint menu, Send feedback. A report is saved to your Desktop, and Waypoint's problem form
   opens on GitHub with your build and Mac filled in. Say in a sentence what you were doing and what you expected, and
-  drag the report in if you like. Reports on GitHub are public: choose the report without what TurnOver said if
+  drag the report in if you like. Reports on GitHub are public: choose the report without what Waypoint said if
   anything private was on screen.
-- To help with an app: switch to it, then the TurnOver menu, This app, Help improve this app. Tell us what's wrong
+- To help with an app: switch to it, then the Waypoint menu, This app, Help improve this app. Tell us what's wrong
   opens the form on GitHub, filled in with how the app is built (never what's in it). There's more in
-  [Helping TurnOver read your apps](helping-turnover.html).
-- You need a free GitHub account to post. TurnOver is a spare-time project: every report is read, but replies may
+  [Helping Waypoint read your apps](helping-turnover.html).
+- You need a free GitHub account to post. Waypoint is a spare-time project: every report is read, but replies may
   take a while.
 
-## Removing TurnOver
+## Removing Waypoint
 
-The TurnOver menu, About and updates, Uninstall TurnOver: the app only (your settings kept), or everything
-(settings, logs, permissions and login items), which also turns VoiceOver on and removes anything an earlier TurnOver put into VoiceOver's settings.
+The Waypoint menu, About and updates, Uninstall Waypoint: the app only (your settings kept), or everything
+(settings, logs, permissions and login items), which also turns VoiceOver on and removes anything an earlier Waypoint put into VoiceOver's settings.

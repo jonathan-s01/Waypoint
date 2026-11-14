@@ -46,7 +46,7 @@ final class WordAppModule: AppModule {
     override func hint(for object: TurnOverObject) -> String? {
         // Not a dialog's text box: Insert Table's column width got the document hint (7 Oct 2026).
         guard (object.role == .document || object.role == .editableText), !AXHandler.modalInFront(pid: object.pid) else { return nil }
-        return String(localized: "TurnOver Down reads from here; TurnOver H moves by heading.", comment: "A hint, said after a pause on an item")
+        return String(localized: "Waypoint Down reads from here; Waypoint H moves by heading.", comment: "A hint, said after a pause on an item")
     }
 
     override func paragraphFormatting(_ completion: @escaping @MainActor (String) -> Void) {

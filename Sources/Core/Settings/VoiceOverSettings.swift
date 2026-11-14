@@ -124,7 +124,7 @@ extension VoiceOverSettings {
         public var archiveVersion = 0
     }
 
-    public static let key = "the TurnOver menu, Settings, Copy VoiceOver settings, Copy"
+    public static let key = "the Waypoint menu, Settings, Copy VoiceOver settings, Copy"
 
     /// The newest export in Downloads or on the Desktop, modified after `since` (nil: any).
     public static func newestExport(since: Date?) -> URL? {
@@ -230,7 +230,7 @@ extension VoiceOverSettings {
         Speech.player.volume = Float(config.speech.volume) / 100
         config.save()
         try? FileManager.default.removeItem(at: beforeURL)
-        let voice = AVSpeechSynthesisVoice(identifier: config.speech.voice)?.name ?? String(localized: "its voice", comment: "TurnOver's voice, when it has no name")
+        let voice = AVSpeechSynthesisVoice(identifier: config.speech.voice)?.name ?? String(localized: "its voice", comment: "Waypoint's voice, when it has no name")
         Log.info("VoiceOver settings copy undone: back to \(voice), rate \(Int((config.speech.rate * 100).rounded()))")
         return String(localized: "Put back: \(voice), \(Phrases.rate(Int((config.speech.rate * 100).rounded()))), and the verbosity and typing echo from before the copy.", comment: "The VoiceOver settings copy reverted: the voice, then the rate")
     }
@@ -251,11 +251,11 @@ extension VoiceOverSettings {
             // Said at the end, apart from the list, or the copy sounded like a failure ("it fails because it can't
             // find a voice", a reader on AppleVis with a Siri voice, 26 Oct 2026). The Siri voices are Apple's own:
             // only Siri and VoiceOver may speak with them, and no other program is given them.
-            let current = AVSpeechSynthesisVoice(identifier: config.speech.voice)?.name ?? String(localized: "its voice", comment: "TurnOver's voice, when it has no name")
+            let current = AVSpeechSynthesisVoice(identifier: config.speech.voice)?.name ?? String(localized: "its voice", comment: "Waypoint's voice, when it has no name")
             let siri = c.voiceId.contains("gryphon") || c.voiceId.lowercased().contains("siri")
             voiceNote = siri
-                ? String(localized: "VoiceOver's voice is a Siri voice, which Apple gives to Siri and VoiceOver alone, so TurnOver keeps \(current); choose a voice in Settings, Speech.", comment: "Copying VoiceOver's settings: %@ is TurnOver's voice")
-                : String(localized: "VoiceOver's voice isn't one TurnOver can use, so TurnOver keeps \(current); choose a voice in Settings, Speech.", comment: "Copying VoiceOver's settings: %@ is TurnOver's voice")
+                ? String(localized: "VoiceOver's voice is a Siri voice, which Apple gives to Siri and VoiceOver alone, so Waypoint keeps \(current); choose a voice in Settings, Speech.", comment: "Copying VoiceOver's settings: %@ is Waypoint's voice")
+                : String(localized: "VoiceOver's voice isn't one Waypoint can use, so Waypoint keeps \(current); choose a voice in Settings, Speech.", comment: "Copying VoiceOver's settings: %@ is Waypoint's voice")
             Log.info("VoiceOver settings: voice \(c.voiceId) not usable; keeping \(config.speech.voice)")
         }
         config.speech.rate = min(1.0, max(0.1, c.rate))
@@ -313,7 +313,7 @@ extension VoiceOverSettings {
         config.save()
         Log.info("VoiceOver settings copied (archive version \(c.archiveVersion)): \(said.joined(separator: ", "))")
         let copied = String(localized: "VoiceOver settings copied: \(said.joined(separator: ", ")).", comment: "The VoiceOver settings copy done: %@ lists what was copied")
-        let again = String(localized: "Run it again whenever you change VoiceOver's settings: the TurnOver menu, Copy VoiceOver settings.", comment: "The VoiceOver settings copy done")
+        let again = String(localized: "Run it again whenever you change VoiceOver's settings: the Waypoint menu, Copy VoiceOver settings.", comment: "The VoiceOver settings copy done")
         return [copied, voiceNote, again].filter { !$0.isEmpty }.joined(separator: " ")
     }
 
@@ -342,7 +342,7 @@ extension VoiceOverSettings {
         }
         flowRunning = true
         let since = Date()
-        sayByEitherReader(String(localized: "VoiceOver Utility is opening, with VoiceOver. When the save sheet appears, press Return to save to Downloads; TurnOver copies the settings when the file appears.", comment: "Spoken message"))
+        sayByEitherReader(String(localized: "VoiceOver Utility is opening, with VoiceOver. When the save sheet appears, press Return to save to Downloads; Waypoint copies the settings when the file appears.", comment: "Spoken message"))
         guard let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: utilityBundle) else {
             Speech.speakMessage(String(localized: "VoiceOver Utility wasn't found.", comment: "Spoken message")); flowRunning = false; return
         }

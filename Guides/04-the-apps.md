@@ -1,11 +1,11 @@
 # The apps
 
-What TurnOver adds in each app it reads. To give an app to TurnOver or back to VoiceOver: Command Control Comma, T.
+What Waypoint adds in each app it reads. To give an app to Waypoint or back to VoiceOver: Command Control Comma, T.
 
 ## Mail
 
 Up and Down move through the messages; Home and End go to the first and last. The message is read as a document.
-Tab goes from the list to the message, Shift Tab to the mailboxes. Command Shift D sends, and TurnOver says "sent".
+Tab goes from the list to the message, Shift Tab to the mailboxes. Command Shift D sends, and Waypoint says "sent".
 
 ## Messages and WhatsApp
 
@@ -30,7 +30,7 @@ leaves the list.
 
 Word reads as you move, says the page as you reach it, and has VoiceOver's keys for headings, tracked changes and
 spelling errors (VO Command H, R, E). Tables say each cell with its headings. In Excel, cells are read as you move.
-Word's native caret boundaries use Word/macOS's sound; TurnOver keeps its own review and table-edge feedback.
+Word's native caret boundaries use Word/macOS's sound; Waypoint keeps its own review and table-edge feedback.
 
 ## Calendar (experimental)
 
@@ -45,15 +45,15 @@ Command T goes to today.
 - **Numbers:** an arrow on an empty sheet goes into its first table; moving says each cell with its column's or
   row's heading ("Sales, 1521"); VO Command T and Shift T go between tables.
 - **Keynote:** moving between slides reads the slide, title first, with its notes when they are showing. While a
-  presentation plays, each slide is read as you move (macOS asks once whether TurnOver may control Keynote).
+  presentation plays, each slide is read as you move (macOS asks once whether Waypoint may control Keynote).
 
 ## Terminal
 
-New output is read as it arrives; your own typing isn't read twice. TurnOver Up and Down review earlier lines.
+New output is read as it arrives; your own typing isn't read twice. Waypoint Up and Down review earlier lines.
 
 ## Steam
 
 Steam's Big Picture is read as you move, once you turn it on: Settings, Other apps' speech, Read Steam's Big Picture, then Restart Steam there. It's
 off to begin with because reading it makes Steam open a debugging port on your Mac while Steam runs, which other
-programs on the same Mac could use too; turning it off, or uninstalling TurnOver, removes that again. Games that
-support it speak through TurnOver without any of this.
+programs on the same Mac could use too; turning it off, or uninstalling Waypoint, removes that again. Games that
+support it speak through Waypoint without any of this.

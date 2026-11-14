@@ -529,16 +529,16 @@ public final class ProfileStore {
             let plugins = Array(Set(questions.map(\.plugin))).sorted().joined(separator: ", ")
             Log.info("plugins \(plugins): asking whether TurnOver should read \(questions.map(\.bundle).joined(separator: ", "))")
             TurnOverMenu.shared.openList(verbatim: questions.count == 1
-                ? String(localized: "TurnOver doesn't read \(names) yet. Read it with TurnOver from now on, for \(plugins)?", comment: "A plugin's app TurnOver doesn't read: the app, then the plugin")
-                : String(localized: "TurnOver doesn't read \(names) yet. Read them with TurnOver from now on, for \(plugins)?", comment: "A plugin's apps TurnOver doesn't read: the apps, then the plugins"), items: [
-                MenuItem("Yes, read \(names) with TurnOver", .action {
+                ? String(localized: "Waypoint doesn't read \(names) yet. Read it with Waypoint from now on, for \(plugins)?", comment: "A plugin's app Waypoint doesn't read: the app, then the plugin")
+                : String(localized: "Waypoint doesn't read \(names) yet. Read them with Waypoint from now on, for \(plugins)?", comment: "A plugin's apps Waypoint doesn't read: the apps, then the plugins"), items: [
+                MenuItem("Yes, read \(names) with Waypoint", .action {
                     for q in questions where !config.applications.leadBundles.contains(q.bundle) { config.applications.leadBundles.append(q.bundle) }
                     config.save()
-                    Speech.speakMessage(questions.count == 1 ? String(localized: "TurnOver reads \(names) from now on. Switch to it and back once.", comment: "An app given to TurnOver for a plugin")
-                        : String(localized: "TurnOver reads \(names) from now on. Switch to them and back once.", comment: "Apps given to TurnOver for a plugin"))
+                    Speech.speakMessage(questions.count == 1 ? String(localized: "Waypoint reads \(names) from now on. Switch to it and back once.", comment: "An app given to Waypoint for a plugin")
+                        : String(localized: "Waypoint reads \(names) from now on. Switch to them and back once.", comment: "Apps given to Waypoint for a plugin"))
                 }),
                 MenuItem("No, leave \(names) with VoiceOver", .action {
-                    Speech.speakMessage(String(localized: "\(plugins) waits until you hand \(names) to TurnOver: Command Control Comma, then T, in the app.", comment: "A plugin waiting for its app: the plugin, then the app"))
+                    Speech.speakMessage(String(localized: "\(plugins) waits until you hand \(names) to Waypoint: Command Control Comma, then T, in the app.", comment: "A plugin waiting for its app: the plugin, then the app"))
                 }),
             ])
         }
@@ -668,7 +668,7 @@ final class ProfilesPlugin: GlobalPlugin {
         case "say":
             break
         default:
-            Speech.speakMessage(String(localized: "unknown action \(rule.action)", comment: "A plugin key with an action TurnOver doesn't know: %@ is the action"))
+            Speech.speakMessage(String(localized: "unknown action \(rule.action)", comment: "A plugin key with an action Waypoint doesn't know: %@ is the action"))
         }
         if let s = rule.say { Speech.speakMessage(s) }
     }

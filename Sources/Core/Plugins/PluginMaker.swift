@@ -163,7 +163,7 @@ public enum PluginMaker {
     public static func open() {
         guard Edition.includesPlugins else { Speech.speakMessage(String(localized: "Plugins are not on in this version", comment: "Spoken message")); return }
         guard let (e, pid) = target(), let (bundle, appName) = app(pid) else { Speech.speakMessage(String(localized: "No item to change here", comment: "Spoken message")); return }
-        guard bundle != Bundle.main.bundleIdentifier else { Speech.speakMessage(String(localized: "TurnOver's own windows cannot be changed", comment: "Spoken message")); return }
+        guard bundle != Bundle.main.bundleIdentifier else { Speech.speakMessage(String(localized: "Waypoint's own windows cannot be changed", comment: "Spoken message")); return }
         let obj = ObjectFactory.make(e)
         let itemName = obj.name.isEmpty ? obj.role.displayString : "\(obj.name), \(obj.role.displayString)"
         let items: [MenuItem] = [
@@ -174,7 +174,7 @@ public enum PluginMaker {
             MenuItem("Don't announce this", .action { silence(e, pid: pid, bundle: bundle, appName: appName) }),
             // Sharing straight after the changes (7 Nov 2026: at the end of the list it went unfound).
             MenuItem("Share my changes for \(appName) on GitHub", .action { shareOnGitHub(bundle: bundle, appName: appName) },
-                     hint: "Copies your changes and opens a short form in your browser. Accepted changes come with TurnOver for everyone. You need a free GitHub account"),
+                     hint: "Copies your changes and opens a short form in your browser. Accepted changes come with Waypoint for everyone. You need a free GitHub account"),
             MenuItem("Undo the last change", .action { undo() }),
             MenuItem("My changes for \(appName)", .action { DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { listChanges(bundle: bundle, appName: appName) } }),
             MenuItem("Save my changes for \(appName) as a file", .action { share(bundle: bundle, appName: appName) },
@@ -250,8 +250,8 @@ public enum PluginMaker {
         let hasValue = e.attr(kAXValueAttribute) != nil
         let rule = WatchRule(match: m, prefix: obj.name.isEmpty ? nil : obj.name, read: hasValue ? "value" : "text")
         if add("watch", bundle: bundle, appName: appName, change: { p in p.watch = (p.watch ?? []) + [rule]; return encode(rule) }) {
-            Speech.speakMessage(obj.name.isEmpty ? String(localized: "TurnOver will read this when it changes. Saved", comment: "An item watched for changes")
-                : String(localized: "TurnOver will read \(obj.name) when it changes. Saved", comment: "An item watched for changes: %@ is its name"))
+            Speech.speakMessage(obj.name.isEmpty ? String(localized: "Waypoint will read this when it changes. Saved", comment: "An item watched for changes")
+                : String(localized: "Waypoint will read \(obj.name) when it changes. Saved", comment: "An item watched for changes: %@ is its name"))
         }
     }
 

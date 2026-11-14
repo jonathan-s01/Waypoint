@@ -71,7 +71,7 @@ public final class Script {
         case "Text navigation": return String(localized: "Text navigation", comment: "A group of commands in the key list")
         case "Text review": return String(localized: "Text review", comment: "A group of commands in the key list")
         case "This control": return String(localized: "This control", comment: "A group of commands in the key list")
-        case "TurnOver": return String(localized: "TurnOver", comment: "A group of commands in the key list")
+        case "Waypoint": return String(localized: "Waypoint", comment: "A group of commands in the key list")
         case "VoiceOver keys": return String(localized: "VoiceOver keys", comment: "A group of commands in the key list")
         case "Windows keys": return String(localized: "Windows keys", comment: "A group of commands in the key list")
         case "Your keys": return String(localized: "Your keys", comment: "A group of commands in the key list")
@@ -107,7 +107,7 @@ public final class Script {
 }
 
 open class ScriptableObject {
-    public static let defaultCategory = "TurnOver"
+    public static let defaultCategory = "Waypoint"
     private var scripts: [String: Script] = [:]
     /// normalized identifier → script names, the latest declared first. Several scripts may share a key, each with
     /// its own isAvailable: the first available one runs. (One name per key let a later script silently replace an

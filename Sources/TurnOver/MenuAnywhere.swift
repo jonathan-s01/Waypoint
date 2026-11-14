@@ -64,35 +64,35 @@ final class MenuAnywhere {
         var l: [String: (spoken: String, kind: Kind, action: @MainActor () -> Void)] = [
         // M for the menu (14 Oct 2026: clearer than NVDA's N, and the layer is TurnOver's own); N still opens
         // it, unlisted, for hands used to it. The plugin maker moved from M to W ("write a plugin").
-        "m": (String(localized: "menu", comment: "A letter's command in the TurnOver layer (Command Control Comma)"), .list, { TurnOverMenu.shared.open() }),
-        "n": (String(localized: "menu", comment: "A letter's command in the TurnOver layer (Command Control Comma)"), .list, { TurnOverMenu.shared.open() }),
-        "s": (String(localized: "settings window", comment: "A letter's command in the TurnOver layer (Command Control Comma)"), .run, { SettingsBridge.open() }),   // the window (18 Oct 2026); M, Settings is the spoken menu
-        "/": (String(localized: "shortcuts here", comment: "A letter's command in the TurnOver layer (Command Control Comma)"), .list, { GlobalCommands.openShortcutsList() }),
-        "r": (String(localized: "screen recognition", comment: "A letter's command in the TurnOver layer (Command Control Comma)"), .list, { MenuAnywhere.shared.recognize() }),
-        "t": (String(localized: "switch reader", comment: "A letter's command in the TurnOver layer (Command Control Comma)"), .run, { MenuAnywhere.shared.switchLead?(MenuAnywhere.shared.voiceOverWasReading) }),
-        "d": (String(localized: "direct: this app's keys straight to it, TurnOver quiet", comment: "A letter's command in the TurnOver layer (Command Control Comma)"), .run, { MenuAnywhere.shared.toggleDirect?() }),
-        "a": (String(localized: "all apps: TurnOver in its apps, everywhere, or VoiceOver everywhere", comment: "A letter's command in the TurnOver layer (Command Control Comma)"), .run, { MenuAnywhere.shared.cycleLeadMode?() }),
-        "k": (String(localized: "keyboard style: VoiceOver, NVDA or JAWS keys", comment: "A letter's command in the TurnOver layer (Command Control Comma)"), .run, { MenuAnywhere.runScript("toggleKeyboardStyle") }),
-        "j": (String(localized: "that was wrong", comment: "A letter's command in the TurnOver layer (Command Control Comma)"), .run, { MenuAnywhere.runScript("markProblem") }),
-        "h": (String(localized: "guide", comment: "A letter's command in the TurnOver layer (Command Control Comma)"), .run, { TurnOverGuide.open() }),
-        "i": (String(localized: "describe image", comment: "A letter's command in the TurnOver layer (Command Control Comma)"), .run, { MenuAnywhere.runScript("describeImage") }),
-        "c": (String(localized: "copy last spoken", comment: "A letter's command in the TurnOver layer (Command Control Comma)"), .run, { MenuAnywhere.runScript("copyLastSpoken") }),
+        "m": (String(localized: "menu", comment: "A letter's command in the Waypoint layer (Command Control Comma)"), .list, { TurnOverMenu.shared.open() }),
+        "n": (String(localized: "menu", comment: "A letter's command in the Waypoint layer (Command Control Comma)"), .list, { TurnOverMenu.shared.open() }),
+        "s": (String(localized: "settings window", comment: "A letter's command in the Waypoint layer (Command Control Comma)"), .run, { SettingsBridge.open() }),   // the window (18 Oct 2026); M, Settings is the spoken menu
+        "/": (String(localized: "shortcuts here", comment: "A letter's command in the Waypoint layer (Command Control Comma)"), .list, { GlobalCommands.openShortcutsList() }),
+        "r": (String(localized: "screen recognition", comment: "A letter's command in the Waypoint layer (Command Control Comma)"), .list, { MenuAnywhere.shared.recognize() }),
+        "t": (String(localized: "switch reader", comment: "A letter's command in the Waypoint layer (Command Control Comma)"), .run, { MenuAnywhere.shared.switchLead?(MenuAnywhere.shared.voiceOverWasReading) }),
+        "d": (String(localized: "direct: this app's keys straight to it, Waypoint quiet", comment: "A letter's command in the Waypoint layer (Command Control Comma)"), .run, { MenuAnywhere.shared.toggleDirect?() }),
+        "a": (String(localized: "all apps: Waypoint in its apps, everywhere, or VoiceOver everywhere", comment: "A letter's command in the Waypoint layer (Command Control Comma)"), .run, { MenuAnywhere.shared.cycleLeadMode?() }),
+        "k": (String(localized: "keyboard style: VoiceOver, NVDA or JAWS keys", comment: "A letter's command in the Waypoint layer (Command Control Comma)"), .run, { MenuAnywhere.runScript("toggleKeyboardStyle") }),
+        "j": (String(localized: "that was wrong", comment: "A letter's command in the Waypoint layer (Command Control Comma)"), .run, { MenuAnywhere.runScript("markProblem") }),
+        "h": (String(localized: "guide", comment: "A letter's command in the Waypoint layer (Command Control Comma)"), .run, { TurnOverGuide.open() }),
+        "i": (String(localized: "describe image", comment: "A letter's command in the Waypoint layer (Command Control Comma)"), .run, { MenuAnywhere.runScript("describeImage") }),
+        "c": (String(localized: "copy last spoken", comment: "A letter's command in the Waypoint layer (Command Control Comma)"), .run, { MenuAnywhere.runScript("copyLastSpoken") }),
         // G: gesture control (the trackpad) on and off (14 Oct 2026: in the layer as well as by a gesture and the menu).
-        "g": (String(localized: "gesture control", comment: "A letter's command in the TurnOver layer (Command Control Comma)"), .run, { Trackpad.toggle() }),
+        "g": (String(localized: "gesture control", comment: "A letter's command in the Waypoint layer (Command Control Comma)"), .run, { Trackpad.toggle() }),
         // V: copy VoiceOver's settings (15 Oct 2026: every TurnOver command through the layer, no direct keys;
         // direct keys clash with apps and will go).
-        "v": (String(localized: "copy VoiceOver settings", comment: "A letter's command in the TurnOver layer (Command Control Comma)"), .run, { VoiceOverSettings.startFlow() }),
+        "v": (String(localized: "copy VoiceOver settings", comment: "A letter's command in the Waypoint layer (Command Control Comma)"), .run, { VoiceOverSettings.startFlow() }),
         ]
         // The screen interface (a window's controls from its pixels) is a feature for a whole build, so the layer
         // offers it only in developer builds (Oliver, 29 Oct 2026: "that's not a bug fix, it's a feature").
-        if Edition.isDevBuild { l["e"] = (String(localized: "screen interface: the window's controls from its pixels (experimental)", comment: "A letter's command in the TurnOver layer (Command Control Comma)"), .list, { MenuAnywhere.shared.recognizeInterface() }) }
+        if Edition.isDevBuild { l["e"] = (String(localized: "screen interface: the window's controls from its pixels (experimental)", comment: "A letter's command in the Waypoint layer (Command Control Comma)"), .list, { MenuAnywhere.shared.recognizeInterface() }) }
         return l
     }
     /// The letters in the list's order, as said when the layer is pressed twice.
     static var letterList: String {
-        let names = ["m": String(localized: "M menu", comment: "A letter's command, as the TurnOver layer lists them"), "s": String(localized: "S settings", comment: "A letter's command, as the TurnOver layer lists them"), "t": String(localized: "T switch reader", comment: "A letter's command, as the TurnOver layer lists them"), "a": String(localized: "A ask for this app", comment: "A letter's command, as the TurnOver layer lists them"), "v": String(localized: "V copy VoiceOver settings", comment: "A letter's command, as the TurnOver layer lists them"), "k": String(localized: "K keyboard style", comment: "A letter's command, as the TurnOver layer lists them"), "j": String(localized: "J that was wrong", comment: "A letter's command, as the TurnOver layer lists them"),
-                     "h": String(localized: "H guide", comment: "A letter's command, as the TurnOver layer lists them"), "i": String(localized: "I describe image", comment: "A letter's command, as the TurnOver layer lists them"), "c": String(localized: "C copy last spoken", comment: "A letter's command, as the TurnOver layer lists them"), "g": String(localized: "G gesture control", comment: "A letter's command, as the TurnOver layer lists them"), "r": String(localized: "R recognition", comment: "A letter's command, as the TurnOver layer lists them"), "e": String(localized: "E screen interface", comment: "A letter's command, as the TurnOver layer lists them"), "d": String(localized: "D direct", comment: "A letter's command, as the TurnOver layer lists them"), "/": String(localized: "Slash shortcuts", comment: "A letter's command, as the TurnOver layer lists them")]
-        return String(localized: "\(listOrder.filter { letters[$0] != nil }.compactMap { names[$0] }.joined(separator: ", ")). Or Down Arrow for a list", comment: "The TurnOver layer's letters, then the list")
+        let names = ["m": String(localized: "M menu", comment: "A letter's command, as the Waypoint layer lists them"), "s": String(localized: "S settings", comment: "A letter's command, as the Waypoint layer lists them"), "t": String(localized: "T switch reader", comment: "A letter's command, as the Waypoint layer lists them"), "a": String(localized: "A ask for this app", comment: "A letter's command, as the Waypoint layer lists them"), "v": String(localized: "V copy VoiceOver settings", comment: "A letter's command, as the Waypoint layer lists them"), "k": String(localized: "K keyboard style", comment: "A letter's command, as the Waypoint layer lists them"), "j": String(localized: "J that was wrong", comment: "A letter's command, as the Waypoint layer lists them"),
+                     "h": String(localized: "H guide", comment: "A letter's command, as the Waypoint layer lists them"), "i": String(localized: "I describe image", comment: "A letter's command, as the Waypoint layer lists them"), "c": String(localized: "C copy last spoken", comment: "A letter's command, as the Waypoint layer lists them"), "g": String(localized: "G gesture control", comment: "A letter's command, as the Waypoint layer lists them"), "r": String(localized: "R recognition", comment: "A letter's command, as the Waypoint layer lists them"), "e": String(localized: "E screen interface", comment: "A letter's command, as the Waypoint layer lists them"), "d": String(localized: "D direct", comment: "A letter's command, as the Waypoint layer lists them"), "/": String(localized: "Slash shortcuts", comment: "A letter's command, as the Waypoint layer lists them")]
+        return String(localized: "\(listOrder.filter { letters[$0] != nil }.compactMap { names[$0] }.joined(separator: ", ")). Or Down Arrow for a list", comment: "The Waypoint layer's letters, then the list")
     }
 
     /// Said by whichever reader is talking: where VoiceOver leads, as an accessibility announcement VoiceOver reads
@@ -108,7 +108,7 @@ final class MenuAnywhere {
             return MenuItem(verbatim: "\(k == "/" ? KeyNames.slashName : k.uppercased()), \(l.spoken)", .action { DispatchQueue.main.async { l.action() } })
         }
         if steppedIn { TurnOverMenu.shared.onClose = { [weak self] in self?.handBack() } }
-        TurnOverMenu.shared.openList("TurnOver commands", items: items)
+        TurnOverMenu.shared.openList("Waypoint commands", items: items)
     }
 
     static func runScript(_ name: String) {
@@ -133,7 +133,7 @@ final class MenuAnywhere {
         if Coexist.on {
             if turnOverActive() { steppedIn = false; listen(); return }
             Log.info("layer key where VoiceOver leads: the letters claimed for 3 s")
-            Self.say("TurnOver", tone: true)
+            Self.say("Waypoint", tone: true)
             claimLetters()
             return
         }
@@ -142,7 +142,7 @@ final class MenuAnywhere {
         // at once went to the app (Calculator, 12 Oct 2026). So the layer's letters are claimed for three seconds
         // straight away, as hot keys of their own; the chosen one steps in, runs and hands back.
         Log.info("layer key where VoiceOver leads: the letters claimed for 3 s")
-        Self.say("TurnOver", tone: true)   // VoiceOver says it; the letters are listed only if nothing comes
+        Self.say("Waypoint", tone: true)   // VoiceOver says it; the letters are listed only if nothing comes
         claimLetters()
     }
 
@@ -290,7 +290,7 @@ final class MenuAnywhere {
             if RegisterEventHotKey(UInt32(code), 0, id, GetApplicationEventTarget(), 0, &ref) == noErr { voKeys.append(ref) }
         }
         Log.io("layer: the commands as a list VoiceOver reads")
-        Self.say(String(localized: "TurnOver commands, \(String(voList.count)).", comment: "The TurnOver layer as a list: how many") + " " + voItemText())
+        Self.say(String(localized: "Waypoint commands, \(String(voList.count)).", comment: "The Waypoint layer as a list: how many") + " " + voItemText())
         voTouch()
     }
 
@@ -331,7 +331,7 @@ final class MenuAnywhere {
 
     private func listen(again: Bool = false) {
         Speech.cancel()
-        Speech.speakMessage(again ? "TurnOver: " + Self.letterList : "TurnOver")
+        Speech.speakMessage(again ? "Waypoint: " + Self.letterList : "Waypoint")
         InputManager.captureNext = { [weak self] g in self?.letter(g) }
         layerTimeout?.cancel()
         let w = DispatchWorkItem { [weak self] in

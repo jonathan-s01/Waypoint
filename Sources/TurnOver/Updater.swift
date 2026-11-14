@@ -39,8 +39,8 @@ final class Updater: NSObject, SPUUpdaterDelegate, SPUStandardUserDriverDelegate
         }
         var items: [MenuItem] = []
         if let install = pendingInstall {
-            items.append(MenuItem("Install the downloaded update now (TurnOver restarts)", .action {
-                Speech.speakMessage(String(localized: "installing the update; TurnOver will be back in a moment", comment: "Spoken message"))
+            items.append(MenuItem("Install the downloaded update now (Waypoint restarts)", .action {
+                Speech.speakMessage(String(localized: "installing the update; Waypoint will be back in a moment", comment: "Spoken message"))
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { install() }
             }))
         }
@@ -63,7 +63,7 @@ final class Updater: NSObject, SPUUpdaterDelegate, SPUStandardUserDriverDelegate
     func updater(_ updater: SPUUpdater, willInstallUpdateOnQuit item: SUAppcastItem, immediateInstallationBlock immediateInstallHandler: @escaping () -> Void) -> Bool {
         pendingInstall = immediateInstallHandler
         Log.info("updates: \(item.displayVersionString) (build \(item.versionString)) downloaded; installs on quit")
-        Speech.speakMessage(String(localized: "A TurnOver update has downloaded. It installs when TurnOver next quits, or now from the TurnOver menu, About and updates, Updates.", comment: "Spoken message"))
+        Speech.speakMessage(String(localized: "A Waypoint update has downloaded. It installs when Waypoint next quits, or now from the Waypoint menu, About and updates, Updates.", comment: "Spoken message"))
         return true
     }
 
@@ -100,7 +100,7 @@ final class Updater: NSObject, SPUUpdaterDelegate, SPUStandardUserDriverDelegate
     func standardUserDriverWillHandleShowingUpdate(_ handleShowingUpdate: Bool, forUpdate update: SUAppcastItem, state: SPUUserUpdateState) {
         Log.info("updates: \(update.displayVersionString) (build \(update.versionString)) available")
         userCheck = false
-        Speech.speakMessage(String(localized: "A TurnOver update is available: build \(update.versionString). The update window is open.", comment: "An update found: %@ is its build"))
+        Speech.speakMessage(String(localized: "A Waypoint update is available: build \(update.versionString). The update window is open.", comment: "An update found: %@ is its build"))
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { Self.bringWindowForward() }
     }
 

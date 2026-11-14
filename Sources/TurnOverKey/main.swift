@@ -175,7 +175,7 @@ final class Key {
                 lastRescue = Date()
                 note("TurnOver stopped with VoiceOver off; starting it again")
                 bell.play([784, 1175])
-                voice.say(String(localized: "TurnOver stopped unexpectedly. Restarting it.", comment: "TurnOver Key: TurnOver crashed"))
+                voice.say(String(localized: "Waypoint stopped unexpectedly. Restarting it.", comment: "Waypoint Key: Waypoint crashed"))
                 let cfg = NSWorkspace.OpenConfiguration()
                 cfg.activates = false
                 cfg.arguments = ["--announced"]
@@ -183,7 +183,7 @@ final class Key {
             } else {
                 note("TurnOver stopped again within a minute; not restarting now; tried again when the Mac is next woken or unlocked")
                 gaveUp = true
-                voice.say(String(localized: "TurnOver has stopped again. Press Command Control Period to start it; if VoiceOver is silent in an app, press it again.", comment: "TurnOver Key: TurnOver crashed twice"))
+                voice.say(String(localized: "Waypoint has stopped again. Press Command Control Period to start it; if VoiceOver is silent in an app, press it again.", comment: "Waypoint Key: Waypoint crashed twice"))
             }
         } }
     }
@@ -284,7 +284,7 @@ final class Key {
         // Quit. SIGTERM, which TurnOver answers off its main thread (VoiceOver on, then gone) even if it is stuck;
         // if it is still there after three seconds, it is stopped outright.
         bell.play([1175, 784])
-        voice.say(String(localized: "TurnOver off", comment: "TurnOver Key: Command Control Period turned TurnOver off"))
+        voice.say(String(localized: "Waypoint off", comment: "Waypoint Key: Command Control Period turned Waypoint off"))
         watch.quit(app.processIdentifier)
         kill(app.processIdentifier, SIGTERM)
         let pid = app.processIdentifier
@@ -294,7 +294,7 @@ final class Key {
     }
     private func start() {
         bell.play([784, 1175])
-        voice.say(String(localized: "TurnOver on", comment: "TurnOver Key: Command Control Period turned TurnOver on"))
+        voice.say(String(localized: "Waypoint on", comment: "Waypoint Key: Command Control Period turned Waypoint on"))
         let cfg = NSWorkspace.OpenConfiguration()
         cfg.activates = false
         cfg.arguments = ["--announced"]   // TurnOver does not say "TurnOver on" again as it takes over

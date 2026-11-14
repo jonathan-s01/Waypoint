@@ -136,6 +136,6 @@ public enum SecureInputWatch {
         // The session's "holder" is not reliable (a test program holding it was reported as Mail, 4 Oct 2026): logged,
         // not spoken.
         Log.error("secure input: on outside a password field (session names \(name)); TurnOver cannot hear the keys")
-        Speech.speakMessage(String(localized: "Secure input is on, so TurnOver cannot hear your keys. Press Command Tab twice to get them back.", comment: "Spoken message"))
+        Speech.speakMessage(String(localized: "Secure input is on, so Waypoint cannot hear your keys. Press Command Tab twice to get them back.", comment: "Spoken message"))
     }
 }

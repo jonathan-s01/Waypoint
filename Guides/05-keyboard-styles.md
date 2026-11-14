@@ -1,8 +1,8 @@
 # Keyboard styles
 
-TurnOver speaks three screen readers' keys. Press Command Control Comma, then K, until you hear the one you want; the
-TurnOver menu, Settings, Keyboard, and the Settings window offer the same choice. The style changes which keys you
-press, never what TurnOver can do.
+Waypoint speaks three screen readers' keys. Press Command Control Comma, then K, until you hear the one you want; the
+Waypoint menu, Settings, Keyboard, and the Settings window offer the same choice. The style changes which keys you
+press, never what Waypoint can do.
 
 ## VoiceOver keys (the Mac style)
 
@@ -16,8 +16,8 @@ Command with the arrows moves by the rotor's kind. Control pauses speech. One Qu
 ## NVDA keys (the Windows style)
 
 NVDA's own keys, doing what they do in NVDA. Caps Lock is the NVDA key (Control and Option works too): Caps Lock N
-the TurnOver menu, Caps Lock 1 keyboard help, Caps Lock L the current line, Caps Lock A say all, Caps Lock F7 the
-elements list, Caps Lock Space browse mode on and off. Control stops speech. Where NVDA uses Alt, TurnOver uses the
+the Waypoint menu, Caps Lock 1 keyboard help, Caps Lock L the current line, Caps Lock A say all, Caps Lock F7 the
+elements list, Caps Lock Space browse mode on and off. Control stops speech. Where NVDA uses Alt, Waypoint uses the
 Mac's Command key, which sits where Alt does on a PC keyboard. The role is said before the words, as NVDA says them.
 
 [Every key, NVDA keys](keys-nvda.html).
@@ -45,7 +45,7 @@ Page Down change the speed for that say all. Every other key is NVDA's.
 
 ## In every style
 
-- TurnOver's own commands behind Command Control Comma never change with the style.
-- Keyboard help (the TurnOver menu, Keys) says what any key does without doing it.
+- Waypoint's own commands behind Command Control Comma never change with the style.
+- Keyboard help (the Waypoint menu, Keys) says what any key does without doing it.
 - Command Control Comma, then Slash, lists every key that works where you are.
-- Your own keys (the TurnOver menu, Keys, My own keys) sit on top of any style.
+- Your own keys (the Waypoint menu, Keys, My own keys) sit on top of any style.

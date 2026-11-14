@@ -25,29 +25,29 @@ final class StatusItem: NSObject, NSMenuDelegate {
             it.button?.image = image
             it.button?.imagePosition = .imageOnly
         } else {
-            it.button?.title = "TurnOver"
+            it.button?.title = "Waypoint"
         }
-        it.button?.setAccessibilityLabel("TurnOver")
-        let menu = NSMenu(title: "TurnOver")
-        menu.addItem(withTitle: "TurnOver menu: Command Control Comma, from anywhere", action: #selector(openMenu), keyEquivalent: "").target = self
-        menu.addItem(withTitle: "Every shortcut: the TurnOver menu, Keys", action: #selector(openShortcuts), keyEquivalent: "").target = self
+        it.button?.setAccessibilityLabel("Waypoint")
+        let menu = NSMenu(title: "Waypoint")
+        menu.addItem(withTitle: "Waypoint menu: Command Control Comma, from anywhere", action: #selector(openMenu), keyEquivalent: "").target = self
+        menu.addItem(withTitle: "Every shortcut: the Waypoint menu, Keys", action: #selector(openShortcuts), keyEquivalent: "").target = self
         menu.addItem(.separator())
         let login = menu.addItem(withTitle: "Open at Login", action: #selector(toggleLogin), keyEquivalent: "")
         login.target = self
         login.state = config.general.openAtLogin ? .on : .off
         menu.addItem(.separator())
-        menu.addItem(withTitle: "Quit TurnOver", action: #selector(quit), keyEquivalent: "").target = self
+        menu.addItem(withTitle: "Quit Waypoint", action: #selector(quit), keyEquivalent: "").target = self
         menu.delegate = self
         it.menu = menu
         item = it
         // TurnOver cannot read its own item through accessibility (asking itself would block its own main thread), so the
         // item speaks for itself: when the status menus (Control-F8, VO-M three times) reach it, and in its menu.
         keyObserver = NotificationCenter.default.addObserver(forName: NSWindow.didBecomeKeyNotification, object: it.button?.window, queue: .main) { _ in
-            MainActor.assumeIsolated { Speech.cancel(); Speech.speakMessage(String(localized: "TurnOver, menu extra", comment: "Spoken message")) }
+            MainActor.assumeIsolated { Speech.cancel(); Speech.speakMessage(String(localized: "Waypoint, menu extra", comment: "Spoken message")) }
         }
     }
 
-    func menuWillOpen(_ menu: NSMenu) { Speech.cancel(); Speech.speakMessage(String(localized: "TurnOver menu", comment: "Spoken message")) }
+    func menuWillOpen(_ menu: NSMenu) { Speech.cancel(); Speech.speakMessage(String(localized: "Waypoint menu", comment: "Spoken message")) }
     func menu(_ menu: NSMenu, willHighlight item: NSMenuItem?) {
         guard let item, !item.isSeparatorItem else { return }
         Speech.cancel()

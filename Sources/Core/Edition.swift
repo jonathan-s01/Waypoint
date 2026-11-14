@@ -9,8 +9,10 @@ import AppKit
 public enum Edition {
     /// Apps whose support is new and still settling: "experimental" in This app (18 Oct 2026).
     public static let experimentalApps: Set<String> = ["com.apple.Preview", "com.apple.iCal", "com.apple.Pages", "com.apple.Numbers", "com.apple.Keynote", "com.amazon.Lassen", "com.apple.reminders", "com.apple.AddressBook", "com.apple.iBooksX", "com.apple.calculator", "com.apple.Maps", "com.apple.FaceTime", "com.apple.freeform", "com.apple.shortcuts", "com.apple.Photos"]
-    /// Said at start ("TurnOver on") and in the log.
-    public static var editionName: String { "TurnOver" }
+    /// What the reader is called to the person, said and shown: one place to change it (Waypoint).
+    public static var productName: String { "Waypoint" }
+    /// Said at start ("Waypoint on") and in the log.
+    public static var editionName: String { productName }
     /// A marker build.sh looks for in each slice of a universal binary, so a slice built from other sources or with
     /// other flags can't ship inside the package unnoticed (code review, 16 Oct 2026).
     public static let marker = "TURNOVER-EDITION-BETA"
@@ -33,7 +35,7 @@ public enum Edition {
     /// The build number (CFBundleVersion; raised for every published build), so a report says exactly which build.
     public static var build: String { Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "?" }
     /// "TurnOver 1.0", or "TurnOver 1.0 (build 3)" once builds are numbered.
-    public static var fullName: String { build == version ? "TurnOver \(version)" : "TurnOver \(version) (build \(build))" }   // (feedback subjects are counted by it)
+    public static var fullName: String { build == version ? "Waypoint \(version)" : "Waypoint \(version) (build \(build))" }   // (feedback subjects are counted by it)
     /// TurnOver's issues on GitHub: Send feedback and app requests open its forms there, filled in.
     public static let issuesURL = "https://github.com/TurnOver-For-Mac/turnover/issues"
 

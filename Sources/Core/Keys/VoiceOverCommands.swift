@@ -84,8 +84,8 @@ public enum VoiceOverCommands {
         guard approved[full] == digest else {
             let changed = approved[full] != nil
             Log.info("user keys: the script \(full) needs a yes first (\(changed ? "changed" : "new"))")
-            TurnOverMenu.shared.openList(verbatim: changed ? String(localized: "The script \(name) has changed since you allowed it. It runs with TurnOver's permissions", comment: "A script file of your own changed")
-                : String(localized: "Run the script \(name)?. It runs with TurnOver's permissions", comment: "A script file of your own, run for the first time"), items: [
+            TurnOverMenu.shared.openList(verbatim: changed ? String(localized: "The script \(name) has changed since you allowed it. It runs with Waypoint's permissions", comment: "A script file of your own changed")
+                : String(localized: "Run the script \(name)?. It runs with Waypoint's permissions", comment: "A script file of your own, run for the first time"), items: [
                 MenuItem("Run it, and allow it from now on", .action {
                     approved[full] = digest
                     UserDefaults.standard.set(approved, forKey: "approvedScripts")

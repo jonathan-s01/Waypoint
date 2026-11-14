@@ -49,7 +49,7 @@ public enum ImageDescriber {
                 Speech.speakMessage(text.isEmpty ? String(localized: "no description", comment: "A picture could not be described") : text)
             } catch {
                 Log.warning("image description: capture failed: \(error.localizedDescription)")
-                Speech.speakMessage(String(localized: "the picture could not be captured. TurnOver needs Screen Recording, in System Settings, Privacy and Security", comment: "Spoken message"))
+                Speech.speakMessage(String(localized: "the picture could not be captured. Waypoint needs Screen Recording, in System Settings, Privacy and Security", comment: "Spoken message"))
             }
         }
     }
@@ -75,7 +75,7 @@ public enum ImageDescriber {
                 } else { Speech.speakMessage(text) }
             } catch {
                 Log.warning("window description: capture failed: \(error.localizedDescription)")
-                Speech.speakMessage(String(localized: "the window could not be captured. TurnOver needs Screen Recording, in System Settings, Privacy and Security", comment: "Spoken message"))
+                Speech.speakMessage(String(localized: "the window could not be captured. Waypoint needs Screen Recording, in System Settings, Privacy and Security", comment: "Spoken message"))
             }
         }
     }

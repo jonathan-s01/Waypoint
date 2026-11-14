@@ -168,7 +168,7 @@ enum PointerPlace {
 
     static func resetHold() {
         setHold(0)
-        Speech.speakMessage(String(localized: "click to place the cursor: only the TurnOver key and the review layer's keys", comment: "Spoken message"))
+        Speech.speakMessage(String(localized: "click to place the cursor: only the Waypoint key and the review layer's keys", comment: "Spoken message"))
     }
 }
 
@@ -176,13 +176,13 @@ final class PointerPlacePlugin: GlobalPlugin {
     required init() {
         super.init()
         let category = "Waypoint"
-        script("pointerPlaceEnable", String(localized: "Turns on or off placing the cursor by clicking with the TurnOver key or the review layer's keys held (the click is not sent to the app)", comment: "A command, as the key list and keyboard help say it"), category: category) { _ in
+        script("pointerPlaceEnable", String(localized: "Turns on or off placing the cursor by clicking with the Waypoint key or the review layer's keys held (the click is not sent to the app)", comment: "A command, as the key list and keyboard help say it"), category: category) { _ in
             PointerPlace.toggleEnabled()
         }
         script("pointerPlaceSetHold", String(localized: "Chooses extra keys to hold while clicking to place the cursor without clicking", comment: "A command, as the key list and keyboard help say it"), category: category) { _ in
             PointerPlace.captureHold()
         }
-        script("pointerPlaceResetKeys", String(localized: "Removes the extra keys for placing the cursor by clicking: only the TurnOver key and the review layer's keys remain", comment: "A command, as the key list and keyboard help say it"), category: category) { _ in
+        script("pointerPlaceResetKeys", String(localized: "Removes the extra keys for placing the cursor by clicking: only the Waypoint key and the review layer's keys remain", comment: "A command, as the key list and keyboard help say it"), category: category) { _ in
             PointerPlace.resetHold()
         }
     }

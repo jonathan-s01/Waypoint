@@ -131,7 +131,7 @@ extension GlobalCommands {
             Speech.speakMessage(TextReview.followsCaret ? String(localized: "review cursor follows system caret", comment: "Spoken message") : String(localized: "review cursor doesn't follow the system caret", comment: "Spoken message"))
         }
 
-        add("sleepMode", String(localized: "Sleep mode on or off for this app: TurnOver says nothing and every key goes to the app (NVDA+Shift+Z)", comment: "A command, as the key list and keyboard help say it"), ["kb:turnover+shift+z", "kb(desktop):turnover+shift+s"]) { _ in
+        add("sleepMode", String(localized: "Sleep mode on or off for this app: Waypoint says nothing and every key goes to the app (NVDA+Shift+Z)", comment: "A command, as the key list and keyboard help say it"), ["kb:turnover+shift+z", "kb(desktop):turnover+shift+s"]) { _ in
             guard let app = NSWorkspace.shared.frontmostApplication else { return }
             let on = InputManager.toggleSleep(app.processIdentifier)
             Log.info("sleep mode \(on ? "on" : "off") for \(app.bundleIdentifier ?? "pid \(app.processIdentifier)")")
@@ -305,8 +305,8 @@ extension GlobalCommands {
                                      ("u", "Sounds", "Audio"), ("s", "Speech", "Select Synthesizer"), ("k", "Keyboard", "Keyboard"), ("m", nil, "Mouse"),
                                      ("o", "Item details", "Object Presentation"), ("b", "Web pages", "Browse Mode"),
                                      ("d", "Documents", "Document Formatting")] as [(String, String?, String)] {
-            let where_ = section.map(SettingsBridge.sectionName) ?? String(localized: "Settings", comment: "TurnOver's Settings window")
-            add("settings_\(nvda.replacingOccurrences(of: " ", with: ""))", String(localized: "Opens TurnOver's \(where_) (NVDA+Control+\(key.uppercased()): \(nvda) settings)", comment: "A command: %1$@ is a section of TurnOver's Settings, %2$@ a letter, %3$@ NVDA's own name for the dialog"), ["kb:turnover+control+\(key)"]) { _ in
+            let where_ = section.map(SettingsBridge.sectionName) ?? String(localized: "Settings", comment: "Waypoint's Settings window")
+            add("settings_\(nvda.replacingOccurrences(of: " ", with: ""))", String(localized: "Opens Waypoint's \(where_) (NVDA+Control+\(key.uppercased()): \(nvda) settings)", comment: "A command: %1$@ is a section of Waypoint's Settings, %2$@ a letter, %3$@ NVDA's own name for the dialog"), ["kb:turnover+control+\(key)"]) { _ in
                 TurnOverMenu.shared.openSettings(section)
             }
         }

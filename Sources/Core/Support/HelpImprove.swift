@@ -37,7 +37,7 @@ public enum HelpImprove {
         items.append(MenuItem("Build it myself", .action { build(pid: pid, name: name, ai: nil) },
                               hint: "A folder describing \(name) opens in Finder, and the guide to writing a module opens in your browser. You need Xcode and a free GitHub account"))
         items.append(MenuItem("Ask for a building block", .action { report(pid: pid, name: name, form: .buildingBlock) },
-                              hint: "For when \(name) needs something new from TurnOver itself. A short form opens in your browser, already filled in"))
+                              hint: "For when \(name) needs something new from Waypoint itself. A short form opens in your browser, already filled in"))
         return items
     }
 
@@ -48,7 +48,7 @@ public enum HelpImprove {
     /// The report written off the main thread (a big window takes a moment), a soft tick meanwhile; then the form.
     static func report(pid: pid_t, name: String, form: Form) {
         guard let app = NSRunningApplication(processIdentifier: pid) else { return }
-        Speech.speakMessage(String(localized: "Looking at \(name)", comment: "Making a plugin: TurnOver gathers what the app shows"))
+        Speech.speakMessage(String(localized: "Looking at \(name)", comment: "Making a plugin: Waypoint gathers what the app shows"))
         gather(app) { report in
             open(form, name: name, report: report)
         }
@@ -111,7 +111,7 @@ public enum HelpImprove {
         guard let app = NSRunningApplication(processIdentifier: pid) else { return }
         let bundle = app.bundleIdentifier ?? ""
         if ai != nil { PluginTry.grant(bundle: bundle) }   // choosing this is the consent for the AI to try keys here (3 hours)
-        Speech.speakMessage(String(localized: "Looking at \(name)", comment: "Making a plugin: TurnOver gathers what the app shows"))
+        Speech.speakMessage(String(localized: "Looking at \(name)", comment: "Making a plugin: Waypoint gathers what the app shows"))
         let base = folder, versions = versions, brief = briefURL
         gather(app) { report in
             DispatchQueue.global(qos: .userInitiated).async {

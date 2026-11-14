@@ -178,7 +178,7 @@ public final class SettingsPanePlugin: GlobalPlugin {
             Log.io("Return on a focused button that is not the default: pressed it → \(r.rawValue)")
             if r != .success { g.send() } else { SystemPrompts.checkPress(of: b, name: ObjectFactory.make(b).name) }
         }.isAvailable = { Self.returnWouldMissFocus }
-        script("settings_pressHeld", String(localized: "In a settings pane: presses the control TurnOver is holding", comment: "A command, as the key list and keyboard help say it"), gestures: ["kb:space", "kb:enter"], category: "Settings") { [weak self] g in self?.pressHeld(g) }.isAvailable = { Self.holdingVirtual }
+        script("settings_pressHeld", String(localized: "In a settings pane: presses the control Waypoint is holding", comment: "A command, as the key list and keyboard help say it"), gestures: ["kb:space", "kb:enter"], category: "Settings") { [weak self] g in self?.pressHeld(g) }.isAvailable = { Self.holdingVirtual }
     }
 
     // MARK: Holding the place on a control that will not take the focus

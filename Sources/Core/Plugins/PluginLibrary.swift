@@ -187,7 +187,7 @@ public enum PluginLibrary {
                 var ask: [MenuItem] = []
                 if let app = AppRequest.frontApp, let b = app.bundleIdentifier, !entries.contains(where: { ($0.apps ?? []).contains(b) }) {
                     ask = [MenuItem("No plugin for \(app.localizedName ?? String(localized: "this app", comment: "An application with no name")) yet: make one, or ask", .action { AppRequest.request() },
-                                    hint: "Finds what the app is built with. If TurnOver has the parts for it, make its plugin or post it as wanted; if not, ask for the parts")]
+                                    hint: "Finds what the app is built with. If Waypoint has the parts for it, make its plugin or post it as wanted; if not, ask for the parts")]
                 }
                 if entries.isEmpty { TurnOverMenu.shared.openList("Plugin library", items: ask); return }
                 // Plugins for apps on this Mac first, then the rest by name.

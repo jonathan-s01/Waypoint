@@ -83,7 +83,7 @@ final class KeynoteAppModule: AppModule {
                     // The number only: the message can quote the slide's own text (a code review on 18 Oct 2026).
                     Log.warning("Keynote script error \(error[NSAppleScript.errorNumber] ?? "?")")
                     if (error[NSAppleScript.errorNumber] as? Int) == -1743 {
-                        Speech.speakMessage(String(localized: "TurnOver needs permission to read the slide. In System Settings, Privacy and Security, Automation, turn on Keynote under TurnOver.", comment: "Spoken message"))
+                        Speech.speakMessage(String(localized: "Waypoint needs permission to read the slide. In System Settings, Privacy and Security, Automation, turn on Keynote under Waypoint.", comment: "Spoken message"))
                     }
                     return
                 }
