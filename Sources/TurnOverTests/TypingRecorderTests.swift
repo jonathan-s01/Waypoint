@@ -139,4 +139,11 @@ func typingRecorderTests() {
         expect(TextNews.isLive(pid: 7003, now: t0.addingTimeInterval(10)), false)
         expect(TextNews.isLive(pid: 7004, now: t0), false)
     }
+    test("text news: the character a Backspace removed is the one the text lost, whatever the caret said") {
+        expect(EditableText.lostCharacter(before: "hey ther eh", after: "hey ther e"), "h")
+        expect(EditableText.lostCharacter(before: "doing", after: "doin"), "g")
+        expect(EditableText.lostCharacter(before: "a\n\nb", after: "a\nb"), "\n")
+        expect(EditableText.lostCharacter(before: "abc", after: "abc"), nil)   // not yet changed
+        expect(EditableText.lostCharacter(before: "abc", after: "xb"), nil)   // changed some other way
+    }
 }

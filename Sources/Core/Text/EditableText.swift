@@ -500,20 +500,27 @@ open class EditableText: TurnOverObject {
         }
         let sentAt = Date()
         let news = unit == .character && TextNews.isLive(pid: pid)
+        let textBefore = news ? element.string(kAXValueAttribute) : nil
         gesture.send()
-        // The character the application says it deleted, where it sends that: the one before a lagging caret, read
-        // beforehand, is not always it (GitHub Copilot, 13 Nov 2026: "f" for "e").
+        // The character the application says it deleted, where it sends that, or the one the text lost: the one
+        // before a lagging caret, read beforehand, is not always it (GitHub Copilot, 13 Nov 2026: "e" for "h", "i"
+        // for "g"; its Backspace sends no detail, only the new text about 25 ms later).
         if news {
             var deleted: String?
-            while deleted == nil, Date().timeIntervalSince(sentAt) < 0.06, !ScriptHandler.isScriptWaiting {
+            var how = "news"
+            while deleted == nil, Date().timeIntervalSince(sentAt) < 0.1, !ScriptHandler.isScriptWaiting {
                 EventHandler.pumpPendingEvents()
                 deleted = TextNews.takeDeletion(since: sentAt)
-                if deleted == nil { usleep(2000) }
+                if deleted == nil, let before = textBefore, let after = element.string(kAXValueAttribute) {
+                    deleted = Self.lostCharacter(before: before, after: after)
+                    how = "text"
+                }
+                if deleted == nil { usleep(3000) }
             }
             if let d = deleted, d.count == 1 {
-                if d != chunk { TypingRecorder.note("NEWS", "Backspace said the deleted character from the news (\(Symbols.name(of: d.first!))), not the one read before (\(chunk.isEmpty ? "none" : Symbols.name(of: chunk.first!)))") }
+                if d != chunk { TypingRecorder.note("NEWS", "Backspace said the character the \(how) lost (\(Symbols.name(of: d.first!))), not the one read before (\(chunk.isEmpty ? "none" : Symbols.name(of: chunk.first!)))") }
                 chunk = d
-            } else { TypingRecorder.note("NEWS", "Backspace: no single deleted character in the news in 60 ms") }
+            } else { TypingRecorder.note("NEWS", "Backspace: no deleted character in the news or the text in 100 ms") }
         }
         Speech.speakTypedCharacter("\u{8}", inEditable: true)
         let c = chunk.replacingOccurrences(of: "\r\n", with: "\n")
@@ -535,6 +542,14 @@ open class EditableText: TurnOverObject {
         // caretMoved forgets the word being typed; a deletion changes it, and the next space or punctuation says the
         // word as it now is ("think", Backspace, Space: "thin"; a tester).
         Speech.noteBackspace()
+    }
+
+    /// The one character `after` lacks that `before` has, when that is all that differs.
+    public static func lostCharacter(before: String, after: String) -> String? {
+        let a = Array(before), b = Array(after)
+        guard a.count == b.count + 1 else { return nil }
+        let i = zip(a, b).prefix { $0 == $1 }.count
+        return Array(a[..<i] + a[(i + 1)...]) == b ? String(a[i]) : nil
     }
 
     func deleteScript(_ gesture: KeyboardGesture, _ unit: TextUnit) {
