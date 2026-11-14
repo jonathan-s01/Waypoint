@@ -146,4 +146,13 @@ func typingRecorderTests() {
         expect(EditableText.lostCharacter(before: "abc", after: "abc"), nil)   // not yet changed
         expect(EditableText.lostCharacter(before: "abc", after: "xb"), nil)   // changed some other way
     }
+    test("text news: the first word after a new line is told from the news though the line itself sent none") {
+        let t0 = Date()
+        TextNews.apply(type: 7, text: "", pid: 7005, at: t0)   // (the process the news comes from)
+        TextNews.reset()
+        TextNews.startFresh()
+        TextNews.apply(type: 3, text: "i", pid: 7005, at: t0)
+        TextNews.apply(type: 3, text: " ", pid: 7005, at: t0)
+        expect(TextNews.takeBoundary(for: " ", typed: "i", edited: false, now: t0), "i")
+    }
 }

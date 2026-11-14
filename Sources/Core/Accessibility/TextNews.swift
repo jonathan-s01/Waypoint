@@ -45,6 +45,13 @@ public enum TextNews {
         deletions.removeAll()
     }
 
+    /// A new line began: the word after it starts from nothing, though the news of the line itself was not told.
+    public static func startFresh() {
+        word = ""
+        clean = true
+        boundaries.removeAll()
+    }
+
     public struct State { fileprivate let word: String, clean: Bool, boundaries: [Boundary] }
     /// What is known now, to put back when a reset came that the news was not part of (a Backspace's caret read).
     public static func snapshot() -> State { State(word: word, clean: clean, boundaries: boundaries) }

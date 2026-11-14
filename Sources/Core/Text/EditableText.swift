@@ -59,7 +59,7 @@ open class EditableText: TurnOverObject {
         // 7 Oct 2026). Word's module has its own, which searches the whole document.
         script("nextSpellingError", String(localized: "Moves to the next spelling error", comment: "A command, as the key list and keyboard help say it"), gestures: ["kb:turnover+e"], category: cat) { [weak self] _ in self?.goToMisspelling(forward: true) }
         script("previousSpellingError", String(localized: "Moves to the previous spelling error", comment: "A command, as the key list and keyboard help say it"), gestures: ["kb:turnover+shift+e"], category: cat) { [weak self] _ in self?.goToMisspelling(forward: false) }
-        if announceNewLineText { script("caret_newLine", String(localized: "Starts a new line", comment: "A command, as the key list and keyboard help say it"), gestures: ["kb:enter", "kb:numpadEnter"], category: cat) { [weak self] g in guard let self else { return }; newLineScript(g) } }
+        if announceNewLineText { script("caret_newLine", String(localized: "Starts a new line", comment: "A command, as the key list and keyboard help say it"), gestures: ["kb:enter", "kb:numpadEnter", "kb:shift+enter"], category: cat) { [weak self] g in guard let self else { return }; newLineScript(g) } }
     }
 
     /// The next or previous misspelled word: the app's marks (AXMarkedMisspelled, AXMisspelled), else macOS's checker.
@@ -453,6 +453,7 @@ open class EditableText: TurnOverObject {
         let lengthBefore = info.storyLength()
         gesture.send()
         Speech.speakTypedCharacter("\r", inEditable: true)
+        TextNews.startFresh()   // a line begins: the first word on it is typed from nothing (GitHub Copilot sends no detail for a new line)
         let (moved, newInfo) = hasCaretMoved(from: bookmark)
         guard moved, let newInfo, let line = try? makeTextInfo(.caret) else { return }
         // Return sent what was typed (Claude's prompt, a chat box): the text got shorter, not a line longer. Nothing

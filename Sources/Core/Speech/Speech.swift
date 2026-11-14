@@ -641,6 +641,10 @@ public enum Speech {
             // "non breaking space" on every blank line, 5 Oct 2026.)
             if text.count == 1, let c = text.first, c != "\r", c != "\n", c != "\u{2029}", c != "\u{a0}" { return (prefix + [Symbols.name(of: c)]).joined(separator: " ") }
             onlyBlank = prefix.isEmpty
+            // A line that is only a line break says so, as VoiceOver does ("new line" when moving through an empty line).
+            if reason != .sayAll, unit == .line || unit == .character, text.contains(where: { $0.isNewline }) {
+                return (prefix + [String(localized: "new line", comment: "Spoken message")]).joined(separator: " ")
+            }
             return (prefix + [Phrases.blank]).joined(separator: " ")
         }
         let letterLocale = trimmed.count == 1 ? characterLocale(info, trimmed) : nil
