@@ -103,13 +103,62 @@ public enum AreaMenu {
 
     // MARK: Using what the lists find
 
-    /// Go to an area's element: the keyboard focus if it takes it, the rows of a list as a held list, otherwise the cursor.
+    private static func canTakeFocus(_ e: AXUIElement) -> Bool {
+        var settable: DarwinBoolean = false
+        return AXUIElementIsAttributeSettable(e, kAXFocusedAttribute as CFString, &settable) == .success && settable.boolValue
+    }
+
+    /// What in an area takes the keyboard: the element itself, else the first control or list inside it that does.
+    /// A scroll area or group that takes the focus is the last choice, as the list inside it is where the arrows go
+    /// (Finder's file list, 14 Nov 2026). A page's links are never chosen: a page is read, not tabbed into.
+    private static func keyboardTarget(in e: AXUIElement) -> AXUIElement? {
+        let controls: Set<String> = ["AXOutline", "AXTable", "AXList", "AXBrowser", "AXTextField", "AXTextArea", "AXComboBox", "AXSearchField",
+                                     "AXButton", "AXCheckBox", "AXRadioButton", "AXPopUpButton", "AXMenuButton", "AXSlider", "AXIncrementor", "AXTabGroup"]
+        var fallback: AXUIElement?
+        var page: AXUIElement?
+        var queue: [(AXUIElement, Int)] = [(e, 0)]
+        var seen = 0
+        while !queue.isEmpty, seen < 80 {
+            let (x, depth) = queue.removeFirst(); seen += 1
+            let role = x.role
+            // A page (Mail's message, a browser's content) takes the keyboard as a whole, so browse mode reads it.
+            if role == "AXWebArea" { if page == nil, canTakeFocus(x) { page = x }; continue }
+            if canTakeFocus(x) {
+                if controls.contains(role) { return x }
+                if fallback == nil, ObjectNavigator.layoutRoles.contains(role) { fallback = x }
+            }
+            if depth < 5, role != "AXRow" { queue += x.elements(kAXChildrenAttribute).prefix(40).map { ($0, depth + 1) } }
+        }
+        return page ?? fallback
+    }
+
+    /// A list with rows at or inside the element, for a list the app will not give the keyboard to (Finder's sidebar).
+    private static func holdableList(in e: AXUIElement) -> AXUIElement? {
+        let lists: Set<String> = ["AXOutline", "AXTable", "AXList", "AXBrowser"]
+        var queue: [(AXUIElement, Int)] = [(e, 0)]
+        var seen = 0
+        while !queue.isEmpty, seen < 40 {
+            let (x, depth) = queue.removeFirst(); seen += 1
+            if lists.contains(x.role), !x.elements(kAXRowsAttribute).isEmpty { return x }
+            if depth < 3, x.role != "AXRow" { queue += x.elements(kAXChildrenAttribute).prefix(20).map { ($0, depth + 1) } }
+        }
+        return nil
+    }
+
+    /// Go to an area's element. The keyboard goes there too, so the arrows act on this area and not the last one: onto
+    /// the element or the first control inside it that takes the focus; a list the app will not give the keyboard to is
+    /// held (Finder's sidebar); otherwise only the cursor moves.
     static func go(to e: AXUIElement, name: String, second: Bool = false, area: CGRect? = nil) {
         if second { ReviewLayer.jump(to: e, area: area); return }
-        var settable: DarwinBoolean = false
-        if AXUIElementIsAttributeSettable(e, kAXFocusedAttribute as CFString, &settable) == .success, settable.boolValue,
-           e.set(kAXFocusedAttribute, kCFBooleanTrue) == .success { Speech.speakMessage(name); return }
-        if !e.elements(kAXRowsAttribute).isEmpty { ObjectNavigator.shared.enterHold(e, name: name, row: nil); return }
+        // Whatever list was held belongs to the area left behind: its rows must not keep the arrows.
+        ObjectNavigator.shared.releaseHold()
+        if let t = keyboardTarget(in: e), t.set(kAXFocusedAttribute, kCFBooleanTrue) == .success {
+            Log.io("areas: the keyboard goes to \(t.role) in \"\(Log.words(name))\"")
+            Speech.speakMessage(name)
+            ObjectNavigator.shared.focusMoved(to: t, pid: t.pid)
+            return
+        }
+        if let list = holdableList(in: e) { ObjectNavigator.shared.enterHold(list, name: name, row: nil); return }
         Speech.speakMessage(name)
         ObjectNavigator.shared.focusMoved(to: e, pid: e.pid)
         ObjectNavigator.shared.reportCurrent()
