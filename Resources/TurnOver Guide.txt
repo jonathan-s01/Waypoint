@@ -164,6 +164,12 @@ word. Single letters jump: in the Mac style, VoiceOver's Quick Nav letters (H he
 1 to 6 headings by level); in the Windows style, NVDA's. Waypoint Space switches between reading the page and
 typing into it. Enter activates a link or button.
 
+Which letters (Waypoint): Settings, Web pages, "Single-letter keys on a page" chooses VoiceOver's letters, NVDA's
+(K link, L list, D landmark, I list item, B button, F form field…) or whichever the keyboard style uses; any keyboard
+style can use either. To give one kind your own letter, add it to `virtualBuffers.quickNavKeys` in the settings file,
+by kind name, for example `"quickNavKeys": {"Landmark": "y"}`; that kind's usual letter then stops working. Shift
+goes back. In a field you are typing into, letters are typed, not commands.
+
 Say all
 
 Say all reads from where you are to the end: VO A in the Mac style, Caps Lock A in the Windows
@@ -511,7 +517,7 @@ could expose what a person reads or types is best reported privately, through th
 
 VOICEOVER KEYS: EVERY KEY
 
-This page is made from Waypoint's own command tables (`turnover-coretest --keys-reference`, 13 Nov 2026), so it matches the build it came with. Don't edit it by hand.
+This page is made from Waypoint's own command tables (`turnover-coretest --keys-reference`, 14 Nov 2026), so it matches the build it came with. Don't edit it by hand.
 
 The VoiceOver keys style (the Mac style): VoiceOver's own keys, doing what they do in VoiceOver. Waypoint in a key means the Waypoint key: Control and Option together (VO), or Caps Lock. Keys VoiceOver has that aren't listed here go to VoiceOver as usual where VoiceOver reads, and do nothing special where Waypoint reads. Keyboard help (the Waypoint menu, Keys) says what any key does without doing it; Command Control Comma, then Slash, lists the keys that work where you are.
 
@@ -1268,7 +1274,7 @@ Word
 
 NVDA KEYS: EVERY KEY
 
-This page is made from Waypoint's own command tables (`turnover-coretest --keys-reference`, 13 Nov 2026), so it matches the build it came with. Don't edit it by hand.
+This page is made from Waypoint's own command tables (`turnover-coretest --keys-reference`, 14 Nov 2026), so it matches the build it came with. Don't edit it by hand.
 
 The NVDA keys style (the Windows style): NVDA's own keys, doing what they do in NVDA. Waypoint in a key means the NVDA key: Caps Lock, or Control and Option together. NVDA's Alt is the Mac's Command key, by position. Keyboard help (the Waypoint menu, Keys) says what any key does without doing it; Command Control Comma, then Slash, lists the keys that work where you are.
 
@@ -1365,6 +1371,7 @@ NVDA keys
   Waypoint Control Right arrow: Moves the review cursor to the next word (NVDA+Control+Right Arrow)
   Waypoint Control Right bracket: Holds the right mouse button down, or lets it go (NVDA+Control+Right Bracket)
   Waypoint Control Shift F1: Marks the log; pressed again, copies the log from the mark (NVDA+Control+Shift+F1)
+  Waypoint Control Shift M: Mouse reads the whole paragraph on or off: a web page's text under the pointer is read as its paragraph, not piece by piece (Waypoint)
   Waypoint Control Shift Period: Reports the shortcut key of the item with focus (NVDA+Control+Shift+Period)
   Waypoint Shift Left bracket: Moves to the previous item, in and out of groups (NVDA+Shift+Left Bracket)
   Waypoint Shift Page down: Moves the review cursor to the next page (NVDA+Page Down; laptop: NVDA+Shift+Page Down)
@@ -1950,7 +1957,7 @@ Word
 
 JAWS KEYS: EVERY KEY
 
-This page is made from Waypoint's own command tables (`turnover-coretest --keys-reference`, 13 Nov 2026), so it matches the build it came with. Don't edit it by hand.
+This page is made from Waypoint's own command tables (`turnover-coretest --keys-reference`, 14 Nov 2026), so it matches the build it came with. Don't edit it by hand.
 
 The JAWS keys style: JAWS's laptop layout. Waypoint in a key means the JAWS key: Caps Lock, or Control and Option together. Only the keys that differ from NVDA's are JAWS's own; every other key is NVDA's, so the NVDA keys page lists the rest. Keyboard help (the Waypoint menu, Keys) says what any key does without doing it; Command Control Comma, then Slash, lists the keys that work where you are.
 
@@ -2094,6 +2101,7 @@ NVDA keys
   Waypoint Control Right arrow: Moves the review cursor to the next word (NVDA+Control+Right Arrow)
   Waypoint Control Right bracket: Holds the right mouse button down, or lets it go (NVDA+Control+Right Bracket)
   Waypoint Control Shift F1: Marks the log; pressed again, copies the log from the mark (NVDA+Control+Shift+F1)
+  Waypoint Control Shift M: Mouse reads the whole paragraph on or off: a web page's text under the pointer is read as its paragraph, not piece by piece (Waypoint)
   Waypoint Control Shift Period: Reports the shortcut key of the item with focus (NVDA+Control+Shift+Period)
   Waypoint Shift Left bracket: Moves to the previous item, in and out of groups (NVDA+Shift+Left Bracket)
   Waypoint Shift Right bracket: Moves to the next item, in and out of groups (NVDA+Shift+Right Bracket)
