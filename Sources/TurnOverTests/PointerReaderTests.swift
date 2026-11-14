@@ -50,15 +50,17 @@ func pointerReaderTests() {
         expect(PointerReader.compose(snap("AXImage")), "image")
     }
     test("pointer reader: a text inside a link or heading says so after its words") {
-        expect(PointerReader.compose(snap("AXStaticText") { $0.value = "Discover"; $0.context = ["link"] }), "Discover, link")
+        expect(PointerReader.compose(snap("AXStaticText") { $0.value = "Discover"; $0.context = ["link"] }), "Discover. link")
         expect(PointerReader.compose(snap("AXStaticText") { $0.value = "News"; $0.context = [Phrases.headingLevel(2), "link"] }),
-               "News, \(Phrases.headingLevel(2)), link")
-        expect(PointerReader.compose(snap("AXImage") { $0.title = "Logo"; $0.context = ["link"] }), "Logo, image, link")
+               "News. \(Phrases.headingLevel(2)), link")
+        expect(PointerReader.compose(snap("AXImage") { $0.title = "Logo"; $0.context = ["link"] }), "Logo, image. link")
+        expect(PointerReader.compose(snap("AXStaticText") { $0.value = "Really?"; $0.context = ["link"] }), "Really? link")
     }
 
     test("pointer reader: a heading is said with its level") {
         expect(PointerReader.compose(snap("AXHeading") { $0.title = "Discover"; $0.headingLevel = 2 }), "Discover, \(Phrases.headingLevel(2))")
         expect(PointerReader.compose(snap("AXHeading") { $0.title = "Discover" }), "Discover, heading")
+        expect(PointerContext.word(role: "AXHeading", subrole: "", roleDescription: "heading", headingLevel: nil), "heading")
     }
 
     test("pointer context: which elements above a text count") {
