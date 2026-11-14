@@ -116,11 +116,25 @@ nonisolated package enum PointerContext {
     /// How an element above the text counts. `distance` is how many levels above the text it is (1 is the parent). A
     /// group says something only when it has a name and is the parent itself: a web page nests groups many deep, and a
     /// named landmark far above would be said for every paragraph.
-    package static func kind(role: String, subrole: String, named: Bool, distance: Int) -> Kind {
+    /// A row or cell of a native outline or table is the item itself, not something to announce: a Finder sidebar's
+    /// "Recents" is said as "Recents", not "Recents. cell" (a tester, 13 Nov 2026). `inNativeList` says it is one.
+    package static func kind(role: String, subrole: String, named: Bool, distance: Int, inNativeList: Bool = false) -> Kind {
         if controls.contains(role) { return .control }
+        if inNativeList, role == "AXCell" || role == "AXRow" { return .none }
         if containers.contains(role) || role == "AXListItem" || subrole == "AXListItem" { return .container }
         if role == "AXGroup", named, distance == 1 { return .container }
         return .none
+    }
+
+    /// Whether a row or cell is in an outline or table of an app's own window, not a web page's.
+    private static func isInNativeList(_ e: AXUIElement, deadline: Date) -> Bool {
+        var cur = e
+        for _ in 0..<3 {
+            guard Date() < deadline, let p = cur.element(kAXParentAttribute) else { return false }
+            if p.role == "AXOutline" || p.role == "AXTable" { return !isInWebPage(p, deadline: deadline) }
+            cur = p
+        }
+        return false
     }
 
     /// The words for one element above the text: its role in the app's own words, and a heading's level.
@@ -150,7 +164,8 @@ nonisolated package enum PointerContext {
             if role == "AXWindow" || role == "AXWebArea" || role == "AXApplication" { break }
             let named = !text(kAXTitleAttribute).isEmpty || !text(kAXDescriptionAttribute).isEmpty
             let subrole = text(kAXSubroleAttribute)
-            switch kind(role: role, subrole: subrole, named: named, distance: distance) {
+            let inList = (role == "AXCell" || role == "AXRow") && isInNativeList(p, deadline: deadline)
+            switch kind(role: role, subrole: subrole, named: named, distance: distance, inNativeList: inList) {
             case .control:
                 let w = word(role: role, subrole: subrole, roleDescription: text(kAXRoleDescriptionAttribute),
                              headingLevel: ((a["AXHeadingLevel"] ?? a[kAXValueAttribute]) as? NSNumber)?.intValue)

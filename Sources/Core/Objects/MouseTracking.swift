@@ -209,6 +209,8 @@ public enum MouseTracking {
             let began = Date()
             var hit: AXUIElement?
             if AXUIElementCopyElementAtPosition(AXUIElementCreateSystemWide(), Float(p.x), Float(p.y), &hit) != .success { hit = nil }
+            // A cell holding one text is that text (the pointer crosses both in one item).
+            if let h = hit, let inner = innerText(of: h, deadline: began.addingTimeInterval(watchdogAfter - readMargin)) { hit = inner }
             let blank = hit.map(isBlank) ?? true
             let label = describe(hit)
             var reading: PointerReading?
@@ -277,8 +279,30 @@ public enum MouseTracking {
     nonisolated static func isBlank(_ e: AXUIElement) -> Bool {
         let role = e.role
         if role == "AXWindow" { return true }
+        // A row or cell with no words, and not one text inside it (see `innerText`), would only say "cell".
+        if role == "AXCell" || role == "AXRow" { return hasNoWords(e) }
         guard ObjectNavigator.layoutRoles.contains(role) else { return false }
         return [kAXTitleAttribute, kAXDescriptionAttribute, kAXValueAttribute].allSatisfy { (e.string($0) ?? "").isEmpty }
+    }
+
+    nonisolated private static func hasNoWords(_ e: AXUIElement) -> Bool {
+        [kAXTitleAttribute, kAXDescriptionAttribute, kAXValueAttribute].allSatisfy { (e.string($0) ?? "").isEmpty }
+    }
+
+    /// The text a row or cell with no words of its own holds as its only content, or nil. A Finder sidebar item is a
+    /// row, holding a cell, holding the text: the pointer over the item's edge hit the cell and said "cell", then the
+    /// text said its words again (13 Nov 2026, from the log). Runs on the lookup queue.
+    nonisolated static func innerText(of e: AXUIElement, deadline: Date) -> AXUIElement? {
+        var cur = e
+        for _ in 0..<3 {
+            guard Date() < deadline, cur.role == "AXCell" || cur.role == "AXRow", hasNoWords(cur) else { return nil }
+            AXUIElementSetMessagingTimeout(cur, PointerReader.messagingTimeout)
+            let kids = cur.elements(kAXChildrenAttribute)
+            guard kids.count == 1, let only = kids.first else { return nil }
+            if only.role == "AXStaticText" { return (only.string(kAXValueAttribute) ?? "").isEmpty ? nil : only }
+            cur = only
+        }
+        return nil
     }
 
     private static func arrived(_ found: Found, generation g: Int) {

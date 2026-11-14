@@ -89,6 +89,13 @@ func pointerReaderTests() {
         expect(PointerReader.clip(String(repeating: "word ", count: 6000)).count <= 20000, true)
     }
 
+    test("pointer context: a row or cell of a native outline or table says nothing after the text") {
+        expect(PointerContext.kind(role: "AXCell", subrole: "", named: false, distance: 1), .container, "elsewhere a cell is said")
+        expect(PointerContext.kind(role: "AXCell", subrole: "", named: false, distance: 1, inNativeList: true), .none)
+        expect(PointerContext.kind(role: "AXRow", subrole: "AXOutlineRow", named: false, distance: 2, inNativeList: true), .none)
+        expect(PointerContext.kind(role: "AXLink", subrole: "", named: false, distance: 1, inNativeList: true), .control, "a control in it still is")
+    }
+
     test("pointer paragraphs: links and emphasis are part of the paragraph, groups and headings are the paragraph") {
         expect(PointerContext.blockStep(role: "AXLink", subrole: ""), .link)
         expect(PointerContext.blockStep(role: "AXGroup", subrole: "AXEmphasisStyleGroup"), .inline)
