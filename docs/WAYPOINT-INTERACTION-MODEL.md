@@ -41,7 +41,10 @@ predictable behaviour from saved rules rather than AI guesses.
 | Anywhere: apps, menus, item actions, window parts, Waypoint commands | Built, no language model | `System/Anywhere*.swift`, `System/MenuBarList.swift` |
 | Launcher: Right Command + key opens apps, runs commands | Built | `Launcher*.swift` |
 | Mouse and pointer reading | Built; off by default | `MouseTracking`, `PointerReader`, `PointerPlace` |
+| Put back lost text: a private, memory-only copy of the long text in each text field (never saved, never logged, never from a password), and a key that puts it back when an app wipes the field | Built; Copilot not yet trialled by ear | `Core/Text/TextRescue.swift` |
 | Teams and GitHub Copilot recipes (panes, messages read as documents) | Built; the generic areas are not yet trialled in Teams | `Resources/recipes/` |
+| Landing in a part or area that cannot take the keyboard: the keyboard goes onto the current item (the app you are in), else your remembered place, else the first control or row, so the app's own arrows and Return work; a list the app will not focus (Finder's sidebar) is still held | Built; Teams not yet trialled by ear | `Core/Objects/PartLanding.swift`, `Views/PanesView.swift` |
+| Click as the last resort: when an item has nothing to press and will not take the focus (Return in a list, Return on an item, a held list, the tools list), Waypoint clicks its centre, the pointer put back, and says "clicked" instead of the press tone. On for every app; a recipe turns it off with `"clickFallback": false` | Built; Copilot's chats trialled by ear pending | `Core/Objects/ClickFallback.swift`, `Core/Plugins/Recipes.swift` |
 | The region type picks the plain keys, for any app | Partly: only where a recipe marks a part as a document | |
 | Command layer with a local language model (plan 4.11, 4.12) | Not built; a plan exists | |
 | Customize any app in place: rename, hide, pin, make a region (plan 4.17) | Not built | |
@@ -66,6 +69,7 @@ predictable behaviour from saved rules rather than AI guesses.
 | VO-Command-A | Anywhere |
 | Control-Command-W | What changed here; twice, in the whole app |
 | Control-Command-0 | Describe this app; twice, as a list to move to a part |
+| VO-Control-Z | Put back text the field lost (a copy kept in memory only) |
 | Right Command + letter | Launcher; with Right Option too, the second layer |
 | Letters in a list | First-letter jump |
 

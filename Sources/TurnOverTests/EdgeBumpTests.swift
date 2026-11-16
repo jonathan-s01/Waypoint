@@ -22,6 +22,14 @@ func edgeBumpTests() {
         check(edge("rightArrow", caret: 0, lineEnd: 0, length: 0, empty: true), "an empty field")
         check(!edge("upArrow", caret: 0), "other keys are not sideways")
     }
+    test("list place: the remembered row if it is still there, else the row at its place, clamped to the last") {
+        check(ListPlace.restoreIndex(remembered: 4, found: 2, rowCount: 10) == 2, "the row is still there, higher up")
+        check(ListPlace.restoreIndex(remembered: 4, found: nil, rowCount: 9) == 4, "the row went; the next one took its place")
+        check(ListPlace.restoreIndex(remembered: 9, found: nil, rowCount: 9) == 8, "the last row went: the new last")
+        check(ListPlace.restoreIndex(remembered: nil, found: 3, rowCount: 5) == 3, "no place read yet, row found")
+        check(ListPlace.restoreIndex(remembered: nil, found: nil, rowCount: 5) == nil, "nothing to go by")
+        check(ListPlace.restoreIndex(remembered: 2, found: nil, rowCount: 0) == nil, "an empty list")
+    }
     test("focus: a popup holds the focus, the field behind it still has the typed keys, the popup's own Up and Down stay its") {
         check(StaleFocus.actsOnFieldBehindPopup(typedCharacter: "a", keyName: "a"), "a typed character")
         check(StaleFocus.actsOnFieldBehindPopup(typedCharacter: nil, keyName: "backspace"), "Backspace")

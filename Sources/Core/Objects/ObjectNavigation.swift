@@ -166,10 +166,12 @@ public final class ObjectNavigator {
         guard rows.indices.contains(i) else { Tones.edge(); return }
         let row = rows[i]
         let r = list.set(kAXSelectedRowsAttribute, [row] as CFArray)
-        Log.io("review: held list, chose row \(i + 1) → \(r.rawValue)")
-        if r == .success { Tones.press(); keepHoldUntil = Date().addingTimeInterval(2); return }
+        // Chromium answers success and selects nothing (Teams' chats, 16 Nov 2026): the row must read as selected.
+        let took = r == .success && (list.elements(kAXSelectedRowsAttribute).contains { CFEqual($0, row) } || (row.attr(kAXSelectedAttribute) as? Bool) == true)
+        Log.io("review: held list, chose row \(i + 1) → \(r.rawValue)\(r == .success && !took ? ", but it is not selected; pressing it" : "")")
+        if took { Tones.press(); keepHoldUntil = Date().addingTimeInterval(2); return }
         // No rows to select (a plugin's held grid): the row pressed, or else its first button.
-        if AXUIElementPerformAction(row, kAXPressAction as CFString) == .success { Tones.press(); keepHoldUntil = Date().addingTimeInterval(2); return }
+        if AXUIElementPerformAction(row, kAXPressAction as CFString) == .success { Log.io("review: held list, pressed row \(i + 1)"); Tones.press(); keepHoldUntil = Date().addingTimeInterval(2); return }
         var queue = row.elements(kAXChildrenAttribute); var seen = 0
         while !queue.isEmpty, seen < 60 {
             let x = queue.removeFirst(); seen += 1
@@ -179,6 +181,7 @@ public final class ObjectNavigator {
             }
             queue += x.elements(kAXChildrenAttribute)
         }
+        if ClickFallback.click(row) { Log.io("review: held list, clicked row \(i + 1)"); keepHoldUntil = Date().addingTimeInterval(2); return }
         Speech.speakMessage(String(localized: "cannot choose it", comment: "Spoken message"))
     }
 
@@ -1287,17 +1290,10 @@ public final class ObjectNavigator {
     /// VO-Shift-Space: a mouse click on the item (twice: a double click), where the item really is, the pointer put
     /// back after.
     public func click(double: Bool) {
-        guard let cur = element, let f = TurnOverObject.frame(cur), f.width > 1, f.height > 1 else { Speech.speakMessage(String(localized: "nothing to click", comment: "Spoken message")); return }
-        let p = CGPoint(x: f.midX, y: f.midY)
-        var hit: AXUIElement?
-        if AXUIElementCopyElementAtPosition(AXUIElementCreateSystemWide(), Float(p.x), Float(p.y), &hit) == .success, let h = hit {
-            var x: AXUIElement? = h; var hops = 0; var inside = false
-            while let y = x, hops < 8 { if CFEqual(y, cur) { inside = true; break }; x = y.element(kAXParentAttribute); hops += 1 }
-            if !inside { Speech.speakMessage(String(localized: "something else is over it; not clicked", comment: "Spoken message")); return }
-        }
-        let back = CGEvent(source: nil)?.location
-        Mouse.click(at: p, button: .left, count: double ? 2 : 1)
-        if let b = back { Mouse.move(to: b) }
+        guard let cur = element, let p = ClickFallback.centre(of: cur) else { Speech.speakMessage(String(localized: "nothing to click", comment: "Spoken message")); return }
+        // (A hit test that gets no answer clicks anyway: this is the user's own command, not a last resort.)
+        if ClickFallback.hit(cur, at: p) == .covered { Speech.speakMessage(String(localized: "something else is over it; not clicked", comment: "Spoken message")); return }
+        ClickFallback.perform(at: p, count: double ? 2 : 1)
         Tones.press()
     }
 
@@ -1452,8 +1448,25 @@ public final class ObjectNavigator {
         } else if actions.contains("AXConfirm") {
             _ = AXUIElementPerformAction(e, kAXConfirmAction as CFString)
         } else {
-            moveFocusHere()
+            focusOrClick(e)
         }
+    }
+
+    /// Nothing to press: the focus, and when the app says yes to it and the focus stays where it was (Copilot's chats,
+    /// 16 Nov 2026), or says no, a click as the last resort.
+    private func focusOrClick(_ e: AXUIElement) {
+        let r = e.set(kAXFocusedAttribute, kCFBooleanTrue)
+        Log.io("review: focus to \(e.role) → \(r.rawValue)")
+        let app = AXUIElementCreateApplication(e.pid)
+        let landed = r == .success && Poll.pumping(every: 0.03, limit: 0.3) {
+            var x = app.element(kAXFocusedUIElementAttribute); var hops = 0
+            while let y = x, hops < 8 { if y.isSame(e) { return true }; x = y.element(kAXParentAttribute); hops += 1 }
+            return false
+        }
+        if !landed, ClickFallback.click(e) { return }
+        if r != .success { Speech.speakMessage(String(localized: "cannot take the focus", comment: "Spoken message")) }
+        else if !landed { Log.io("review: the focus did not move to \(e.role), and a click was not possible") }
+        AXHandler.shared.refocus(pid: e.pid)
     }
 
     /// NVDA: move focus to the navigator object.

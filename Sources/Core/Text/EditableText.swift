@@ -59,6 +59,8 @@ open class EditableText: TurnOverObject {
         // 7 Oct 2026). Word's module has its own, which searches the whole document.
         script("nextSpellingError", String(localized: "Moves to the next spelling error", comment: "A command, as the key list and keyboard help say it"), gestures: ["kb:turnover+e"], category: cat) { [weak self] _ in self?.goToMisspelling(forward: true) }
         script("previousSpellingError", String(localized: "Moves to the previous spelling error", comment: "A command, as the key list and keyboard help say it"), gestures: ["kb:turnover+shift+e"], category: cat) { [weak self] _ in self?.goToMisspelling(forward: false) }
+        // A field an app has wiped (GitHub Copilot's composer, 16 Nov 2026): the text kept in memory is put back.
+        script("putBackLostText", String(localized: "Puts back text the field lost", comment: "A command, as the key list and keyboard help say it"), gestures: ["kb:turnover+control+z"], category: cat) { [weak self] _ in self?.putBackLostText() }
         if announceNewLineText { script("caret_newLine", String(localized: "Starts a new line", comment: "A command, as the key list and keyboard help say it"), gestures: ["kb:enter", "kb:numpadEnter", "kb:shift+enter"], category: cat) { [weak self] g in guard let self else { return }; newLineScript(g) } }
     }
 
@@ -610,10 +612,12 @@ open class EditableText: TurnOverObject {
     open override func event_typedCharacter(_ ch: Character) { lastTypedAt = Date(); super.event_typedCharacter(ch) }
 
     open override func event_gainFocus() {
+        TextRescue.noteFocus(self)
         if isParagraphHop() { readParagraphHop() } else { super.event_gainFocus() }
         initAutoSelectDetection()
     }
     open override func event_loseFocus() {
+        TextRescue.noteFocus(self)
         if let p = element.element(kAXParentAttribute) { Self.lastLeft = (element, p, Date()) }
         terminateAutoSelectDetection(); super.event_loseFocus()
     }
@@ -660,7 +664,7 @@ open class EditableText: TurnOverObject {
 
     open override func event_textChange() { hasContentChangedSinceLastSelection = true }
     /// A text control's value changes with every keystroke; that is typing, not a value to announce.
-    open override func event_valueChange() { hasContentChangedSinceLastSelection = true }
+    open override func event_valueChange() { hasContentChangedSinceLastSelection = true; TextRescue.noteChange(self) }
 }
 
 /// A combo box you type into: a text field whose Up and Down belong to its list of suggestions.

@@ -126,7 +126,7 @@ enum AreaPanel {
             if session?.snap.second != true, e.subrole == "AXSearchField" || e.name.localizedCaseInsensitiveContains("search") || e.name.localizedCaseInsensitiveContains("find") { handOver(ref, e) }
             else { beginTyping(ref, e) }
         default:
-            guard press(ref, role: e.role, mayFocus: session?.snap.second != true) else {
+            guard press(ref, role: e.role, mayFocus: session?.snap.second != true) || ClickFallback.click(ref) else {
                 Speech.speakMessage(String(localized: "that control did not respond", comment: "Spoken message: a control in the tools list could not be pressed or focused"))
                 return
             }

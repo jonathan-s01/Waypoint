@@ -37,6 +37,19 @@ anything. The layer is on by default.
 Passwords and read-only fields are refused. **VO-Shift-F5** and a click with the Waypoint key held (no click reaches the
 app) put the review position where the mouse pointer is.
 
+## Put back lost text
+
+Some apps wipe a text field: GitHub Copilot's message box came back with only its first sentence after a menu was opened
+and closed. Waypoint keeps a private copy of the long text in each field you type in, in the computer's memory only: it is
+never saved to a file, never written to the log, never taken from a password field, and gone when Waypoint quits. It keeps
+the last eight fields.
+
+When a field suddenly loses most of its text, Waypoint holds on to the longer text. Go back to the field and press
+**VO-Control-Z** (Waypoint key with **Control** and **Z**). It says "text put back" and how many characters, or "no lost text for
+this field". If the field holds other text, that stays and the lost text goes after it. Press it again and it says the text is
+already back; nothing is used up. Sending a message with Return empties the field too, so the same key brings the sent message
+back for as long as the field stays in the last eight.
+
 ## Places: bookmarks and recent places
 
 - **VO-Option-B** bookmarks the current item, named from its text.

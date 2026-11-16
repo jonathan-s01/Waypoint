@@ -225,4 +225,13 @@ func areaMapTests() {
         let bad = L.Chord(hold: d.rightOption | d.rightShift, reverse: d.leftShift, word: d.leftOption)
         check(!L.isSecond(flags: d.rightOption | d.rightShift, chord: bad, turnOverKey: false), "isSecond")
     }
+    test("part landing: the current item is told by its state, and a field's text is never a state") {
+        check(PartLanding.isCurrent(role: "AXCheckBox", selected: nil, value: 1, ariaCurrent: nil), "Teams' current app: a toggle with value 1")
+        check(!PartLanding.isCurrent(role: "AXCheckBox", selected: false, value: 0, ariaCurrent: nil), "another app's toggle")
+        check(!PartLanding.isCurrent(role: "AXCheckBox", selected: nil, value: 2, ariaCurrent: nil), "a mixed toggle is not the current one")
+        check(!PartLanding.isCurrent(role: "AXTextField", selected: nil, value: 1, ariaCurrent: nil), "a field that holds the text 1")
+        check(PartLanding.isCurrent(role: "AXRow", selected: true, value: nil, ariaCurrent: nil), "a selected row")
+        check(PartLanding.isCurrent(role: "AXLink", selected: nil, value: nil, ariaCurrent: "page"), "the page's own current")
+        check(!PartLanding.isCurrent(role: "AXLink", selected: nil, value: nil, ariaCurrent: "false"), "aria-current false")
+    }
 }

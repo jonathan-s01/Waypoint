@@ -947,6 +947,16 @@ func pureTests() {
         check(ms.isConversation(AXReplay.element(3)) && !ms.isConversation(AXReplay.element(0)), "Messages conversations are static texts")
         check(ms.isMessage(AXReplay.element(5)), "Messages: anything in the transcript is a message")
     }
+    test("recipes: the click last resort is on unless the recipe says clickFallback false") {
+        let body = "\"view\": {\"kind\": \"panes\", \"panes\": {\"parts\": [{\"name\": \"A\", \"match\": {}}]}}"
+        do {
+            let on = try Recipes.parse(data: Data("{\"bundle\": \"x.on\", \"name\": \"On\", \(body)}".utf8))
+            let off = try Recipes.parse(data: Data("{\"bundle\": \"x.off\", \"name\": \"Off\", \"clickFallback\": false, \(body)}".utf8))
+            check(ClickFallback.allowed(recipe: on), "absent means on")
+            check(!ClickFallback.allowed(recipe: off), "false turns it off")
+            check(ClickFallback.allowed(recipe: nil), "an app with no recipe is on")
+        } catch { Harness.fail("recipe did not parse: \(error)") }
+    }
     test("recipes: a broken built-in file is reported by name, the rest load") {
         let dir = FileManager.default.temporaryDirectory.appendingPathComponent("turnover-recipe-test-\(getpid())")
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
@@ -1634,5 +1644,49 @@ func focusMemoryTests() {
         AXReplay.load(memoryFixture(names: names.filter { $0 != "Message 17" }))
         defer { AXReplay.unload() }
         check(FocusMemory.find(fp, under: AXReplay.element(0)) == nil, "no confident match: nil")
+    }
+    test("text rescue: typing and small edits move the copy along; a big drop freezes the longer text") {
+        typealias L = TextRescueLogic
+        let long = String(repeating: "A long message. ", count: 40)
+        var c = L.observe(nil, new: "")
+        for n in stride(from: 5, through: long.count, by: 50) { c = L.observe(c, new: String(long.prefix(n))) }
+        c = L.observe(c, new: long)
+        check(c.rescued == nil, "growth is not a loss")
+        c = L.observe(c, new: String(long.dropLast(30)))
+        check(c.rescued == nil, "a small edit is not a loss")
+        c = L.observe(c, new: "A long message.")
+        expect(c.rescued, String(long.dropLast(30)), "the field wiped to its first sentence: the longer text is frozen")
+        c = L.observe(c, new: "A long message. And more")
+        expect(c.rescued, String(long.dropLast(30)), "typing on afterwards keeps the frozen copy")
+    }
+    test("text rescue: short text is never frozen, and a small later loss does not bury a long one") {
+        typealias L = TextRescueLogic
+        var c = L.observe(L.observe(nil, new: "ten chars!!"), new: "")
+        check(c.rescued == nil, "text under the minimum is ignored")
+        let long = String(repeating: "word ", count: 200)
+        c = L.observe(L.observe(nil, new: long), new: "word")
+        let kept = c.rescued
+        c = L.observe(c, new: "A reply of about thirty chars.")
+        c = L.observe(c, new: "")
+        expect(c.rescued, kept, "a short reply sent after the loss leaves the long copy")
+    }
+    test("text rescue: restoring replaces the first sentence, keeps other text, and a second press changes nothing") {
+        typealias L = TextRescueLogic
+        let lost = "First sentence. The rest of the long message."
+        expect(L.restoreAction(current: "First sentence.", rescued: lost), .put(lost), "the leftover first sentence is replaced")
+        expect(L.restoreAction(current: "", rescued: lost), .put(lost), "an empty field gets it")
+        expect(L.restoreAction(current: "Something else", rescued: lost), .put("Something else\n\n" + lost), "other text is kept before it")
+        expect(L.restoreAction(current: lost + "\n", rescued: lost), .alreadyBack, "pressed again: already there")
+        expect(L.restoreAction(current: "Something else\n\n" + lost, rescued: lost), .alreadyBack, "also after the combined restore")
+        expect(L.restoreAction(current: "x", rescued: nil), .nothing, "nothing kept: nothing to put")
+    }
+    test("text rescue: passwords and non-text controls are never kept; a web field's tidying still counts as a match") {
+        typealias L = TextRescueLogic
+        check(L.isEligible(axRole: "AXTextArea", subrole: nil), "a text area")
+        check(!L.isEligible(axRole: "AXTextField", subrole: "AXSecureTextField"), "a password field by subrole")
+        check(!L.isEligible(axRole: "AXSecureTextField", subrole: nil), "a password field by role")
+        check(!L.isEligible(axRole: "AXWebArea", subrole: nil), "a page")
+        check(L.matches(expected: "one\ntwo", actual: "one\r\ntwo\n"), "line endings and edges")
+        check(!L.matches(expected: String(repeating: "x", count: 100), actual: "x"), "a field that kept almost nothing")
     }
 }

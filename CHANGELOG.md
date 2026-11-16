@@ -36,6 +36,9 @@ Changes made in the Waypoint fork, on top of TurnOver 2.0, build 24.1.
   the volume.
 - Panes recipes for Teams and GitHub Copilot, and recipes for Messages, Music, Notes, TV, Podcasts, Discord and WhatsApp.
 - Mouse tracking now interrupts speech as the pointer moves, by default.
+- Put back lost text (VO-Control-Z, TurnOver Control Z in the other key styles): Waypoint keeps a copy of the long text in each
+  text field, in memory only (never saved, never logged, never from a password field), and when an app wipes the field
+  the key puts the text back. It says how many characters came back.
 
 ### Fixed
 

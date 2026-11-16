@@ -195,6 +195,7 @@ public enum FocusMemory {
     /// (a window, a page), which also forgets what was remembered for that window.
     static func leaving(pid: pid_t) {
         WhatChanged.leaving(app: pid)
+        PanesView.current(pid: pid)?.leftApp()
         guard appEnabled, let e = lastFocus[pid] else { return }
         let role = e.role
         guard role != "?" else { return }

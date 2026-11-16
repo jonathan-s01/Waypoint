@@ -205,6 +205,7 @@ extension AXHandler {
             let beside = API.focusObject.map { f in pid == activePid && ["AXTextArea", "AXTextField", "AXComboBox"].contains(f.element.role) } ?? false
             guard let selected = all.first ?? element.elements(kAXChildrenAttribute).first(where: { ($0.attr(kAXFocusedAttribute) as? Bool) == true })
                     ?? (beside ? Self.highlightedOption(in: element) : nil) else { return }
+            if count == 1, let f = API.focusObject as? SelectableList, f.isSameElement(as: element) { ListPlace.note(list: element, row: selected) }   // the row is in hand: no call
             if let (last, at) = lastSelectionReport, last.isSame(selected), Date().timeIntervalSince(at) < 0.4 { return }
             lastSelectionReport = (selected, Date())
             // Only the focused container's selection matters (a sidebar changing under a dialog does not).

@@ -74,7 +74,12 @@ nonisolated public struct Recipe: Codable {
     public var bundle: String
     public var name: String
     public var view: RecipeView
-    public init(bundle: String, name: String, view: RecipeView) { self.bundle = bundle; self.name = name; self.view = view }
+    /// false turns off the click Waypoint makes as a last resort on an item with nothing to press (ClickFallback);
+    /// absent means on.
+    public var clickFallback: Bool?
+    public init(bundle: String, name: String, view: RecipeView, clickFallback: Bool? = nil) {
+        self.bundle = bundle; self.name = name; self.view = view; self.clickFallback = clickFallback
+    }
 }
 
 public enum RecipeError: Error { case missing(String), unknownKind(String) }

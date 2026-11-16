@@ -103,7 +103,7 @@ public enum AreaMenu {
 
     // MARK: Using what the lists find
 
-    private static func canTakeFocus(_ e: AXUIElement) -> Bool {
+    static func canTakeFocus(_ e: AXUIElement) -> Bool {
         var settable: DarwinBoolean = false
         return AXUIElementIsAttributeSettable(e, kAXFocusedAttribute as CFString, &settable) == .success && settable.boolValue
     }
@@ -111,7 +111,7 @@ public enum AreaMenu {
     /// What in an area takes the keyboard: the element itself, else the first control or list inside it that does.
     /// A scroll area or group that takes the focus is the last choice, as the list inside it is where the arrows go
     /// (Finder's file list, 14 Nov 2026). A page's links are never chosen: a page is read, not tabbed into.
-    private static func keyboardTarget(in e: AXUIElement) -> AXUIElement? {
+    static func keyboardTarget(in e: AXUIElement) -> AXUIElement? {
         let controls: Set<String> = ["AXOutline", "AXTable", "AXList", "AXBrowser", "AXTextField", "AXTextArea", "AXComboBox", "AXSearchField",
                                      "AXButton", "AXCheckBox", "AXRadioButton", "AXPopUpButton", "AXMenuButton", "AXSlider", "AXIncrementor", "AXTabGroup"]
         var fallback: AXUIElement?
@@ -133,7 +133,7 @@ public enum AreaMenu {
     }
 
     /// A list with rows at or inside the element, for a list the app will not give the keyboard to (Finder's sidebar).
-    private static func holdableList(in e: AXUIElement) -> AXUIElement? {
+    static func holdableList(in e: AXUIElement) -> AXUIElement? {
         let lists: Set<String> = ["AXOutline", "AXTable", "AXList", "AXBrowser"]
         var queue: [(AXUIElement, Int)] = [(e, 0)]
         var seen = 0
@@ -152,16 +152,39 @@ public enum AreaMenu {
         if second { ReviewLayer.jump(to: e, area: area); return }
         // Whatever list was held belongs to the area left behind: its rows must not keep the arrows.
         ObjectNavigator.shared.releaseHold()
-        if let t = keyboardTarget(in: e), t.set(kAXFocusedAttribute, kCFBooleanTrue) == .success {
+        // An element that takes the keyboard is used as it is; one that does not gets the current item, else the first control or row.
+        let landing = canTakeFocus(e) ? keyboardTarget(in: e) : PartLanding.target(in: e, remembered: nil)?.element
+        let before = API.focusObject?.element
+        if let t = landing, t.set(kAXFocusedAttribute, kCFBooleanTrue) == .success {
             Log.io("areas: the keyboard goes to \(t.role) in \"\(Log.words(name))\"")
             Speech.speakMessage(name)
             ObjectNavigator.shared.focusMoved(to: t, pid: t.pid)
+            followIfSilent(t, before: before)
             return
         }
         if let list = holdableList(in: e) { ObjectNavigator.shared.enterHold(list, name: name, row: nil); return }
         Speech.speakMessage(name)
         ObjectNavigator.shared.focusMoved(to: e, pid: e.pid)
         ObjectNavigator.shared.reportCurrent()
+    }
+
+    /// A page given the keyboard whose app then says nothing: the page is taken as the focus. Outlook's reading pane
+    /// took the keyboard from the message list but reported no focused element and posted no focus event, so the
+    /// arrows stayed on the list (Outlook on macOS 27, 16 Nov 2026; earlier that day it reported a group in the pane).
+    /// Later that day Outlook accepted the focus on the pane but kept reporting its message table as focused, and the
+    /// arrows moved the message selection: an app focus still on what was left counts as silent too.
+    /// An element that already had the app's keyboard gets no focus event either: it is taken as the focus too.
+    static func followIfSilent(_ t: AXUIElement, before: AXUIElement?) {
+        let pid = t.pid
+        let page = t.role == "AXWebArea"
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            guard let now = API.focusObject?.element, before.map({ now.isSame($0) }) ?? false, !now.isSame(t) else { return }
+            let app = AXUIElementCreateApplication(pid).element(kAXFocusedUIElementAttribute)
+            let silent = page ? (app == nil || app!.isSame(now)) : (app?.isSame(t) ?? false)
+            guard silent else { return }
+            Log.io(page ? "areas: no focus came from the page; taking it as the focus" : "areas: the \(t.role) already had the keyboard; taking it as the focus")
+            AXHandler.shared.focusChanged(t, pid: pid)
+        }
     }
 
     /// Return on a control: fields take the focus; everything else is pressed (a press an app refuses but takes, as
@@ -171,6 +194,7 @@ public enum AreaMenu {
         if ["AXTextField", "AXSearchField", "AXComboBox", "AXTextArea", "AXSlider", "AXIncrementor"].contains(role), e.set(kAXFocusedAttribute, kCFBooleanTrue) == .success { return }
         if AXUIElementPerformAction(e, kAXPressAction as CFString) == .success { return }
         if e.set(kAXFocusedAttribute, kCFBooleanTrue) == .success { return }
+        if ClickFallback.click(e) { return }
         Speech.speakMessage(String(localized: "that control did not respond", comment: "Spoken message: a control in the tools list could not be pressed or focused"))
     }
 

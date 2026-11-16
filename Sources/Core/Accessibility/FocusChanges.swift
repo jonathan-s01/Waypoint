@@ -519,6 +519,7 @@ extension AXHandler {
             let o = ObjectFactory.make(target); return (o, o.ancestors)
         }()
         madeForFocus = nil
+        PanesView.current(pid: pid)?.focusLanded(on: target, ancestors: ancestors.map(\.element))   // Waypoint: the place in a part follows the focus
         let window = target.element(kAXWindowAttribute)
         let old = API.focusObject
         let oldAncestors = API.focusAncestors

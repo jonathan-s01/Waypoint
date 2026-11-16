@@ -41,6 +41,13 @@ open class SelectableList: TurnOverObject {
             Log.io("list: Return on the row TurnOver walked to; pressing it")
             if AXUIElementPerformAction(target, kAXPressAction as CFString) == .success { Tones.press(); return }
         }
+        // A walked row with nothing to press: a click opens it. Copilot's chats under each project have no press
+        // action and refuse the focus; Return went to the message box behind the list (16 Nov 2026, macOS 27).
+        if let walked, !(element.elements(rowsAndKey.1).first?.isSame(walked) ?? false),
+           !pressable(walked), !walked.elements(kAXChildrenAttribute).contains(where: pressable), ClickFallback.click(walked) {
+            Log.io("list: Return on the row TurnOver walked to; clicking it")
+            return
+        }
         g.send()
         if Poll.pumping(every: 0.01, limit: 0.5, { EventHandler.isPending(.gainFocus) || EventHandler.isPending(.selection) || EventHandler.isPending(.foreground) || EventHandler.isPending(.valueChange) }) { return }
         guard let row = element.elements(rowsAndKey.1).first ?? walked else { return }
@@ -67,12 +74,14 @@ open class SelectableList: TurnOverObject {
     }
 
     /// The rows, and whatever holds the selection: a table's rows, or a plain list's children.
-    private var rowsAndKey: ([AXUIElement], String) {
+    private var rowsAndKey: ([AXUIElement], String) { Self.rowsAndKey(of: element, role: axRole, subrole: axSubrole) }
+
+    static func rowsAndKey(of element: AXUIElement, role axRole: String, subrole axSubrole: String?) -> ([AXUIElement], String) {
         let rows = element.elements(kAXRowsAttribute)
         if !rows.isEmpty { return (rows, kAXSelectedRowsAttribute) }
         // A table or outline with no rows is empty: its children are its columns and header, not rows. Finder's list
         // view of an empty folder was "5 items", and Down arrow walked "column, 1 of 5" (Oliver, 21 Oct 2026).
-        if ["AXOutline", "AXTable"].contains(element.role) {
+        if ["AXOutline", "AXTable"].contains(axRole) {
             return (element.elements(kAXChildrenAttribute).filter { $0.role == "AXRow" }, kAXSelectedRowsAttribute)
         }
         let children = element.elements(kAXChildrenAttribute)
@@ -103,16 +112,53 @@ open class SelectableList: TurnOverObject {
         let candidates = first ? Array(rows.prefix(3)) : Array(rows.suffix(3).reversed())
         for target in candidates {
             if selected.count == 1, selected[0].isSame(target) { return false }   // already there: the edge
-            guard element.set(key, [target] as CFArray) == .success else { continue }
-            guard element.elements(key).contains(where: { $0.isSame(target) }) else {
-                if !selected.isEmpty { _ = element.set(key, selected as CFArray) }   // the refusal cleared the selection
-                continue
-            }
-            _ = AXUIElementPerformAction(target, "AXScrollToVisible" as CFString)
+            guard select(target, key: key, was: selected) else { continue }
             Log.io("list: selected the \(first ? "first" : "last") of \(rows.count) rows")
+            ListPlace.note(list: element, row: target, index: rows.firstIndex { $0.isSame(target) })
             return true
         }
         return false
+    }
+
+    /// Set the selection to one row and check it took (a row may refuse), then scroll to it.
+    private func select(_ target: AXUIElement, key: String, was selected: [AXUIElement]) -> Bool {
+        guard element.set(key, [target] as CFArray) == .success else { return false }
+        guard element.elements(key).contains(where: { $0.isSame(target) }) else {
+            if !selected.isEmpty { _ = element.set(key, selected as CFArray) }   // the refusal cleared the selection
+            return false
+        }
+        _ = AXUIElementPerformAction(target, "AXScrollToVisible" as CFString)
+        return true
+    }
+
+    /// With nothing selected, go back to where the selection last was in this list: the row itself if it is still
+    /// there, else the row now at its place. False when this list has no remembered place or the row will not select.
+    private func restorePlace() -> Bool {
+        guard let place = ListPlace.place(of: element) else { return false }
+        let (rows, key) = rowsAndKey
+        let found = place.row.flatMap { r in rows.firstIndex { $0.isSame(r) } }
+        guard let i = ListPlace.restoreIndex(remembered: place.index, found: found, rowCount: rows.count),
+              select(rows[i], key: key, was: []) else { return false }
+        Log.io("list: nothing selected; back to row \(i + 1) of \(rows.count)")
+        ListPlace.note(list: element, row: rows[i], index: i)
+        return true
+    }
+
+    /// The list takes the focus again (a window switched back to): its selection may have gone while it was away.
+    open override func event_gainFocus() {
+        super.event_gainFocus()
+        // Back in a list TurnOver walks itself: on the row it was on, said after the list (Copilot's sessions started
+        // at the top again each time, 16 Nov 2026).
+        if virtualRow == nil, resumeWalk() {
+            if let i = virtualRow { sayWalked(i, of: rowsAndKey.0, interrupt: false) }
+            return
+        }
+        guard virtualRow == nil else { return }
+        if let row = element.elements(rowsAndKey.1).first {
+            ListPlace.note(list: element, row: row)
+        } else if ListPlace.place(of: element) != nil, restorePlace() {
+            if !waitForSelection() { readSelection() }
+        }
     }
 
     private func waitForSelection() -> Bool {
@@ -132,10 +178,28 @@ open class SelectableList: TurnOverObject {
             }
             return
         }
-        // Nothing selected yet: either arrow starts at the top, not at the far end where Mail puts Up.
-        if (key == "upArrow" || key == "downArrow"), g.modifiers.isEmpty, element.elements(rowsAndKey.1).isEmpty, selectEnd(first: true) {
-            if !waitForSelection() { readSelection() }
+        let plainArrow = (key == "upArrow" || key == "downArrow") && g.modifiers.isEmpty
+        // A held arrow: send the key and go on without waiting or reading. In Finder's list view going Up, the selection
+        // event came 300 ms late; each repeat then held the main thread for the wait, the keyboard thread's 150 ms
+        // limit ran out for the ones behind it, and they burst out together (16 Nov 2026, macOS 27). Finder served
+        // TurnOver's row reads on its own main thread too, and its selection froze while the key was held. The event
+        // that arrives reads the row. The first press of the hold has checked that there is a selection and an
+        // end to move to; a repeat at an end is sent to the application, as the end check would have done.
+        if plainArrow, g.isRepeat, virtualRow == nil, let at = heldSelectionAt, Date().timeIntervalSince(at) < 1 {
+            heldSelectionAt = Date()
+            g.send()
             return
+        }
+        // Nothing selected yet: either arrow starts at the top, not at the far end where Mail puts Up. A list that
+        // remembers where its selection was goes back there first (an item moved away from another window).
+        if plainArrow, virtualRow == nil, resumeWalk() { moveVirtually(key); return }
+        if plainArrow, virtualRow == nil {
+            let hasSelection = !element.elements(rowsAndKey.1).isEmpty
+            heldSelectionAt = hasSelection ? Date() : nil
+            if !hasSelection, restorePlace() || selectEnd(first: true) {
+                if !waitForSelection() { readSelection() }
+                return
+            }
         }
         // Already on the first or last row: the key goes on to the application (the system plays its own bump) without
         // waiting for a change that will not come; each wait held up the keys behind it (up to the top fast, then down
@@ -168,6 +232,9 @@ open class SelectableList: TurnOverObject {
         if axSubrole == "AXCollectionList" { Tones.edge(keySent: true) }
     }
 
+    /// When a plain arrow last found a selection, or a held arrow was last sent on: a repeat within a second of it skips the reads.
+    private var heldSelectionAt: Date?
+
     /// The row TurnOver is on, in a list that will not move its own selection (-1: before the first).
     private var virtualRow: Int?
 
@@ -184,13 +251,30 @@ open class SelectableList: TurnOverObject {
         }
         guard rows.indices.contains(i) else { Tones.edge(keySent: true); return }
         virtualRow = i
-        let row = rows[i]
-        _ = row.set(kAXSelectedAttribute, kCFBooleanTrue)   // the list's own selection follows, where it will
-        let obj = ObjectFactory.make(row)
+        ListPlace.note(list: element, row: rows[i], index: i, walked: true)
+        _ = rows[i].set(kAXSelectedAttribute, kCFBooleanTrue)   // the list's own selection follows, where it will
+        sayWalked(i, of: rows, interrupt: true)
+    }
+
+    private func sayWalked(_ i: Int, of rows: [AXUIElement], interrupt: Bool) {
+        guard rows.indices.contains(i) else { return }
+        let obj = ObjectFactory.make(rows[i])
         var parts = Speech.objectPropertiesSpeech(obj, reason: .focus).filter { !Phrases.isPosition($0) }
         parts.append(Phrases.position(i + 1, of: rows.count))
-        Speech.cancel()
+        if interrupt { Speech.cancel() }
         Speech.speakMessage(parts.joined(separator: ", "))
+    }
+
+    /// Takes up TurnOver's own walk where it was in this list, when the list still has nothing selected.
+    private func resumeWalk() -> Bool {
+        guard let place = ListPlace.place(of: element), place.walked else { return false }
+        let (rows, key) = rowsAndKey
+        guard element.elements(key).isEmpty else { return false }
+        let found = place.row.flatMap { r in rows.firstIndex { $0.isSame(r) } }
+        guard let i = ListPlace.restoreIndex(remembered: place.index, found: found, rowCount: rows.count) else { return false }
+        Log.io("list: back to row \(i + 1) of \(rows.count) in TurnOver's own walk")
+        virtualRow = i
+        return true
     }
 
     /// Whether the selection is on the first (or last) row.

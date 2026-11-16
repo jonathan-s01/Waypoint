@@ -19,6 +19,15 @@ public final class PanesView {
     private var placed: (index: Int, focus: AXUIElement?)?
     /// The page a document part put into browse mode: moving to another part gives the mode back to the focus.
     private var documentEntered: BrowseModeDocument?
+    /// Where the keyboard focus last was inside each part (not a document part): a reference and a time, kept as the
+    /// focus moves, so the place is known however the user leaves, a key, a click, Return opening a chat, another app.
+    private var lastIn: [Int: (element: AXUIElement, at: Date)] = [:]
+    /// The element whose place was last written to FocusMemory for each part.
+    private var persisted: [Int: AXUIElement] = [:]
+    /// The part the focus was last in.
+    private var focusPart: Int?
+    private var refreshedAt = Date.distantPast
+    private var refreshing: Task<Void, Never>?
 
     private struct WeakView { weak var view: PanesView? }
     /// The view of each app that has one, by process: Describe this app and What changed ask for it. Weak, the app's module owns it.
@@ -87,6 +96,65 @@ public final class PanesView {
         return false
     }
 
+    /// The keyboard focus is `target` (AXHandler.present, every focus change; `ancestors` are its parents, already read).
+    /// Costs one comparison per part against the elements found already, no accessibility call: a focus event must stay
+    /// cheap, and `element(of:)` may walk the window. The place is written to FocusMemory when the focus first leaves the
+    /// part, one fingerprint per leaving and not per arrow. Parts never found, or kept too long, are found again off the
+    /// main thread (at most every 10 s), so a part changed under the cache is picked up by a later focus change.
+    public func focusLanded(on target: AXUIElement, ancestors: [AXUIElement]) {
+        guard FocusMemory.regionsEnabled else { return }
+        var hit: Int?
+        var stale = false
+        for i in parts.indices {
+            guard let (e, at) = found[i] else { stale = true; continue }
+            if Date().timeIntervalSince(at) >= 10 { stale = true }
+            guard parts[i].read != "document", hit == nil else { continue }
+            if CFEqual(target, e) { hit = i } else if ancestors.contains(where: { CFEqual($0, e) }) { hit = i; lastIn[i] = (target, Date()) }
+        }
+        if let prev = focusPart, prev != hit { persistPlace(of: prev) }
+        focusPart = hit
+        if hit == nil, stale { refreshParts() }
+    }
+
+    /// The app went out of the front: the place the focus had in its part is kept.
+    public func leftApp() {
+        if let p = focusPart { persistPlace(of: p) }
+        focusPart = nil
+    }
+
+    /// Writes the place the focus last had in part `i` to FocusMemory, so it outlives the element.
+    private func persistPlace(of i: Int) {
+        guard FocusMemory.regionsEnabled, let (el, _) = lastIn[i], let root = found[i]?.0 else { return }
+        if let p = persisted[i], CFEqual(p, el) { return }
+        guard el.role != "?", let fp = FocusMemory.fingerprint(of: el, root: root, budget: 0.25), fp.isUsable else { return }
+        persisted[i] = el
+        FocusMemory.remember(region: parts[i].name, pid: pid, .element(fp))
+        Log.io("focus memory: left \(parts[i].name) at \(el.role) \"\(Log.words(fp.nodes.last?.text ?? ""))\"")
+    }
+
+    /// Where the focus last was in part `i`, when that element is still there and still inside the part.
+    private func livePlace(of i: Int, in part: AXUIElement) -> (element: AXUIElement, at: Date)? {
+        guard let t = lastIn[i], t.element.role != "?", !t.element.isSame(part), isInside(t.element, part) else { return nil }
+        return t
+    }
+
+    /// Finds the parts again in the background and puts the focus in its part, as the walk may take a while.
+    private func refreshParts() {
+        guard refreshing == nil, Date().timeIntervalSince(refreshedAt) >= 10 else { return }
+        refreshedAt = Date()
+        let matches = Handed(parts.map(\.match)), pid = pid
+        refreshing = Task {
+            let hits = await Task.detached(priority: .utility) { matches.value.map { PanesView.find($0, pid: pid, budget: 0.4).map { Handed($0) } } }.value
+            refreshing = nil
+            for (i, h) in hits.enumerated() { if let h { found[i] = (h.value, Date()) } }
+            guard let f = API.focusObject?.element else { return }
+            var ancestors: [AXUIElement] = []
+            var p = f.element(kAXParentAttribute)
+            while let e = p, ancestors.count < 40 { ancestors.append(e); p = e.element(kAXParentAttribute) }
+            focusLanded(on: f, ancestors: ancestors)
+        }
+    }
+
     /// The pointer put the reading on `target`: that is the part Tab measures from, whatever the keyboard focus is
     /// (a click in a web app's message list leaves the focus in the message box, and Tab went on from there).
     public func readingPlaced(on target: AXUIElement) {
@@ -150,7 +218,9 @@ public final class PanesView {
         if nav.isHolding, let h = nav.heldList, h.isSame(ec) { target = nav.reviewElement }
         else if let f = API.focusObject?.element, isInside(f, ec), !f.isSame(ec) { target = f }
         else if let r = nav.reviewElement, !r.isSame(ec), isInside(r, ec) { target = r }
+        else { target = livePlace(of: c, in: ec)?.element }
         guard let target, let fp = FocusMemory.fingerprint(of: target, root: ec, budget: 0.25), fp.isUsable else { return }
+        persisted[c] = target
         FocusMemory.remember(region: part.name, pid: pid, .element(fp))
         Log.io("focus memory: left \(part.name) at \(target.role) \"\(Log.words(fp.nodes.last?.text ?? ""))\"")
     }
@@ -175,13 +245,20 @@ public final class PanesView {
         if FocusMemory.regionsEnabled, let from, from != i { rememberPlace(of: from) }
         if let from, from != i, let left = element(of: from) { WhatChanged.leaving(region: parts[from], pid: pid, element: left) }
         var recall: (place: FocusPlace, at: Date)?
+        var tracked: (element: AXUIElement, at: Date)?
         if (FocusMemory.regionsEnabled && from != i) || forceRestore {
             recall = FocusMemory.recall(region: part.name, pid: pid)
-            if forceRestore, recall == nil { Speech.speakMessage(String(localized: "nothing remembered for \(part.name)", comment: "Spoken message: %@ is a part of the window")); return }
+            tracked = part.read == "document" ? nil : livePlace(of: i, in: e)
+            if forceRestore, recall == nil, tracked == nil { Speech.speakMessage(String(localized: "nothing remembered for \(part.name)", comment: "Spoken message: %@ is a part of the window")); return }
         }
         var rememberedElement: AXUIElement?
-        if case .element(let fp)? = recall?.place {
-            rememberedElement = FocusMemory.find(fp, under: e, budget: 0.4)
+        // Where the keyboard last was in the part, while that element is still there, is the place; FocusMemory's
+        // recall is for when it is not, or is newer and was written from some other place.
+        if let t = tracked, t.at >= (recall?.at ?? .distantPast) || persisted[i].map({ CFEqual($0, t.element) }) == true {
+            rememberedElement = t.element
+            Log.io("focus memory: \(part.name): the last focus in it is still there")
+        } else if case .element(let fp)? = recall?.place {
+            rememberedElement = FocusMemory.find(fp, under: e, budget: 0.4) ?? tracked?.element
             if rememberedElement == nil { Log.io("focus memory: \(part.name): could not find the place again; default landing") }
         }
         ObjectNavigator.shared.releaseHold()
@@ -200,9 +277,17 @@ public final class PanesView {
         if takesKeys, let r = rememberedElement, FocusMemory.put(r, pid: pid) != "review cursor" {
             Log.io("focus memory: \(part.name): back to \(r.role)")
             Speech.speakMessage(part.name)
-        } else if takesKeys, e.set(kAXFocusedAttribute, kCFBooleanTrue) == .success {
+        } else if takesKeys, case let before = API.focusObject?.element, e.set(kAXFocusedAttribute, kCFBooleanTrue) == .success {
             // The focus event reads the element; the part's name first.
             Speech.speakMessage(part.name)
+            AreaMenu.followIfSilent(e, before: before)
+        } else if part.read != "document", let t = PartLanding.target(in: e, remembered: rememberedElement), t.element.set(kAXFocusedAttribute, kCFBooleanTrue) == .success {
+            // A part that cannot take the keyboard (a web app's bar of apps or list of chats): it goes onto the
+            // remembered place, the current item or the first control inside, so the app's own arrows and Return work.
+            Log.io("panes: \(part.name): the keyboard goes to \(t.element.role) (\(t.why))")
+            Speech.speakMessage(part.name)
+            // No focus event comes when that element already had the keyboard.
+            if let f = API.focusObject, f.isSameElement(as: t.element) { Speech.speakObject(f, reason: .focus) }
         } else if !e.elements(kAXRowsAttribute).isEmpty {
             ObjectNavigator.shared.enterHold(e, name: part.name, row: rememberedElement)
             if rememberedElement != nil { Log.io("focus memory: \(part.name): back to the remembered row") }
