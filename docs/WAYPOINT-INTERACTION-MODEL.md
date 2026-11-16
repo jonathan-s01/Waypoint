@@ -46,7 +46,7 @@ predictable behaviour from saved rules rather than AI guesses.
 | Command layer with a local language model (plan 4.11, 4.12) | Not built; a plan exists | |
 | Customize any app in place: rename, hide, pin, make a region (plan 4.17) | Not built | |
 | Read the latest message or response in the app, from anywhere (plan: SR+L) | Not built | |
-| A sound for each mode | Not built (see below) | |
+| A sound for each mode | Built (see Sounds) | `Tones.swift`, `TurnOverMenu.swift` |
 | Spatial audio, magnification sync, task views | Not built | |
 
 ## The keys as built
@@ -80,15 +80,22 @@ message) have no key yet.
 
 ## Sounds
 
-Only skim has any: a rising two-tone when it starts, a falling one when it ends, and a tick between items. The old plan
-said a short sound marks each mode; that was never built. The review layer, the Areas Tools list and the launcher make
-no sound when they start or stop.
+Every mode says when you enter and leave it with a short sound, so the pitch pattern tells you where you are. The
+launcher has none on purpose: you know when you are in it. The setting for navigation sounds turns off the focus, browse
+and list sounds; the review, skim and off/on tones have no setting yet.
 
-**Proposal, not decided:** give each mode one short two-tone in the style of skim's, so the pitch pair tells you which
-mode you entered, with the falling version for leaving. Keep them quiet (skim uses volume 0.15), put them behind one
-setting so they can be turned off, and add them in the owning file with `Tones.beep`, as `SkimMode.tone(on:)` does.
-To settle first: which modes get one (review layer, Tools list, launcher layer 2), and whether the sound sits before
-or after the spoken word.
+| Mode | Entering | Leaving | Made by |
+| --- | --- | --- | --- |
+| Focus mode | Two notes rising | Browse mode's: two notes falling | Sound files `focus_mode`, `browse_mode` |
+| Review layer | Two notes rising, high | The same falling; a single note when armed | Plain tones, `ReviewLayer` |
+| Skim | Two notes rising, lower | The same falling; a tick between items | Plain tones, `SkimMode` |
+| Waypoint off and on | Rising for on | Falling for off | Plain tones, `WaypointPause` |
+| Any menu or list: the Waypoint menu, Anywhere, an item's actions, bookmarks, recent places, an area's tools, the application chooser | Three notes rising (D, F sharp, A) | The same falling | Plain tones, `Tones.listOpened` and `listClosed`, called from `TurnOverMenu` |
+
+Quick Nav has no sound of its own: it is the single letters inside browse mode, and it is on whenever browse mode is on
+unless turned off for the page. Its on and off sounds are for that switch (`quicknav_on`, `quicknav_off`).
+
+**To decide:** whether the sound should sit before or after the spoken word. Today they play together.
 
 ## Open questions
 

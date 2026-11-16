@@ -28,6 +28,8 @@ Changes made in the Waypoint fork, on top of TurnOver 2.0, build 24.1.
 - Anywhere (VO-Command-A): type to find an app, a menu command or an action, and run it. The actions menu
   (VO-Command-Space) lists everything that can be done to the item you are on. Menu search finds submenus.
 - First-letter jump in any list, whatever its sort order.
+- A sound for opening and closing any menu or list: three notes rising on opening, falling on closing, so it is never
+  taken for browse, focus, review or skim, which have two. It follows the navigation sounds setting.
 - The launcher: Right Command and a key opens an app or runs a command; Right Command with Equals and Minus changes
   the volume.
 - Panes recipes for Teams and GitHub Copilot, and recipes for Messages, Music, Notes, TV, Podcasts, Discord and WhatsApp.

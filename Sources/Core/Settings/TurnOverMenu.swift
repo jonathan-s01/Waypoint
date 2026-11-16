@@ -79,6 +79,7 @@ public final class TurnOverMenu {
     public func open() {
         let title = String(localized: "Waypoint menu", comment: "The Waypoint menu, as it opens")
         stack = [(title, rootItems(), 0)]
+        if !isOpen { Tones.listOpened() }
         isOpen = true
         Speech.cancel()
         Speech.speakMessage(title)
@@ -114,6 +115,7 @@ public final class TurnOverMenu {
         guard !items.isEmpty else { Speech.speakMessage(Self.none(title)); return }
         keyHook = nil
         stack = [(title, items, 0)]
+        if !isOpen { Tones.listOpened() }
         isOpen = true
         Speech.cancel()
         Speech.speakMessage("\(title), \(items.count)")
@@ -140,6 +142,7 @@ public final class TurnOverMenu {
     private var typeaheadAt = Date.distantPast
 
     public func close() {
+        if isOpen { Tones.listClosed() }
         isOpen = false
         keyHook = nil
         filterMatcher = nil
@@ -182,6 +185,7 @@ public final class TurnOverMenu {
         filterMatcher = nil
         filterSource = items; filter = ""; browsingResults = false
         stack = [(title, items, 0)]
+        if !isOpen { Tones.listOpened() }
         isOpen = true
         Speech.cancel()
         Speech.speakMessage(String(localized: "\(title), \(Phrases.items(items.count)), type to filter", comment: "A list that narrows as you type: its title, then the count of items"))
@@ -237,6 +241,7 @@ public final class TurnOverMenu {
         rotor = kinds
         rotorIndex = kinds.firstIndex { $0.name == lastRotorKind } ?? 0
         rotorTypesToFilter = typeToFilter
+        if !isOpen { Tones.listOpened() }
         isOpen = true
         Speech.cancel()
         showRotorKind(intro: intro ?? String(localized: "rotor", comment: "VoiceOver's rotor, as it opens"))

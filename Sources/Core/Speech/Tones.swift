@@ -89,6 +89,17 @@ public enum Tones {
     // focus, so its Quick Nav sounds were wrong here: every return to Claude played "Quick Nav off", 17 Oct 2026.)
     public static func focusMode() { if fresh("focus_mode") { return }; beep(523, 35, volume: 0.18); DispatchQueue.main.asyncAfter(deadline: .now() + 0.045) { beep(784, 45, volume: 0.18) } }
     public static func browseMode() { if fresh("browse_mode") { return }; beep(784, 35, volume: 0.18); DispatchQueue.main.asyncAfter(deadline: .now() + 0.045) { beep(523, 45, volume: 0.18) } }
+    /// A menu or list opening (Waypoint's menu, Anywhere, an item's actions, bookmarks, an area's tools): three notes
+    /// rising, D5 F#5 A5. Closing: the same falling. Three notes, where the two-note modes have two, so it is never
+    /// taken for browse, focus, review or skim. Softer than they are, and silent with navigation sounds off.
+    public static func listOpened() { listTones([587, 740, 880]) }
+    public static func listClosed() { listTones([880, 740, 587]) }
+    private static func listTones(_ notes: [Double]) {
+        guard config.general.navigationSounds else { return }
+        for (n, f) in notes.enumerated() {
+            if n == 0 { beep(f, 30, volume: 0.15) } else { DispatchQueue.main.asyncAfter(deadline: .now() + 0.045 * Double(n)) { beep(f, 35, volume: 0.15) } }
+        }
+    }
     /// A progress bar's beep, NVDA's (ProgressOutput): 40 ms, 110 Hz at 0 percent, an octave higher each 25 percent,
     /// 1760 Hz at 100.
     public static func progress(_ percent: Int) { beep(progressFrequency(percent), 40) }
