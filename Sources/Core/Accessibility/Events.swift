@@ -60,6 +60,7 @@ public enum EventHandler {
     public static func execute(_ event: Event) {
         if InputManager.isAsleep(event.obj.pid) { return }   // NVDA's sleep mode: nothing said for this app
         if InputManager.directPid == event.obj.pid { return }   // a direct app: nothing said (it speaks for itself)
+        StaleFocus.noteFieldNews(event)
         // Google Docs: a focus move starts or stops the reading of Google's announcements; a caret move in the editor
         // starts it too (after a restart the focus is already there, and no focus event comes, 12 Oct 2026).
         if event.kind == .gainFocus { GoogleDocs.focusMoved(to: event.obj.element) }

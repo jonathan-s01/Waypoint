@@ -19,6 +19,11 @@ misbehaves, check this list first.
   focus after 0.25 s, say its name and "frame".
 - **Some controls do not say which window they are in.** Safari's settings controls have no AXWindow. Fix: walk up
   the parents to the window. `SettingsPanePlugin.windowOf`.
+- **A suggestion popup holds the focus while the text area has the keys.** Teams' suggestion list (16 Nov 2026) puts
+  the focus on a group; typed keys, Backspace, Left and Right go on to the text area, whose caret and value news
+  follow each key, and nothing typed was read. Fix: news from an editable field just after a key, while a textless
+  element holds the focus, is remembered; the next such key gives the field the focus without a word. Up and Down
+  stay the popup's. `StaleFocus.noteFieldNews`, `fieldBehind`.
 
 ## Keys the app ignores
 
@@ -70,6 +75,11 @@ misbehaves, check this list first.
 - **WebKit puts an editing caret at the end of a line on the line break itself.** Read as the start of the next
   line, Down read the empty line below and skipped lines after a deletion (Mail's compose window). In editable web
   text, a caret on a break after text is at the end of that line. `WebTextInfo.lineOffsets`.
+- **Chrome's contenteditable with a paragraph per block (M365 Copilot's chat box) answers every line query with the
+  whole text, and its AXStringForRange skips the paragraph breaks the caret counts** (14 Nov 2026): every Up and
+  Down bumped, and a read after a break was early by the breaks before it. Fix: a field whose last character
+  AXStringForRange cannot reach is read from its value; a "line" holding a paragraph break is replaced by the
+  field's text-marker line. `AXTextInfo.readsFromValue`, `markerLine`.
 - **The app moves the caret by its own lines** while editing: never cut a line into NVDA's 100-character browse
   pieces there, or the words in between are never read.
 - **Option+Right stops at the end of a word**: say the word passed over, not the space or comma after it.
