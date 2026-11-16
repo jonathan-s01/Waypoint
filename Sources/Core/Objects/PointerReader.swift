@@ -41,6 +41,8 @@ nonisolated package struct PointerSnapshot: Sendable, Equatable {
     package var headingLevel: Int?
     /// What a text or image is inside (a link, a heading, a button, a cell), said after its words.
     package var context: [String] = []
+    /// The text is in a selected row of a native list (a Finder sidebar item), said with its words.
+    package var itemSelected = false
 
     package var isSecure: Bool { subrole == "AXSecureTextField" }
 }
@@ -78,7 +80,9 @@ nonisolated package enum PointerReader {
     /// The spoken text: name, role, value, states, and a group's count.
     package static func compose(_ s: PointerSnapshot) -> String {
         // A text is its words ("Home", not "Home, text"). Never a secure field's.
-        if s.axRole == "AXStaticText", !s.isSecure, !s.value.isEmpty { return PointerContext.said(s.value, then: s.context) }
+        if s.axRole == "AXStaticText", !s.isSecure, !s.value.isEmpty {
+            return PointerContext.said(s.itemSelected ? "\(s.value), \(State.selected.displayString)" : s.value, then: s.context)
+        }
         let name = [s.title, s.description].first { !$0.isEmpty } ?? ""
         var parts: [String] = []
         if !name.isEmpty { parts.append(name) }
@@ -141,7 +145,9 @@ nonisolated package enum PointerReader {
         guard Date() < deadline else { return nil }
         AXUIElementSetMessagingTimeout(e, messagingTimeout)
         var s = snapshot(e)
-        if ["AXStaticText", "AXImage"].contains(s.axRole), Date() < deadline { s.context = PointerContext.words(above: e, deadline: deadline) }
+        if ["AXStaticText", "AXImage"].contains(s.axRole), Date() < deadline {
+            (s.context, s.itemSelected) = PointerContext.words(above: e, deadline: deadline)
+        }
         if countsGroups, Date() < deadline, isGroup(e, s) {
             s.isGroup = true
             // The children, in one question: not the keyboard's walk of every item, which a pointer sweep cannot wait on.

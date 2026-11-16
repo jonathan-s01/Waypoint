@@ -149,22 +149,25 @@ nonisolated package enum PointerContext {
         return word
     }
 
-    /// The words of what `e` (a text or image) is inside, nearest first, or none. Stops at the deadline.
-    package static func words(above e: AXUIElement, deadline: Date) -> [String] {
+    /// The words of what `e` (a text or image) is inside, nearest first, or none; and whether it is the text of a
+    /// selected row of a native list, which is said with the words ("Recents, selected"). Stops at the deadline.
+    package static func words(above e: AXUIElement, deadline: Date) -> (words: [String], selected: Bool) {
         var found: [String] = []
+        var selected = false
         var container: String?
         var cur = e
         for distance in 1...levels {
             guard Date() < deadline, let p = cur.element(kAXParentAttribute) else { break }
             AXUIElementSetMessagingTimeout(p, PointerReader.messagingTimeout)
             let a = p.attrs([kAXRoleAttribute, kAXSubroleAttribute, kAXRoleDescriptionAttribute, kAXTitleAttribute,
-                             kAXDescriptionAttribute, kAXValueAttribute, "AXHeadingLevel"])
+                             kAXDescriptionAttribute, kAXValueAttribute, "AXHeadingLevel", kAXSelectedAttribute])
             func text(_ k: String) -> String { (a[k] as? String) ?? "" }
             let role = text(kAXRoleAttribute)
             if role == "AXWindow" || role == "AXWebArea" || role == "AXApplication" { break }
             let named = !text(kAXTitleAttribute).isEmpty || !text(kAXDescriptionAttribute).isEmpty
             let subrole = text(kAXSubroleAttribute)
             let inList = (role == "AXCell" || role == "AXRow") && isInNativeList(p, deadline: deadline)
+            if inList, (a[kAXSelectedAttribute] as? Bool) == true { selected = true }
             switch kind(role: role, subrole: subrole, named: named, distance: distance, inNativeList: inList) {
             case .control:
                 let w = word(role: role, subrole: subrole, roleDescription: text(kAXRoleDescriptionAttribute),
@@ -177,7 +180,7 @@ nonisolated package enum PointerContext {
             if container != nil { break }
             cur = p
         }
-        if !found.isEmpty { return Array(found.prefix(mostWords)) }
-        return container.flatMap { $0.isEmpty ? nil : [$0] } ?? []
+        if !found.isEmpty { return (Array(found.prefix(mostWords)), selected) }
+        return (container.flatMap { $0.isEmpty ? nil : [$0] } ?? [], selected)
     }
 }

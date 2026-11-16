@@ -55,6 +55,7 @@ func pointerReaderTests() {
                "News. \(Phrases.headingLevel(2)), link")
         expect(PointerReader.compose(snap("AXImage") { $0.title = "Logo"; $0.context = ["link"] }), "Logo, image. link")
         expect(PointerReader.compose(snap("AXStaticText") { $0.value = "Really?"; $0.context = ["link"] }), "Really? link")
+        expect(PointerReader.compose(snap("AXStaticText") { $0.value = "Recents"; $0.itemSelected = true }), "Recents, \(State.selected.displayString)")
     }
 
     test("pointer reader: a heading is said with its level") {
