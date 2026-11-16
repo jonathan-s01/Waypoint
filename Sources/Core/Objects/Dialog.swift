@@ -13,7 +13,7 @@ open class Dialog: TurnOverObject {
     open override var isPresentableFocusAncestor: Bool { true }
     /// What TurnOver+Tab / VO-F3 adds after "dialog": its text and its choices, as when it opened.
     open override var description: String? {
-        let list = choices.map(\.1)
+        let list = choicesWithLetters
         let parts = [dialogText] + (list.isEmpty ? [] : [Self.choices(list)])
         let t = parts.filter { !$0.isEmpty }.joined(separator: ", ")
         return t.isEmpty ? nil : t
@@ -169,6 +169,10 @@ open class Dialog: TurnOverObject {
         }
         script("dialog_press", String(localized: "Presses the dialog's choice", comment: "A command, as the key list and keyboard help say it"), gestures: ["kb:enter", "kb:numpadEnter", "kb:space"], category: cat) { [weak self] g in self?.pressChoice(g) }
             .isAvailable = { [weak self] in !(self.map { SystemPrompts.isProtected($0.element.pid) } ?? false) }
+        script("dialog_letterHints", String(localized: "Says the Left Option letter of each button in a dialog, on or off", comment: "A command, as the key list and keyboard help say it"), category: cat) { _ in
+            config.keyboard.dialogLetterHints.toggle(); config.save()
+            Speech.speakMessage(config.keyboard.dialogLetterHints ? String(localized: "Dialog button letters spoken", comment: "Spoken message") : String(localized: "Dialog button letters not spoken", comment: "Spoken message"))
+        }
         script("dialog_cancel", String(localized: "Cancels the dialog", comment: "A command, as the key list and keyboard help say it"), gestures: ["kb:escape"], category: cat) { [weak self] g in self?.cancel(g) }
     }
 
@@ -186,7 +190,7 @@ open class Dialog: TurnOverObject {
         let (e, n, isChoice) = all[next]
         if isChoice, let ci = choices.firstIndex(where: { $0.0.isSame(e) }) { Self.choiceIndex[key] = ci } else { Self.choiceIndex[key] = nil }
         let kind = isChoice ? (e.role == "AXStaticText" ? Role.button.displayString : ObjectFactory.make(e).role.displayString) : ""
-        Speech.speakMessage(kind.isEmpty ? n : "\(n), \(kind)")
+        Speech.speakMessage([kind.isEmpty ? n : "\(n), \(kind)", isChoice ? letterHint(for: e) : nil].compactMap { $0 }.joined(separator: ", "))
     }
 
     private func moveChoice(_ delta: Int) {
@@ -198,13 +202,13 @@ open class Dialog: TurnOverObject {
         Self.lineIndex[key] = nil
         let (e, n) = all[next]
         let kind = e.role == "AXStaticText" ? Role.button.displayString : ObjectFactory.make(e).role.displayString
-        Speech.speakMessage("\(n), \(kind), \(Phrases.position(next + 1, of: all.count))")
+        Speech.speakMessage(["\(n)", kind, Phrases.position(next + 1, of: all.count), letterHint(for: e)].compactMap { $0 }.joined(separator: ", "))
         // VO-Space and NVDA+Enter press what the review cursor is on: keep it on the choice Tab reached. (Tab said
         // "Allow" and VO-Space pressed something else, so macOS's audio permission prompt stayed up, 12 Oct 2026.)
         ObjectNavigator.shared.place(e)
     }
 
-    private func press(_ e: AXUIElement) -> Bool {
+    func press(_ e: AXUIElement) -> Bool {
         if ["AXTextField", "AXTextArea", "AXComboBox", "AXSearchField"].contains(e.role) { return e.set(kAXFocusedAttribute, kCFBooleanTrue) == .success }
         var x: AXUIElement? = e
         var hops = 0

@@ -1,6 +1,6 @@
 # JAWS keys: every key
 
-This page is made from Waypoint's own command tables (`turnover-coretest --keys-reference`, 13 Nov 2026), so it matches the build it came with. Don't edit it by hand.
+This page is made from Waypoint's own command tables (`turnover-coretest --keys-reference`, 14 Nov 2026), so it matches the build it came with. Don't edit it by hand.
 
 The JAWS keys style: JAWS's laptop layout. **Waypoint** in a key means the JAWS key: Caps Lock, or Control and Option together. Only the keys that differ from NVDA's are JAWS's own; every other key is NVDA's, so the [NVDA keys page](keys-nvda.html) lists the rest. Keyboard help (the Waypoint menu, Keys) says what any key does without doing it; Command Control Comma, then Slash, lists the keys that work where you are.
 
@@ -147,6 +147,7 @@ Switch styles with Command Control Comma, then K. Waypoint's own commands behind
 | Waypoint Control Right arrow | Moves the review cursor to the next word (NVDA+Control+Right Arrow) |
 | Waypoint Control Right bracket | Holds the right mouse button down, or lets it go (NVDA+Control+Right Bracket) |
 | Waypoint Control Shift F1 | Marks the log; pressed again, copies the log from the mark (NVDA+Control+Shift+F1) |
+| Waypoint Control Shift M | Mouse reads the whole paragraph on or off: a web page's text under the pointer is read as its paragraph, not piece by piece (Waypoint) |
 | Waypoint Control Shift Period | Reports the shortcut key of the item with focus (NVDA+Control+Shift+Period) |
 | Waypoint Shift Left bracket | Moves to the previous item, in and out of groups (NVDA+Shift+Left Bracket) |
 | Waypoint Shift Right bracket | Moves to the next item, in and out of groups (NVDA+Shift+Right Bracket) |

@@ -91,6 +91,34 @@ nonisolated public enum TypingRecorder {
 
     public static func said(_ text: String, isPrivate: Bool) { note("SAID", (isPrivate ? "(typed echo) " : "") + "\"\(text)\"") }
 
+    /// One accessibility notification on the focused field, with the detail the application sent along (the text
+    /// inserted or deleted, its place, typing or paste). Whether web fields send it, and what it holds, is what
+    /// decides whether it can replace reading the field back (NVDA acts on the app's own insert/remove news).
+    public static func news(_ name: String, info: [String: Any]?) {
+        note("NEWS", describeNews(name, info: info))
+    }
+
+    public static func describeNews(_ name: String, info: [String: Any]?) -> String {
+        let short = name.hasPrefix("AX") ? String(name.dropFirst(2)) : name
+        guard let info, !info.isEmpty else { return short + " (no detail)" }
+        return short + " " + describeValue(info, depth: 0)
+    }
+
+    private static func describeValue(_ v: Any, depth: Int) -> String {
+        if depth > 3 { return "…" }
+        if let s = v as? String { return "\"" + (s.count > 60 ? String(s.prefix(60)) + "…" : s) + "\"" }
+        if let n = v as? NSNumber, CFGetTypeID(n) != CFBooleanGetTypeID() { return n.stringValue }
+        if let n = v as? NSNumber { return n.boolValue ? "true" : "false" }
+        if let d = v as? [String: Any] {
+            return "{" + d.keys.sorted().map { "\($0.hasPrefix("AX") ? String($0.dropFirst(2)) : $0): \(describeValue(d[$0]!, depth: depth + 1))" }.joined(separator: ", ") + "}"
+        }
+        if let a = v as? [Any] {
+            return "[" + a.prefix(6).map { describeValue($0, depth: depth + 1) }.joined(separator: ", ") + (a.count > 6 ? ", … \(a.count) in all" : "") + "]"
+        }
+        let obj = v as CFTypeRef
+        return "<" + (CFCopyTypeIDDescription(CFGetTypeID(obj)) as String? ?? "object") + ">"
+    }
+
     /// The marked moment: the file is written once the 30 seconds after it have passed.
     public static func mark() {
         let at = Date()
@@ -109,7 +137,7 @@ nonisolated public enum TypingRecorder {
         func count(_ kind: String, _ needle: String = "") -> Int { entries.filter { $0.kind == kind && (needle.isEmpty || $0.text.contains(needle)) }.count }
         return [
             "keys \(count("KEY"))", "typed-character events \(count("LOG", "event typedCharacter"))",
-            "said \(count("SAID"))", "speech cuts \(count("CANCEL"))",
+            "said \(count("SAID"))", "app news \(count("NEWS")) (with detail \(entries.filter { $0.kind == "NEWS" && !$0.text.contains("(no detail)") }.count))", "speech cuts \(count("CANCEL"))",
             "reader held another element \(count("FIELD", "READER HOLDS ANOTHER"))",
             "field rebuilt \(count("LOG", "rebuilt by the page"))",
             "field hadn't taken the key \(count("LOG", "hadn't taken"))",
@@ -124,7 +152,7 @@ nonisolated public enum TypingRecorder {
         let day = DateFormatter(); day.dateFormat = "yyyy-MM-dd HH:mm:ss"
         let clock = DateFormatter(); clock.dateFormat = "HH:mm:ss.SSS"
         var out = "Typing mark at \(day.string(from: markedAt)); \(Int(before)) s before to \(Int(after)) s after.\n"
-        out += "KEY = a real key, FIELD = the field after it (system focus), SAID = spoken, CANCEL = speech cut, LOG = the reader's log line.\n\n"
+        out += "KEY = a real key, FIELD = the field after it (system focus), SAID = spoken, CANCEL = speech cut, NEWS = the app's own change/caret notification and its detail, LOG = the reader's log line.\n\n"
         out += summary(kept) + "\n\n"
         out += kept.map { "\(clock.string(from: $0.at))  \($0.kind.padding(toLength: 6, withPad: " ", startingAt: 0)) \($0.text)" }.joined(separator: "\n") + "\n"
         let dir = AppPaths.file("typing marks")

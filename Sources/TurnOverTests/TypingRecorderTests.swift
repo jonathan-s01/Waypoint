@@ -62,4 +62,110 @@ func typingRecorderTests() {
         let r = Speech.fieldWord(endedBy: " ", before: "chat an▮d ".replacingOccurrences(of: "▮", with: ""), notBefore: 5)
         expect(r.word, "and")
     }
+    test("typed word: after a Backspace the ending key is found just past a trailing caret, not the space before") {
+        // "…effectivly want ": caret 17 (before the key), the word retyped after Backspace, so no start is known:
+        // looked for from one before the caret on, the first space is the key and the word is "want".
+        let text = "effectivly want "
+        let caret = 14
+        let r = Speech.fieldWord(endedBy: " ", before: text, notBefore: caret - 1)
+        expect(r.taken, true)
+        expect(r.word, "want")
+        // A space before the word's start is not mistaken for the key.
+        let early = Speech.fieldWord(endedBy: " ", before: "want ", notBefore: 4)
+        expect(early.word, "want")
+        expect(Speech.fieldWord(endedBy: " ", before: "want", notBefore: 3).taken, false)
+    }
+    test("typed word: a start that fell on the space before the word skips that space, and the next start is past the word") {
+        // "2,  there ": the caret trailed by one, so the start (192) lay on the old space at 191.
+        let text = "2,  there "
+        let old = Speech.fieldWord(endedBy: " ", before: text, notBefore: 2)
+        expect(old.word, nil)
+        let r = Speech.fieldWord(endedBy: " ", before: text, notBefore: 2, skippingEmpty: true)
+        expect(r.taken, true)
+        expect(r.word, "there")
+        expect(r.next, text.utf16.count)
+    }
+    test("typing recorder: notification detail is written out, with its text and nesting") {
+        expect(TypingRecorder.describeNews("AXValueChanged", info: nil), "ValueChanged (no detail)")
+        let line = TypingRecorder.describeNews("AXValueChanged", info: ["AXTextChangeValue": "a", "AXTextStateChangeType": 1, "AXTextChangeValues": [["AXTextChangeValue": "b"]]])
+        expect(line, "ValueChanged {TextChangeValue: \"a\", TextChangeValues: [{TextChangeValue: \"b\"}], TextStateChangeType: 1}")
+    }
+    test("text news: a typed word is told from the inserts, when its letters agree with those typed") {
+        TextNews.reset()
+        let t0 = Date()
+        TextNews.apply(type: 3, text: " ", pid: 7001, at: t0)   // a word before it ends: the word after starts clean
+        for c in "hello" { TextNews.apply(type: 3, text: String(c), pid: 7001, at: t0) }
+        TextNews.apply(type: 3, text: " ", pid: 7001, at: t0)
+        expect(TextNews.takeBoundary(for: " ", typed: "help", edited: false, now: t0), nil)   // letters that disagree
+        TextNews.reset()
+        TextNews.apply(type: 3, text: " ", pid: 7001, at: t0)
+        for c in "hello" { TextNews.apply(type: 3, text: String(c), pid: 7001, at: t0) }
+        TextNews.apply(type: 3, text: " ", pid: 7001, at: t0)
+        expect(TextNews.takeBoundary(for: " ", typed: "hello", edited: false, now: t0), "hello")
+        expect(TextNews.takeBoundary(for: " ", typed: "hello", edited: false, now: t0), nil)   // taken once
+    }
+    test("text news: a Backspace inside a word, a paste and a placeholder are followed or refused") {
+        let t0 = Date()
+        TextNews.reset()
+        TextNews.apply(type: 3, text: " ", pid: 7002, at: t0)
+        for c in "thinks" { TextNews.apply(type: 3, text: String(c), pid: 7002, at: t0) }
+        TextNews.apply(type: 1, text: "s", pid: 7002, at: t0)
+        TextNews.apply(type: 3, text: ",", pid: 7002, at: t0)
+        // The letters typed since the Backspace are its end; all that was typed matches the whole word too.
+        expect(TextNews.takeBoundary(for: ",", typed: "k", edited: true, now: t0), "think")
+        // A placeholder ("Type a message") and a paste make the word unfollowable until the next ending.
+        TextNews.apply(type: 2, text: "Type a message\n", pid: 7002, at: t0)
+        TextNews.apply(type: 3, text: "t", pid: 7002, at: t0)
+        TextNews.apply(type: 3, text: " ", pid: 7002, at: t0)
+        expect(TextNews.takeBoundary(for: " ", typed: "t", edited: false, now: t0), nil)
+        TextNews.apply(type: 3, text: "o", pid: 7002, at: t0)
+        TextNews.apply(type: 3, text: " ", pid: 7002, at: t0)
+        expect(TextNews.takeBoundary(for: " ", typed: "o", edited: false, now: t0), "o")
+        // A Backspace with nothing of the word to take it from, and a deleted character told on its own.
+        TextNews.apply(type: 1, text: "e", pid: 7002, at: t0)
+        expect(TextNews.takeDeletion(since: t0), "s")   // oldest first
+        expect(TextNews.takeDeletion(since: t0), "e")
+        expect(TextNews.takeDeletion(since: t0), nil)
+    }
+    test("text news: a boundary no one asked for is skipped, and old news is not used") {
+        let t0 = Date()
+        TextNews.reset()
+        TextNews.apply(type: 3, text: " ", pid: 7003, at: t0)
+        for c in "one" { TextNews.apply(type: 3, text: String(c), pid: 7003, at: t0) }
+        TextNews.apply(type: 3, text: " ", pid: 7003, at: t0)
+        TextNews.apply(type: 3, text: " ", pid: 7003, at: t0)   // a second space: empty word, never taken as a word
+        expect(TextNews.takeBoundary(for: " ", typed: "one", edited: false, now: t0.addingTimeInterval(10)), nil)
+        expect(TextNews.isLive(pid: 7003, now: t0.addingTimeInterval(1)), true)
+        expect(TextNews.isLive(pid: 7003, now: t0.addingTimeInterval(10)), false)
+        expect(TextNews.isLive(pid: 7004, now: t0), false)
+    }
+    test("text news: the character a Backspace removed is the one the text lost, whatever the caret said") {
+        expect(EditableText.lostCharacter(before: "hey ther eh", after: "hey ther e"), "h")
+        expect(EditableText.lostCharacter(before: "doing", after: "doin"), "g")
+        expect(EditableText.lostCharacter(before: "a\n\nb", after: "a\nb"), "\n")
+        expect(EditableText.lostCharacter(before: "abc", after: "abc"), nil)   // not yet changed
+        expect(EditableText.lostCharacter(before: "abc", after: "xb"), nil)   // changed some other way
+    }
+    test("text news: the first word after a new line is told from the news though the line itself sent none") {
+        let t0 = Date()
+        TextNews.apply(type: 7, text: "", pid: 7005, at: t0)   // (the process the news comes from)
+        TextNews.reset()
+        TextNews.startFresh()
+        TextNews.apply(type: 3, text: "i", pid: 7005, at: t0)
+        TextNews.apply(type: 3, text: " ", pid: 7005, at: t0)
+        expect(TextNews.takeBoundary(for: " ", typed: "i", edited: false, now: t0), "i")
+    }
+    test("text news: a Backspace the field sent no detail for is taken from the word once, though its news comes late") {
+        let t0 = Date()
+        TextNews.apply(type: 7, text: "", pid: 7006, at: t0)
+        TextNews.reset()
+        TextNews.startFresh()
+        for c in "hti" { TextNews.apply(type: 3, text: String(c), pid: 7006, at: t0) }
+        TextNews.noteLostCharacter("i", pid: 7006, at: t0)
+        TextNews.noteLostCharacter("t", pid: 7006, at: t0)
+        TextNews.apply(type: 1, text: "i", pid: 7006, at: t0)   // the news of the first, late: not taken twice
+        for c in "it" { TextNews.apply(type: 3, text: String(c), pid: 7006, at: t0) }
+        TextNews.apply(type: 3, text: " ", pid: 7006, at: t0)
+        expect(TextNews.takeBoundary(for: " ", typed: "hit", edited: false, now: t0), "hit")
+    }
 }

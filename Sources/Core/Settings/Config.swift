@@ -251,10 +251,12 @@ public struct Config: Codable {
         /// NVDA's keypad commands in the Windows style (on, as NVDA with Num Lock off; Clear types numbers instead).
         public var numpadCommander = false
         public var keypadCommands = true
+        /// Waypoint: the Left Option letter of a dialog's button is said with it (DialogMnemonics). The letters work either way.
+        public var dialogLetterHints = true
         public init() {}
         /// The user's own keys (UserGestures): key identifier → "script:<name>", "app:<bundle id>" or "none".
         public var userGestures: [String: String] = [:]
-        enum Keys: String, CodingKey { case speakTypedCharacters, speakTypedWords, speakCommandKeys, speakModifierKeys, multiPressTimeoutMs, layout, speakNewLine, userGestures, optionCommander, numpadCommander, keypadCommands }
+        enum Keys: String, CodingKey { case speakTypedCharacters, speakTypedWords, speakCommandKeys, speakModifierKeys, multiPressTimeoutMs, layout, speakNewLine, userGestures, optionCommander, numpadCommander, keypadCommands, dialogLetterHints }
         // Each setting falls back on its own, so adding one never resets the others.
         public init(from decoder: Decoder) throws {
             let c = try decoder.container(keyedBy: Keys.self)
@@ -268,6 +270,7 @@ public struct Config: Codable {
             optionCommander = (try? c.decodeIfPresent(Bool.self, forKey: .optionCommander)) ?? true
             numpadCommander = (try? c.decodeIfPresent(Bool.self, forKey: .numpadCommander)) ?? false
             keypadCommands = (try? c.decodeIfPresent(Bool.self, forKey: .keypadCommands)) ?? true
+            dialogLetterHints = (try? c.decodeIfPresent(Bool.self, forKey: .dialogLetterHints)) ?? true
             userGestures = (try? c.decodeIfPresent([String: String].self, forKey: .userGestures)) ?? [:]
             // Saved before the code name went (12 Oct 2026): "kb:bosun+n" is "kb:turnover+n"; "script:bosunMenu" is
             // "script:turnOverMenu".
@@ -283,6 +286,7 @@ public struct Config: Codable {
             try c.encode(userGestures, forKey: .userGestures); try c.encode(optionCommander, forKey: .optionCommander)
             try c.encode(speakModifierKeys, forKey: .speakModifierKeys)
             try c.encode(numpadCommander, forKey: .numpadCommander); try c.encode(keypadCommands, forKey: .keypadCommands)
+            try c.encode(dialogLetterHints, forKey: .dialogLetterHints)
         }
     }
     public struct EditableText: Codable {
@@ -311,8 +315,13 @@ public struct Config: Codable {
         /// A picture with no description is read by its file name ("graphic, sunset beach"), as JAWS can; off, just
         /// "graphic" (a tester, AppleVis, 9 Oct 2026).
         public var imageFileNames = false
+        /// Which single letters jump in browse mode: "style" (the keyboard style's own: VoiceOver's in the Mac style,
+        /// NVDA's in the others), "voiceOver" or "nvda" whatever the style (NVDA: d landmark, k link, l list, i list item).
+        public var quickNavLetters = "style"
+        /// The user's own letters for kinds, by kind name ("Landmark": "d"), on top of the set chosen above.
+        public var quickNavKeys: [String: String] = [:]
         public init() {}
-        enum Keys: String, CodingKey { case maxLineLength, autoSayAllOnPageLoad, wrapQuickNav, screenLayout, autoFocusMode, imageFileNames }
+        enum Keys: String, CodingKey { case maxLineLength, autoSayAllOnPageLoad, wrapQuickNav, screenLayout, autoFocusMode, imageFileNames, quickNavLetters, quickNavKeys }
         public init(from decoder: Decoder) throws {
             let c = try decoder.container(keyedBy: Keys.self)
             maxLineLength = (try? c.decodeIfPresent(Int.self, forKey: .maxLineLength)) ?? 100
@@ -321,6 +330,8 @@ public struct Config: Codable {
             screenLayout = (try? c.decodeIfPresent(Bool.self, forKey: .screenLayout)) ?? true
             autoFocusMode = (try? c.decodeIfPresent(Bool.self, forKey: .autoFocusMode)) ?? true
             imageFileNames = (try? c.decodeIfPresent(Bool.self, forKey: .imageFileNames)) ?? false
+            quickNavLetters = (try? c.decodeIfPresent(String.self, forKey: .quickNavLetters)) ?? "style"
+            quickNavKeys = (try? c.decodeIfPresent([String: String].self, forKey: .quickNavKeys)) ?? [:]
         }
         public func encode(to encoder: Encoder) throws {
             var c = encoder.container(keyedBy: Keys.self)
@@ -330,6 +341,12 @@ public struct Config: Codable {
             try c.encode(screenLayout, forKey: .screenLayout)
             try c.encode(autoFocusMode, forKey: .autoFocusMode)
             try c.encode(imageFileNames, forKey: .imageFileNames)
+            try c.encode(quickNavLetters, forKey: .quickNavLetters)
+            try c.encode(quickNavKeys, forKey: .quickNavKeys)
+        }
+        /// Whether browse mode's single letters are NVDA's (d, k, l, i…) rather than VoiceOver's.
+        public func nvdaLetters(windowsKeys: Bool) -> Bool {
+            switch quickNavLetters { case "nvda": return true; case "voiceOver": return false; default: return windowsKeys }
         }
     }
     /// Screen recognition (NVDA: the Windows OCR settings).
@@ -520,8 +537,12 @@ public struct Config: Codable {
         /// pointer is heard at once, not after whatever else is talking (a tester, 10 Nov 2026: other speech kept
         /// talking over the pointer).
         public var mouseInterruptsSpeech = true   // Waypoint: on, as VoiceOver; upstream ships it off (13 Nov 2026: Copilot's chat kept reading over the pointer)
+        /// With mouse tracking, a plain text in a web page reads its whole paragraph (or heading), so a bold, emphasized
+        /// or linked word in the middle does not start a new announcement; a link in it is still said as a link. Off:
+        /// each piece under the pointer is said on its own (a tester, 13 Nov 2026).
+        public var mouseReadsParagraphs = false
         public init() {}
-        enum Keys: String, CodingKey { case verbosity, verbosityByApp, reportObjectDescriptions, reportKeyboardShortcuts, reportObjectPositionInformation, reportDynamicContentChanges, speakHints, reportNotifications, announcePlugins, progressBars, mouseTracking, mouseMovesCursor, mouseInterruptsSpeech }
+        enum Keys: String, CodingKey { case verbosity, verbosityByApp, reportObjectDescriptions, reportKeyboardShortcuts, reportObjectPositionInformation, reportDynamicContentChanges, speakHints, reportNotifications, announcePlugins, progressBars, mouseTracking, mouseMovesCursor, mouseInterruptsSpeech, mouseReadsParagraphs }
         // Each setting falls back on its own: a settings file from before speakHints keeps the others.
         public init(from decoder: Decoder) throws {
             let c = try decoder.container(keyedBy: Keys.self)
@@ -541,6 +562,7 @@ public struct Config: Codable {
             mouseTracking = (try? c.decodeIfPresent(Bool.self, forKey: .mouseTracking)) ?? false
             mouseMovesCursor = (try? c.decodeIfPresent(Bool.self, forKey: .mouseMovesCursor)) ?? true
             mouseInterruptsSpeech = (try? c.decodeIfPresent(Bool.self, forKey: .mouseInterruptsSpeech)) ?? true
+            mouseReadsParagraphs = (try? c.decodeIfPresent(Bool.self, forKey: .mouseReadsParagraphs)) ?? false
         }
         public func encode(to encoder: Encoder) throws {
             var c = encoder.container(keyedBy: Keys.self)
@@ -551,6 +573,7 @@ public struct Config: Codable {
             try c.encode(announcePlugins, forKey: .announcePlugins); try c.encode(progressBars, forKey: .progressBars)
             try c.encode(mouseTracking, forKey: .mouseTracking); try c.encode(mouseMovesCursor, forKey: .mouseMovesCursor)
             try c.encode(mouseInterruptsSpeech, forKey: .mouseInterruptsSpeech)
+            try c.encode(mouseReadsParagraphs, forKey: .mouseReadsParagraphs)
         }
     }
     public struct DocumentFormatting: Codable {

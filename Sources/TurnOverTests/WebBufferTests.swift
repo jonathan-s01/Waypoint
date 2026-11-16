@@ -191,6 +191,47 @@ func webBufferTests() {
         expect(buffer.status, .complete, "reactivation resumes even when the interceptor identity is unchanged")
     }
 
+    test("browse mode: a copy of a page that the handler does not list reads and moves its own place") {
+        let fixture = AXFixture(app: "Public sample", bundle: "test.copy", recorded: "", root: 90, application: nil, focus: nil, nodes: [
+            .init(id: 90, attrs: ["AXRole": .string("AXWebArea"), "AXChildren": .elements([91])]),
+            .init(id: 91, attrs: ["AXRole": .string("AXStaticText"), "AXValue": .string("A public sample paragraph."), "AXParent": .element(90)]),
+        ])
+        AXReplay.load(fixture)
+        defer { BrowseModeHandler.shared.forget(pid: 900_090); AXReplay.unload() }
+        let keyboards = BrowseModeHandler.shared.document(root: AXReplay.root!)
+        waitForBuffer(keyboards.buffer)
+        let copy = BrowseModeDocument(webArea: AXReplay.root!)
+        waitForBuffer(copy.buffer)
+        keyboards.position = 2
+        copy.position = 9
+        check(copy.rootObject.document === copy, "its root object belongs to it, not to the keyboard's document for the same element")
+        expect(copy.makeTextInfo(.caret)?.start, 9, "its text positions start at its own place")
+        expect(keyboards.makeTextInfo(.caret)?.start, 2, "the keyboard's keep theirs")
+    }
+
+    test("browse mode: single letters follow the chosen set and the user's own letters") {
+        let saved = (config.virtualBuffers.quickNavLetters, config.virtualBuffers.quickNavKeys, config.general.keyboardStyle)
+        defer { (config.virtualBuffers.quickNavLetters, config.virtualBuffers.quickNavKeys, config.general.keyboardStyle) = saved }
+        config.general.keyboardStyle = "mac"
+        let root = AXUIElementCreateApplication(910_000)
+        let buffer = WebBuffer(webArea: root, collect: { root, _, _ in sampleCollection(root, text: "A public sample paragraph.") })
+        let page = BrowseModeDocument(webArea: root, buffer: buffer)
+        waitForBuffer(buffer)
+        @MainActor func name(_ id: String) -> String? { page.script(for: KeyboardGesture(identifier: id)!)?.name }
+        config.virtualBuffers.quickNavLetters = "style"; config.virtualBuffers.quickNavKeys = [:]
+        expect(name("kb:l"), "vo_nextLink", "the Mac style's L is a link")
+        expect(name("kb:k"), "browseModeTrap", "K is no command in VoiceOver's set")
+        config.virtualBuffers.quickNavLetters = "nvda"
+        expect(name("kb:k"), "nextLink", "NVDA's letters in the Mac style: K is a link")
+        expect(name("kb:shift+d"), "previousLandmark", "D is a landmark, Shift goes back")
+        expect(name("kb:l"), "nextList", "L is a list")
+        expect(name("kb:i"), "nextListItem", "I is a list item")
+        config.virtualBuffers.quickNavKeys = ["Landmark": "y"]
+        expect(name("kb:y"), "nextLandmark", "the user's own letter")
+        expect(name("kb:shift+y"), "previousLandmark", "and backwards")
+        check(name("kb:d") != "nextLandmark", "the old letter no longer jumps to landmarks")
+    }
+
     test("document snapshot: read scopes restore nested snapshots and never admit live fallback") {
         let element = AXUIElementCreateApplication(910_000)
         let outer = AXSnapshot(nodes: [ElementKey(element): .init(attributes: ["AXRole": .string("AXButton"), "AXChildren": .array([.element(element)])], actions: ["AXPress"])])

@@ -10,6 +10,8 @@ Added in Waypoint (see the top of [CHANGELOG.md](CHANGELOG.md)):
 
 - Mouse tracking: read what is under the mouse pointer as it moves, as VoiceOver's cursor following the mouse does
   (Settings, Presentation; off by default), with a watchdog for lookups an app holds and a cap on counting a group.
+  Roles are said after the words (link, heading level, list item); an option (Control Shift M) reads a web page's
+  whole paragraph at once, with links in it still said as links.
 - Deleted text by pitch: say a deleted character or word lower instead of "deleted" (Settings, Speech; off by default).
 - Typing: "Say space after a typed word" can be turned off (Settings, Keyboard).
 - Typing: Left and Right bump at once at the edge of left-to-right text fields.

@@ -43,7 +43,9 @@ public enum Tones {
     /// otherwise, coexisting, VoiceOver's boundary file (a list's end in Messages was silent, 17 Oct 2026).
     /// A sound-only opt-out preserves the trackpad boundary feedback. Native caret callers take their app
     /// policy before sending the key; every other caller keeps the existing sound decision (#190).
-    public static func edge(keySent: Bool = false, sound: Bool = true) {
+    public static func edge(keySent: Bool = false, sound: Bool = true, file: String = #fileID, line: Int = #line) {
+        // The bump was heard with no key pressed and nothing in the log to say who asked (13 Nov 2026).
+        Log.io("edge bump from \(file):\(line)\(sound ? "" : " (silent)")\(keySent ? ", key sent" : "")")
         if sound { edgeSound(keySent) }
         onEdge?()
     }

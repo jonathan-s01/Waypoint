@@ -94,6 +94,21 @@ func localizationTests() {
         expect(said(6, 7).1, true, "an empty paragraph")
         expect(said(7, 10).1, false, "a paragraph that is the word boş")
     }
+    test("speech: an empty line is said as a new line when moved through, blank when it holds spaces") {
+        final class Lines: TextInfo {
+            static let text = "a\n\n  \nb" as NSString
+            override func storyLength() -> Int { Self.text.length }
+            override func textRange(_ s: Int, _ e: Int) -> String { Self.text.substring(with: NSRange(location: s, length: max(0, e - s))) }
+        }
+        let obj = ObjectFactory.make(AXUIElementCreateApplication(getpid()))
+        @MainActor func said(_ s: Int, _ e: Int, _ unit: TextUnit, _ reason: OutputReason) -> String {
+            Speech.textInfoSpeech(Lines(obj: obj, start: s, end: e), unit: unit, reason: reason)
+        }
+        expect(said(2, 3, .line, .caret), "new line")
+        expect(said(2, 3, .character, .caret), "new line")
+        expect(said(3, 5, .line, .caret), "blank")
+        expect(said(2, 3, .line, .sayAll), "blank")
+    }
     test("localization: moving by character, a capital is lowered in its line's language") {
         // The tests speak English: a Turkish line's I is still dotless ı, so the line's language reached the letter.
         final class Line: TextInfo {

@@ -59,7 +59,7 @@ open class EditableText: TurnOverObject {
         // 7 Oct 2026). Word's module has its own, which searches the whole document.
         script("nextSpellingError", String(localized: "Moves to the next spelling error", comment: "A command, as the key list and keyboard help say it"), gestures: ["kb:turnover+e"], category: cat) { [weak self] _ in self?.goToMisspelling(forward: true) }
         script("previousSpellingError", String(localized: "Moves to the previous spelling error", comment: "A command, as the key list and keyboard help say it"), gestures: ["kb:turnover+shift+e"], category: cat) { [weak self] _ in self?.goToMisspelling(forward: false) }
-        if announceNewLineText { script("caret_newLine", String(localized: "Starts a new line", comment: "A command, as the key list and keyboard help say it"), gestures: ["kb:enter", "kb:numpadEnter"], category: cat) { [weak self] g in guard let self else { return }; newLineScript(g) } }
+        if announceNewLineText { script("caret_newLine", String(localized: "Starts a new line", comment: "A command, as the key list and keyboard help say it"), gestures: ["kb:enter", "kb:numpadEnter", "kb:shift+enter"], category: cat) { [weak self] g in guard let self else { return }; newLineScript(g) } }
     }
 
     /// The next or previous misspelled word: the app's marks (AXMarkedMisspelled, AXMisspelled), else macOS's checker.
@@ -276,6 +276,23 @@ open class EditableText: TurnOverObject {
         }
     }
 
+    /// Where a field's caret was seen to stop at the end although its text is longer, for one process and one length.
+    struct StuckEnd: Equatable { var pid: pid_t; var length: Int; var caret: Int }
+    static var stuckEnd: StuckEnd?
+
+    /// The end the caret can reach. GitHub Copilot's chat box counts one more character than its caret ever passes, so
+    /// Right and Down at its end waited out the caret's patience, and a quick second key cut that wait short with no bump
+    /// (13 Nov 2026). Once the caret has stopped short of the end, the same length and place are the end.
+    public nonisolated static func reachableEnd(length: Int, pid: Int32, learned: (pid: Int32, length: Int, caret: Int)?) -> Int {
+        guard let l = learned, l.pid == pid, l.length == length, l.caret < length else { return length }
+        return l.caret
+    }
+
+    /// Whether a caret that did not move is at a hidden tail: at the end but for a few characters it cannot reach. A
+    /// long web editor's count includes its paragraph breaks, which the caret does not pass (Chrome, 16 Nov 2026: a 1705
+    /// character field with four breaks, the caret stopped at 1701).
+    public nonisolated static func isHiddenTail(caret: Int, length: Int) -> Bool { caret >= 0 && length - caret >= 1 && length - caret <= (length >= 200 ? 8 : 2) }
+
     func caretMovement(_ gesture: KeyboardGesture, _ unit: TextUnit) {
         // Google Docs, Sheets, Slides: the text box is a hidden typing target; Google says the move itself.
         if GoogleDocs.isEditor(element) { gesture.send(); return }
@@ -289,7 +306,9 @@ open class EditableText: TurnOverObject {
         // arrow at the end of a selection collapses it, and swallowing it made the next letter replace the text
         // (a code review on 17 Oct). The key still goes, unwaited, so the app and VoiceOver's own boundary sound see it.
         let key = gesture.keyName
-        let length = info.storyLength()
+        let rawLength = info.storyLength()
+        let learned = Self.stuckEnd.map { (pid: Int32($0.pid), length: $0.length, caret: $0.caret) }
+        let length = Self.reachableEnd(length: rawLength, pid: element.pid, learned: learned)
         let collapsed = (try? makeTextInfo(.selection))?.isCollapsed ?? true
         let backwards = key == "upArrow" || key == "home" || key == "pageUp"
         let forwards = key == "downArrow" || key == "end" || key == "pageDown"
@@ -346,6 +365,9 @@ open class EditableText: TurnOverObject {
                 return
             }
             Log.io("edge: caret stayed on its line (old line \(oldLine.start)-\(oldLine.end), caret \(info2?.start ?? n.start))")
+            if collapsed, forwards, let c = Optional((info2 ?? n).start), Self.isHiddenTail(caret: c, length: rawLength) {
+                Self.stuckEnd = StuckEnd(pid: element.pid, length: rawLength, caret: c)
+            }
             Tones.edge(keySent: true, sound: boundarySound)
             caretMoved(speak: readsLineAtEdge ? .line : nil, gesture: gesture, info: info2 ?? n)
             return
@@ -376,7 +398,10 @@ open class EditableText: TurnOverObject {
                 case .stayed: break
                 }
             }
-            Log.io("edge: caret did not move (old line \(oldLine.start)-\(oldLine.end), caret \(newInfo?.start ?? -1))")
+            Log.io("edge: caret did not move (old line \(oldLine.start)-\(oldLine.end), caret \(newInfo?.start ?? -1) of \(rawLength))")
+            if collapsed, forwards || key == "rightArrow", let c = newInfo?.start, Self.isHiddenTail(caret: c, length: rawLength) {
+                Self.stuckEnd = StuckEnd(pid: element.pid, length: rawLength, caret: c)
+            }
             Tones.edge(keySent: true, sound: boundarySound)
             caretMoved(speak: unit == .line && readsLineAtEdge ? .line : nil, gesture: gesture, info: newInfo)
             return
@@ -433,6 +458,7 @@ open class EditableText: TurnOverObject {
         let lengthBefore = info.storyLength()
         gesture.send()
         Speech.speakTypedCharacter("\r", inEditable: true)
+        TextNews.startFresh()   // a line begins: the first word on it is typed from nothing (GitHub Copilot sends no detail for a new line)
         let (moved, newInfo) = hasCaretMoved(from: bookmark)
         guard moved, let newInfo, let line = try? makeTextInfo(.caret) else { return }
         // Return sent what was typed (Claude's prompt, a chat box): the text got shorter, not a line longer. Nothing
@@ -478,7 +504,31 @@ open class EditableText: TurnOverObject {
             }
             else { test.expand(unit); chunk = test.text }
         }
+        let sentAt = Date()
+        let news = unit == .character && TextNews.isLive(pid: pid)
+        let textBefore = news ? element.string(kAXValueAttribute) : nil
         gesture.send()
+        // The character the application says it deleted, where it sends that, or the one the text lost: the one
+        // before a lagging caret, read beforehand, is not always it (GitHub Copilot, 13 Nov 2026: "e" for "h", "i"
+        // for "g"; its Backspace sends no detail, only the new text about 25 ms later).
+        if news {
+            var deleted: String?
+            var how = "news"
+            while deleted == nil, Date().timeIntervalSince(sentAt) < 0.1, !ScriptHandler.isScriptWaiting {
+                EventHandler.pumpPendingEvents()
+                deleted = TextNews.takeDeletion(since: sentAt)
+                if deleted == nil, let before = textBefore, let after = element.string(kAXValueAttribute) {
+                    deleted = Self.lostCharacter(before: before, after: after)
+                    how = "text"
+                }
+                if deleted == nil { usleep(3000) }
+            }
+            if let d = deleted, d.count == 1 {
+                if how == "text" { TextNews.noteLostCharacter(d, pid: pid) }
+                if d != chunk { TypingRecorder.note("NEWS", "Backspace said the character the \(how) lost (\(Symbols.name(of: d.first!))), not the one read before (\(chunk.isEmpty ? "none" : Symbols.name(of: chunk.first!)))") }
+                chunk = d
+            } else { TypingRecorder.note("NEWS", "Backspace: no deleted character in the news or the text in 100 ms") }
+        }
         Speech.speakTypedCharacter("\u{8}", inEditable: true)
         let c = chunk.replacingOccurrences(of: "\r\n", with: "\n")
         // Said at once, before the caret is waited for: with something before the caret the deletion is certain, and
@@ -492,10 +542,21 @@ open class EditableText: TurnOverObject {
         }
         let (moved, newInfo) = hasCaretMoved(from: bookmark)
         guard moved else { return }
+        // (The application's account of the word is kept: its deletion is part of it, and caretMoved forgets it.)
+        let kept = TextNews.snapshot()
         caretMoved(speak: nil, gesture: gesture, info: newInfo)
+        TextNews.restore(kept)
         // caretMoved forgets the word being typed; a deletion changes it, and the next space or punctuation says the
         // word as it now is ("think", Backspace, Space: "thin"; a tester).
         Speech.noteBackspace()
+    }
+
+    /// The one character `after` lacks that `before` has, when that is all that differs.
+    public static func lostCharacter(before: String, after: String) -> String? {
+        let a = Array(before), b = Array(after)
+        guard a.count == b.count + 1 else { return nil }
+        let i = zip(a, b).prefix { $0 == $1 }.count
+        return Array(a[..<i] + a[(i + 1)...]) == b ? String(a[i]) : nil
     }
 
     func deleteScript(_ gesture: KeyboardGesture, _ unit: TextUnit) {

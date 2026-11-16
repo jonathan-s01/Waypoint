@@ -148,6 +148,9 @@ extension GlobalCommands {
         add("mouseTracking", String(localized: "Mouse tracking on or off; reads what is under the mouse pointer as it moves (NVDA+M)", comment: "A command, as the key list and keyboard help say it"), ["kb:turnover+m"]) { _ in
             MouseTracking.toggle()
         }
+        add("mouseParagraphs", String(localized: "Mouse reads the whole paragraph on or off: a web page's text under the pointer is read as its paragraph, not piece by piece (Waypoint)", comment: "A command, as the key list and keyboard help say it"), ["kb:turnover+control+shift+m"]) { _ in
+            MouseTracking.toggleParagraphs()
+        }
         add("audioDucking", String(localized: "Audio ducking: no ducking, duck when outputting speech, always duck (NVDA+Shift+D)", comment: "A command, as the key list and keyboard help say it"), ["kb:turnover+shift+d"]) { _ in
             Ducking.cycle()
         }

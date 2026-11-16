@@ -202,6 +202,10 @@ public enum InputManager {
             return false
         }
 
+        // Waypoint: Left Option and a letter presses a dialog's button (DialogMnemonics). Where a button owns the letter
+        // it wins over a command on the same key (the Windows style's Option D shows the desktop); otherwise the command runs.
+        if DialogMnemonics.isLeftOptionLetter(gesture), Dialog.pressButton(forLetterOf: gesture) { return true }
+
         if KeySettings.current.speakCommandKeys, gesture.shouldReportAsCommand {
             DispatchQueue.main.async { Speech.speakMessage(gesture.displayName) }
         }

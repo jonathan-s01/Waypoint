@@ -50,15 +50,18 @@ func pointerReaderTests() {
         expect(PointerReader.compose(snap("AXImage")), "image")
     }
     test("pointer reader: a text inside a link or heading says so after its words") {
-        expect(PointerReader.compose(snap("AXStaticText") { $0.value = "Discover"; $0.context = ["link"] }), "Discover, link")
+        expect(PointerReader.compose(snap("AXStaticText") { $0.value = "Discover"; $0.context = ["link"] }), "Discover. link")
         expect(PointerReader.compose(snap("AXStaticText") { $0.value = "News"; $0.context = [Phrases.headingLevel(2), "link"] }),
-               "News, \(Phrases.headingLevel(2)), link")
-        expect(PointerReader.compose(snap("AXImage") { $0.title = "Logo"; $0.context = ["link"] }), "Logo, image, link")
+               "News. \(Phrases.headingLevel(2)), link")
+        expect(PointerReader.compose(snap("AXImage") { $0.title = "Logo"; $0.context = ["link"] }), "Logo, image. link")
+        expect(PointerReader.compose(snap("AXStaticText") { $0.value = "Really?"; $0.context = ["link"] }), "Really? link")
+        expect(PointerReader.compose(snap("AXStaticText") { $0.value = "Recents"; $0.itemSelected = true }), "Recents, \(State.selected.displayString)")
     }
 
     test("pointer reader: a heading is said with its level") {
         expect(PointerReader.compose(snap("AXHeading") { $0.title = "Discover"; $0.headingLevel = 2 }), "Discover, \(Phrases.headingLevel(2))")
         expect(PointerReader.compose(snap("AXHeading") { $0.title = "Discover" }), "Discover, heading")
+        expect(PointerContext.word(role: "AXHeading", subrole: "", roleDescription: "heading", headingLevel: nil), "heading")
     }
 
     test("pointer context: which elements above a text count") {
@@ -78,6 +81,17 @@ func pointerReaderTests() {
         expect(PointerContext.word(role: "AXButton", subrole: "", roleDescription: "", headingLevel: nil), "button")
     }
 
+    test("pointer reader: the states of the item a text is inside") {
+        var tab = PointerSnapshot(); tab.axRole = "AXTab"; tab.number = 1
+        expect(PointerReader.stateWords(tab), [State.selected.displayString])
+        var box = PointerSnapshot(); box.axRole = "AXCheckBox"; box.number = 1
+        expect(PointerReader.stateWords(box), [State.checked.displayString])
+        var off = PointerSnapshot(); off.axRole = "AXButton"; off.enabled = false
+        expect(PointerReader.stateWords(off), [State.unavailable.displayString])
+        var link = PointerSnapshot(); link.axRole = "AXLink"
+        expect(PointerReader.stateWords(link), [])
+    }
+
     test("pointer reader: a long text is cut at a word, never inside one") {
         expect(PointerReader.clip("one two three", limit: 100), "one two three")
         expect(PointerReader.clip("one two three", limit: 9), "one two")
@@ -85,5 +99,21 @@ func pointerReaderTests() {
         let long = String(repeating: "word ", count: 600)
         expect(PointerReader.clip(long), long)
         expect(PointerReader.clip(String(repeating: "word ", count: 6000)).count <= 20000, true)
+    }
+
+    test("pointer context: a row or cell of a native outline or table says nothing after the text") {
+        expect(PointerContext.kind(role: "AXCell", subrole: "", named: false, distance: 1), .container, "elsewhere a cell is said")
+        expect(PointerContext.kind(role: "AXCell", subrole: "", named: false, distance: 1, inNativeList: true), .none)
+        expect(PointerContext.kind(role: "AXRow", subrole: "AXOutlineRow", named: false, distance: 2, inNativeList: true), .none)
+        expect(PointerContext.kind(role: "AXLink", subrole: "", named: false, distance: 1, inNativeList: true), .control, "a control in it still is")
+    }
+
+    test("pointer paragraphs: links and emphasis are part of the paragraph, groups and headings are the paragraph") {
+        expect(PointerContext.blockStep(role: "AXLink", subrole: ""), .link)
+        expect(PointerContext.blockStep(role: "AXGroup", subrole: "AXEmphasisStyleGroup"), .inline)
+        expect(PointerContext.blockStep(role: "AXGroup", subrole: ""), .block)
+        expect(PointerContext.blockStep(role: "AXHeading", subrole: ""), .block)
+        expect(PointerContext.blockStep(role: "AXButton", subrole: ""), .stop, "a button's text is not a paragraph")
+        expect(PointerContext.blockStep(role: "AXWebArea", subrole: ""), .stop)
     }
 }

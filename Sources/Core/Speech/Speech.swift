@@ -641,6 +641,10 @@ public enum Speech {
             // "non breaking space" on every blank line, 5 Oct 2026.)
             if text.count == 1, let c = text.first, c != "\r", c != "\n", c != "\u{2029}", c != "\u{a0}" { return (prefix + [Symbols.name(of: c)]).joined(separator: " ") }
             onlyBlank = prefix.isEmpty
+            // A line that is only a line break says so, as VoiceOver does ("new line" when moving through an empty line).
+            if reason != .sayAll, unit == .line || unit == .character, text.contains(where: { $0.isNewline }) {
+                return (prefix + [String(localized: "new line", comment: "Spoken message")]).joined(separator: " ")
+            }
             return (prefix + [Phrases.blank]).joined(separator: " ")
         }
         let letterLocale = trimmed.count == 1 ? characterLocale(info, trimmed) : nil
@@ -742,7 +746,11 @@ public enum Speech {
     /// the word began, a UTF-16 offset into `text`, as the caret's are): the first one there, whatever was typed on
     /// after it (a space after a full stop, the next word). A straight double quote also matches the curly ones the
     /// field puts in its place.
-    public static func fieldWord(endedBy ch: Character, before text: String, notBefore: Int? = nil) -> (taken: Bool, word: String?, next: Int?) {
+    ///
+    /// `skippingEmpty`: letters were typed, so an ending character with no word before it is an old one the lagging
+    /// caret put the start before, and the next is looked for (GitHub Copilot, 13 Nov 2026: a word's start fell on the
+    /// space before it, the next word's start was set to that word's own, and every word after read as the one before).
+    public static func fieldWord(endedBy ch: Character, before text: String, notBefore: Int? = nil, skippingEmpty: Bool = false) -> (taken: Bool, word: String?, next: Int?) {
         func inWord(_ c: Character) -> Bool { c.isLetter || c.isNumber || c == "'" || c == "’" }
         func ends(_ c: Character) -> Bool { c == ch || (ch.isNewline && c.isNewline) || (ch == "\"" && "“”„".contains(c)) }
         let t = Array(text)
@@ -750,7 +758,7 @@ public enum Speech {
         if let start = notBefore {
             var offset = 0
             for (k, c) in t.enumerated() {
-                if offset >= start, ends(c) { found = k; break }
+                if offset >= start, ends(c), !(skippingEmpty && (k == 0 || !inWord(t[k - 1]))) { found = k; break }
                 offset += String(c).utf16.count
             }
         } else if let i = t.lastIndex(where: ends), i == t.count - 1 {
@@ -770,7 +778,7 @@ public enum Speech {
         return (true, word.isEmpty ? nil : word, String(t[..<j]).utf16.count)
     }
 
-    public static func clearTypedWordBuffer() { typedWord.removeAll(); backspacedSinceWord = false }
+    public static func clearTypedWordBuffer() { typedWord.removeAll(); backspacedSinceWord = false; TextNews.reset() }
     /// Something before the caret was deleted: the next word end reads the word from the text.
     public static func noteBackspace() { typedWord.removeAll(); backspacedSinceWord = true }
     private static var backspacedSinceWord = false

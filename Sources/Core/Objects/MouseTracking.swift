@@ -21,6 +21,7 @@ public struct PointerTracker<Hit: Equatable> {
     public static var minimumTravel: CGFloat { 6 }
     private var lookedAt: CGPoint?
     private var spoken: Hit?
+    private var blockSaid: Hit?
 
     public init() {}
 
@@ -41,18 +42,29 @@ public struct PointerTracker<Hit: Equatable> {
     /// `insideSpoken`: the hit is a plain text or image inside the item last said (a conversation row, said whole, and
     /// then the line of text in it the pointer crosses). It says nothing, and the item said stays the one remembered,
     /// so the row is not said again when the pointer goes back to it.
-    public mutating func answer(_ hit: Hit?, insideSpoken: Bool = false) -> Outcome {
+    ///
+    /// `block`, `readsBlock`: the paragraph the hit is in (the mouse reads whole paragraphs). A hit that reads it is
+    /// the paragraph itself, said once however many of its pieces the pointer crosses. A link in it is said as
+    /// itself, and plain text of the same paragraph after it is silent: the paragraph was already said.
+    public mutating func answer(_ hit: Hit?, insideSpoken: Bool = false, block: Hit? = nil, readsBlock: Bool = false) -> Outcome {
+        // (A blank place, such as the gap between two lines of a paragraph, does not make the paragraph new.)
         guard let hit else { let was = spoken != nil; spoken = nil; return was ? .blank : .nothing }
+        if readsBlock, let block {
+            if block == blockSaid { spoken = block; return .nothing }
+            blockSaid = block; spoken = block
+            return .say
+        }
         guard hit != spoken else { return .nothing }
         if insideSpoken { return .nothing }
         spoken = hit
+        if block == nil || block != blockSaid { blockSaid = nil }
         return .say
     }
 
     /// A look that was given up on found nothing: where it was made is looked at again, not taken as seen.
     public mutating func forgetLook() { lookedAt = nil }
 
-    public mutating func reset() { lookedAt = nil; spoken = nil }
+    public mutating func reset() { lookedAt = nil; spoken = nil; blockSaid = nil }
 
     /// Whether the item last said is one of `items`.
     public func spokenIs(in items: [Hit]) -> Bool { spoken.map { items.contains($0) } ?? false }
@@ -147,6 +159,12 @@ public enum MouseTracking {
         Speech.speakMessage(String(localized: "mouse tracking \(Phrases.onOff(isOn))", comment: "Mouse tracking turned on or off"))
     }
 
+    /// The whole paragraph or the single piece under the pointer: on or off, said.
+    public static func toggleParagraphs() {
+        config.presentation.mouseReadsParagraphs.toggle(); config.save()
+        Speech.speakMessage(String(localized: "mouse reads the whole paragraph \(Phrases.onOff(config.presentation.mouseReadsParagraphs))", comment: "Mouse paragraph reading turned on or off"))
+    }
+
     private static func start() {
         tracker.reset()
         // Global: the pointer over other apps' windows. TurnOver's own are only menus and prompts, said as they open.
@@ -186,16 +204,19 @@ public enum MouseTracking {
         lastLookAt = Date()
         let (g, id) = looks.begin()
         let countsGroups = config.general.movesByGroups
+        let wholeParagraph = config.presentation.mouseReadsParagraphs
         queue.async {
             let began = Date()
             var hit: AXUIElement?
             if AXUIElementCopyElementAtPosition(AXUIElementCreateSystemWide(), Float(p.x), Float(p.y), &hit) != .success { hit = nil }
+            // A cell holding one text is that text (the pointer crosses both in one item).
+            if let h = hit, let inner = innerText(of: h, deadline: began.addingTimeInterval(watchdogAfter - readMargin)) { hit = inner }
             let blank = hit.map(isBlank) ?? true
             let label = describe(hit)
             var reading: PointerReading?
             if let hit, !blank {
                 let deadline = began.addingTimeInterval(watchdogAfter - readMargin)
-                reading = PointerReader.read(hit, deadline: deadline, countsGroups: countsGroups)
+                reading = PointerReader.read(hit, deadline: deadline, countsGroups: countsGroups, wholeParagraph: wholeParagraph)
                 if reading == nil { Log.warning("mouse tracking: the deadline was reached before reading (\(label))") }
                 else if Date() > deadline { Log.warning("mouse tracking: the reading ended past its deadline (\(label))") }
             }
@@ -258,8 +279,30 @@ public enum MouseTracking {
     nonisolated static func isBlank(_ e: AXUIElement) -> Bool {
         let role = e.role
         if role == "AXWindow" { return true }
+        // A row or cell with no words, and not one text inside it (see `innerText`), would only say "cell".
+        if role == "AXCell" || role == "AXRow" { return hasNoWords(e) }
         guard ObjectNavigator.layoutRoles.contains(role) else { return false }
         return [kAXTitleAttribute, kAXDescriptionAttribute, kAXValueAttribute].allSatisfy { (e.string($0) ?? "").isEmpty }
+    }
+
+    nonisolated private static func hasNoWords(_ e: AXUIElement) -> Bool {
+        [kAXTitleAttribute, kAXDescriptionAttribute, kAXValueAttribute].allSatisfy { (e.string($0) ?? "").isEmpty }
+    }
+
+    /// The text a row or cell with no words of its own holds as its only content, or nil. A Finder sidebar item is a
+    /// row, holding a cell, holding the text: the pointer over the item's edge hit the cell and said "cell", then the
+    /// text said its words again (13 Nov 2026, from the log). Runs on the lookup queue.
+    nonisolated static func innerText(of e: AXUIElement, deadline: Date) -> AXUIElement? {
+        var cur = e
+        for _ in 0..<3 {
+            guard Date() < deadline, cur.role == "AXCell" || cur.role == "AXRow", hasNoWords(cur) else { return nil }
+            AXUIElementSetMessagingTimeout(cur, PointerReader.messagingTimeout)
+            let kids = cur.elements(kAXChildrenAttribute)
+            guard kids.count == 1, let only = kids.first else { return nil }
+            if only.role == "AXStaticText" { return (only.string(kAXValueAttribute) ?? "").isEmpty ? nil : only }
+            cur = only
+        }
+        return nil
     }
 
     private static func arrived(_ found: Found, generation g: Int) {
@@ -272,7 +315,8 @@ public enum MouseTracking {
         let inside = found.ancestors.map { Element(element: $0) }
         let insideSpoken = tracker.spokenIs(in: inside)
         if insideSpoken { Log.io("mouse tracking: silent, inside the row just said (\(found.label))") }
-        switch tracker.answer(found.blank ? nil : found.element.map { Element(element: $0) }, insideSpoken: insideSpoken) {
+        switch tracker.answer(found.blank ? nil : found.element.map { Element(element: $0) }, insideSpoken: insideSpoken,
+                              block: found.reading?.block.map { Element(element: $0) }, readsBlock: found.reading?.readsBlock ?? false) {
         case .nothing: break
         case .blank:
             Log.io("mouse tracking: blank place (\(found.label))")
