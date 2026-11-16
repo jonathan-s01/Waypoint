@@ -112,7 +112,7 @@ nonisolated package enum PointerReader {
         return s.axRole == "?" ? "" : s.axRole
     }
 
-    private static func stateWords(_ s: PointerSnapshot) -> [String] {
+    package static func stateWords(_ s: PointerSnapshot) -> [String] {
         var out: [String] = []
         let n = s.number ?? 0
         switch s.axRole {
