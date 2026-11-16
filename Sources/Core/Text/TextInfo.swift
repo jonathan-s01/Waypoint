@@ -453,17 +453,35 @@ open class AXTextInfo: TextInfo {
         return rawTextRange(s, e, knownLength: n, valueLimit: CharacterBoundaries.maximumContextLength)
     }
 
+    private var shortSpace: (length: Int, short: Bool)?
+
+    /// Chrome's contenteditable with a paragraph per block counts its paragraph breaks in the caret, the value and the
+    /// character count, but AXStringForRange skips them, so the last characters are out of its reach and every read
+    /// after a break is early by the number of breaks before it (measured on Chrome, 14 Nov 2026: a 1705-character
+    /// field with four breaks answered 1701 characters; the character before the caret read as "c", not "a").
+    /// Such a field is read from its value, which counts as the caret does.
+    private func readsFromValue(_ n: Int) -> Bool {
+        if let c = shortSpace, c.length == n { return c.short }
+        var short = false
+        if n > 1, n <= Self.valueReadLimit,
+           textElement.param(kAXStringForRangeParameterizedAttribute, axRangeValue(n - 1, 1)) == nil,
+           (textElement.string(kAXValueAttribute) as NSString?)?.length == n { short = true }
+        shortSpace = (n, short)
+        return short
+    }
+    static let valueReadLimit = 100_000
+
     private func rawTextRange(_ s: Int, _ e: Int, knownLength: Int? = nil, valueLimit: Int? = nil) -> String {
         // Nothing lies past the end (WebKit answers a range at the end of a one-line field with "\n": "new line").
         let n = knownLength ?? storyLength()
         let e = min(e, n)
         guard e > s else { return "" }
-        if let t = textElement.param(kAXStringForRangeParameterizedAttribute, axRangeValue(s, e - s)) as? String {
+        if !readsFromValue(n), let t = textElement.param(kAXStringForRangeParameterizedAttribute, axRangeValue(s, e - s)) as? String {
             return t
         }
         // Controls without parameterized attributes (a plain AppKit text field): slice the value.
         // Character probing may fetch a small field's value, never a whole large document.
-        if let valueLimit, n > valueLimit { return "" }
+        if let valueLimit, n > valueLimit, !readsFromValue(n) { return "" }
         guard let v = textElement.string(kAXValueAttribute) else { return "" }
         let ns = v as NSString
         let cs = min(max(s, 0), ns.length), ce = min(max(e, cs), ns.length)
@@ -497,7 +515,25 @@ open class AXTextInfo: TextInfo {
             if !Self.warnedBadLines { Self.warnedBadLines = true; Log.warning("text: the app's line range \(r.location)+\(r.length) is outside its \(n) characters; reading by paragraph instead") }
             return nil
         }
+        // A "line" with a paragraph break inside is no line: Chrome's contenteditable with a paragraph per block
+        // answers the whole text as line 0 for every index (14 Nov 2026), so every Up and Down read as "same line".
+        // Chrome's text markers, on the same field, know the real lines and count as the caret does.
+        if r.length > 1, Self.holdsHardBreak(textRange(r.location, r.location + r.length)) {
+            return markerLine(probe, length: n)
+        }
         return (r.location, r.location + r.length)
+    }
+
+    /// Does this text have a paragraph break anywhere but at its end?
+    public static func holdsHardBreak(_ text: String) -> Bool {
+        text.dropLast().contains { $0 == "\n" || $0 == "\r" || $0 == "\r\n" || $0 == "\u{2029}" }
+    }
+
+    private func markerLine(_ offset: Int, length n: Int) -> (Int, Int)? {
+        guard let r = WebDocumentBridge(webArea: textElement).unitRange("AXLineTextMarkerRangeForTextMarker", at: offset),
+              r.0 >= 0, r.1 <= n + 1, r.0 <= offset, r.1 > offset,
+              !Self.holdsHardBreak(textRange(r.0, r.1)) else { return nil }
+        return r
     }
 
     open override func annotations() -> [(label: String, text: String)] {

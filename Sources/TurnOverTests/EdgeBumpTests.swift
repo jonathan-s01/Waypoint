@@ -22,6 +22,14 @@ func edgeBumpTests() {
         check(edge("rightArrow", caret: 0, lineEnd: 0, length: 0, empty: true), "an empty field")
         check(!edge("upArrow", caret: 0), "other keys are not sideways")
     }
+    test("lines: a line with a paragraph break inside is not a line, one that ends in a break is") {
+        check(AXTextInfo.holdsHardBreak("first paragraph\nsecond paragraph"), "a break in the middle (Chrome answers the whole field as one line)")
+        check(AXTextInfo.holdsHardBreak("one\r\ntwo"), "a Windows break in the middle")
+        check(!AXTextInfo.holdsHardBreak("a line that ends the paragraph\n"), "the break that ends a line")
+        check(!AXTextInfo.holdsHardBreak("a line that ends the paragraph\r\n"), "a Windows break that ends a line")
+        check(!AXTextInfo.holdsHardBreak("a plain line"), "no break")
+        check(!AXTextInfo.holdsHardBreak(""), "nothing")
+    }
     test("edge bump: an end the caret was seen to stop short of is the end, for that length and process only") {
         expect(EditableText.reachableEnd(length: 193, pid: 7, learned: (pid: 7, length: 193, caret: 192)), 192)
         expect(EditableText.reachableEnd(length: 194, pid: 7, learned: (pid: 7, length: 193, caret: 192)), 194)
