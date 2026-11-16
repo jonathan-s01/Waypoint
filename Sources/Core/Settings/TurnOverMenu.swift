@@ -417,6 +417,7 @@ public final class TurnOverMenu {
         if let app = thisAppItem() { items.append(app) }
         items.append(MenuItem("Settings", .action { SettingsBridge.open() }, hint: "Every setting, in a window with sections down the side"))
         items.append(MenuItem("Keys", .submenu { self.keysItems() }, hint: "Every shortcut here, keyboard help, and your own keys"))
+        items.append(MenuItem("Sounds", .submenu { SoundPreview.menuItems() }, hint: "Play every Waypoint sound, as it plays in use, and hear when each one is made"))
         items.append(MenuItem("Tools", .submenu { self.toolItems() }, hint: "The apps Waypoint reads, the VoiceOver settings copy, feedback, force quit, plugins"))
         items.append(MenuItem("Help", .submenu { self.helpItems() }, hint: "The guide, about Waypoint, updates and previous builds"))
         items.append(Self.supportItem)

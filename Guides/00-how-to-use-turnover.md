@@ -10,8 +10,8 @@ This page is the short tour. Each section links to the guide that goes into deta
 
 1. **Command Control Comma** is the way in to everything Waypoint: press it, hear "Waypoint", then a letter. M is the
    Waypoint menu, S the Settings window, K the keyboard style, H these guides. Any other key reads the list.
-   **Command Control M** opens the menu in one press. The menu is short: This app, Settings, Keys, Tools, Help,
-   Support Waypoint, Quit. Every setting lives in the Settings window, in sections down the side.
+   **Command Control M** opens the menu in one press. The menu is short: This app, Settings, Keys, Sounds, Tools,
+   Help, Support Waypoint, Quit. Every setting lives in the Settings window, in sections down the side.
 2. **Command Control Period** turns Waypoint off and on, from anywhere. Off, VoiceOver reads as usual.
 3. If Waypoint ever stops responding, VoiceOver comes on within a few seconds and Waypoint starts again.
 

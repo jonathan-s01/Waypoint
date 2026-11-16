@@ -100,6 +100,10 @@ public enum Tones {
             if n == 0 { beep(f, 30, volume: 0.15) } else { DispatchQueue.main.asyncAfter(deadline: .now() + 0.045 * Double(n)) { beep(f, 35, volume: 0.15) } }
         }
     }
+    /// The beeps speech mode's tone, where speech would be.
+    public static func speechBeep() { beep(1000, 15, volume: 0.25) }
+    /// The Waypoint layer's tone, before its words while VoiceOver leads.
+    public static func layer() { beep(880, 50, volume: 0.2) }
     /// A progress bar's beep, NVDA's (ProgressOutput): 40 ms, 110 Hz at 0 percent, an octave higher each 25 percent,
     /// 1760 Hz at 100.
     public static func progress(_ percent: Int) { beep(progressFrequency(percent), 40) }

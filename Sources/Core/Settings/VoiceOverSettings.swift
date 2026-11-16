@@ -506,7 +506,7 @@ public enum VoiceOverSpeak {
         guard NSWorkspace.shared.isVoiceOverEnabled else { Speech.speakMessage(text); return }
         // Coexisting, VoiceOver is silent wherever TurnOver reads: TurnOver says it there (the code review, 17 Oct 2026).
         if Coexist.on, Core.active { Speech.speakMessage(text); return }
-        if tone { Tones.beep(880, 50, volume: 0.2) }
+        if tone { Tones.layer() }
         NSAccessibility.post(element: NSApp as Any, notification: .announcementRequested,
                              userInfo: [.announcement: text, .priority: NSAccessibilityPriorityLevel.high.rawValue])
         let escaped = text.replacingOccurrences(of: "\\", with: "\\\\").replacingOccurrences(of: "\"", with: "\\\"")

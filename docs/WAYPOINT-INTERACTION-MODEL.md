@@ -95,7 +95,11 @@ and list sounds; the review, skim and off/on tones have no setting yet.
 Quick Nav has no sound of its own: it is the single letters inside browse mode, and it is on whenever browse mode is on
 unless turned off for the page. Its on and off sounds are for that switch (`quicknav_on`, `quicknav_off`).
 
-**To decide:** whether the sound should sit before or after the spoken word. Today they play together.
+The sound plays together with the spoken word, as decided on 16 Nov 2026.
+
+To hear any of them, open the Waypoint menu and choose Sounds. Each sound is in a group (Modes, Menus and lists,
+Waypoint, Reading, Moving and pressing, Braille); Return plays it, and the hint says when it happens. It plays through
+the same code as in use, so with VoiceOver's sound set chosen it is VoiceOver's own file for the events VoiceOver marks.
 
 ## Open questions
 

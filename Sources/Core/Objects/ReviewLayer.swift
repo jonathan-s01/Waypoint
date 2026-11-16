@@ -187,7 +187,7 @@ enum ReviewLayer {
             return
         }
         armed = true; armedAt = Date()
-        Tones.beep(880, 35, volume: 0.18)
+        armedTone()
         Speech.speakMessage(String(localized: "review", comment: "Spoken message: the next key reads around instead of typing"))
     }
 
@@ -267,7 +267,9 @@ enum ReviewLayer {
         Speech.speakMessage(enabled ? String(localized: "review layer enabled", comment: "Spoken message") : String(localized: "review layer disabled", comment: "Spoken message"))
     }
 
-    private static func tone(on: Bool) {
+    static func armedTone() { Tones.beep(880, 35, volume: 0.18) }
+
+    static func tone(on: Bool) {
         let (first, second) = on ? (880.0, 1320.0) : (1320.0, 880.0)
         Tones.beep(first, 35, volume: 0.18)
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.045) { Tones.beep(second, 45, volume: 0.18) }

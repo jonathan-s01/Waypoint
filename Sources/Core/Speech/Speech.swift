@@ -132,7 +132,7 @@ public enum Speech {
         case .talk: break
         case .onDemand where Date() < demandedUntil: break
         case .beeps:
-            if !NSWorkspace.shared.isVoiceOverEnabled, Date().timeIntervalSince(lastBeep) > 0.1 { lastBeep = Date(); Tones.beep(1000, 15, volume: 0.25) }
+            if !NSWorkspace.shared.isVoiceOverEnabled, Date().timeIntervalSince(lastBeep) > 0.1 { lastBeep = Date(); Tones.speechBeep() }
             completion?(false); return
         default: completion?(false); return
         }

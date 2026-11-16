@@ -16,6 +16,8 @@ Changes made in the Waypoint fork, on top of TurnOver 2.0, build 24.1.
   after a restart or login. It says "Waypoint off" and "Waypoint on", with a falling and a rising tone. Command Control
   Period still quits Waypoint and hands the Mac to VoiceOver. While off, the lock screen and password prompts have no
   speech: turn Waypoint on first, or use Command Control Period.
+- Sounds, in the Waypoint menu: every sound Waypoint makes in groups, played through the code that plays it in use, so
+  VoiceOver's own files are heard where the sound set uses them. Return plays a sound and stays in the list.
 - Areas: Right Option 0 to 9 jump to the parts of any window (0 is the app's bars and every toolbar button, as a
   list). VO-Option-O, M, A and F go to the area's tools, the main content, the first list and the search field. The
   Tools list stays open and keeps your place. See docs/AREAS.md.

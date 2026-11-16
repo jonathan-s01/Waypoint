@@ -135,11 +135,14 @@ enum SkimMode {
         Speech.speakMessage(String(localized: "skim off", comment: "Spoken message"))
     }
 
-    private static func tone(on: Bool) {
+    static func tone(on: Bool) {
         let (first, second) = on ? (700.0, 1050.0) : (1050.0, 700.0)
         Tones.beep(first, 30, volume: 0.15)
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.04) { Tones.beep(second, 40, volume: 0.15) }
     }
+
+    /// The tick between items.
+    static func tick() { Tones.beep(1500, 10, volume: 0.1) }
 
     // MARK: The list
 
@@ -209,7 +212,7 @@ enum SkimMode {
         index = next
         ObjectNavigator.shared.place(item)
         let words = SkimText.keyWords(fullText(of: item), kind: kind)
-        Tones.beep(1500, 10, volume: 0.1)
+        tick()
         raiseRate()
         Speech.speakText(words.isEmpty ? String(localized: "blank", comment: "Spoken message") : words)
     }

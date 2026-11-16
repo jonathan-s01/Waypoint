@@ -27,6 +27,20 @@ func pureTests() {
         HelpMakeTurnOver.markShown()
         check(!HelpMakeTurnOver.due, "once shown, it doesn't open by itself again")
     }
+    test("Sounds list: every group has sounds that play and stay in the menu, each titled once") {
+        let groups = SoundPreview.menuItems().filter { if case .submenu = $0.kind { return true } else { return false } }
+        check(groups.count >= 5, "the groups: \(groups.map(\.title))")
+        var titles = Set<String>()
+        for g in groups {
+            guard case .submenu(let make) = g.kind else { continue }
+            let sounds = make()
+            check(!sounds.isEmpty, "\(g.title) has sounds")
+            for s in sounds {
+                if case .select = s.kind {} else { check(false, "\(g.title), \(s.title): plays and stays in the menu") }
+                check(titles.insert(s.title).inserted, "\(s.title) is listed once")
+            }
+        }
+    }
     test("readers per app: a fresh file is off, a file with a list or another mode keeps working as it did") {
         let decode: (String) -> Config.Applications = { json in
             try! JSONDecoder().decode(Config.Applications.self, from: json.data(using: .utf8)!)
