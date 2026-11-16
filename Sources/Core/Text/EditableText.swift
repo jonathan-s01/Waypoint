@@ -288,8 +288,10 @@ open class EditableText: TurnOverObject {
         return l.caret
     }
 
-    /// Whether a caret that did not move is at a hidden tail: at the end but for a character or two it cannot reach.
-    public nonisolated static func isHiddenTail(caret: Int, length: Int) -> Bool { caret >= 0 && length - caret >= 1 && length - caret <= 2 }
+    /// Whether a caret that did not move is at a hidden tail: at the end but for a few characters it cannot reach. A
+    /// long web editor's count includes its paragraph breaks, which the caret does not pass (Chrome, 16 Nov 2026: a 1705
+    /// character field with four breaks, the caret stopped at 1701).
+    public nonisolated static func isHiddenTail(caret: Int, length: Int) -> Bool { caret >= 0 && length - caret >= 1 && length - caret <= (length >= 200 ? 8 : 2) }
 
     func caretMovement(_ gesture: KeyboardGesture, _ unit: TextUnit) {
         // Google Docs, Sheets, Slides: the text box is a hidden typing target; Google says the move itself.
@@ -363,6 +365,9 @@ open class EditableText: TurnOverObject {
                 return
             }
             Log.io("edge: caret stayed on its line (old line \(oldLine.start)-\(oldLine.end), caret \(info2?.start ?? n.start))")
+            if collapsed, forwards, let c = Optional((info2 ?? n).start), Self.isHiddenTail(caret: c, length: rawLength) {
+                Self.stuckEnd = StuckEnd(pid: element.pid, length: rawLength, caret: c)
+            }
             Tones.edge(keySent: true, sound: boundarySound)
             caretMoved(speak: readsLineAtEdge ? .line : nil, gesture: gesture, info: info2 ?? n)
             return

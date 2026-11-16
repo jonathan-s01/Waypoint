@@ -46,6 +46,7 @@ func edgeBumpTests() {
         expect(EditableText.reachableEnd(length: 193, pid: 8, learned: (pid: 7, length: 193, caret: 192)), 193)
         expect(EditableText.reachableEnd(length: 193, pid: 7, learned: nil), 193)
         check(EditableText.isHiddenTail(caret: 192, length: 193), "one character short")
+        check(EditableText.isHiddenTail(caret: 1701, length: 1705), "a field that counts its paragraph breaks")
         check(!EditableText.isHiddenTail(caret: 193, length: 193), "at the end")
         check(!EditableText.isHiddenTail(caret: 100, length: 193), "mid-text")
     }
