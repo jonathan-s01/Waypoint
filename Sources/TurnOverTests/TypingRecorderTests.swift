@@ -155,4 +155,17 @@ func typingRecorderTests() {
         TextNews.apply(type: 3, text: " ", pid: 7005, at: t0)
         expect(TextNews.takeBoundary(for: " ", typed: "i", edited: false, now: t0), "i")
     }
+    test("text news: a Backspace the field sent no detail for is taken from the word once, though its news comes late") {
+        let t0 = Date()
+        TextNews.apply(type: 7, text: "", pid: 7006, at: t0)
+        TextNews.reset()
+        TextNews.startFresh()
+        for c in "hti" { TextNews.apply(type: 3, text: String(c), pid: 7006, at: t0) }
+        TextNews.noteLostCharacter("i", pid: 7006, at: t0)
+        TextNews.noteLostCharacter("t", pid: 7006, at: t0)
+        TextNews.apply(type: 1, text: "i", pid: 7006, at: t0)   // the news of the first, late: not taken twice
+        for c in "it" { TextNews.apply(type: 3, text: String(c), pid: 7006, at: t0) }
+        TextNews.apply(type: 3, text: " ", pid: 7006, at: t0)
+        expect(TextNews.takeBoundary(for: " ", typed: "hit", edited: false, now: t0), "hit")
+    }
 }

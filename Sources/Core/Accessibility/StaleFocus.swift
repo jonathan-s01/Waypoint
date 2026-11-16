@@ -43,6 +43,7 @@ public enum StaleFocus {
               Date().timeIntervalSince(InputManager.lastKeyDownAt) < 0.5,
               let held = API.focusObject, held.pid == event.obj.pid, !held.isSameElement(as: event.obj),
               !RebuiltField.editable.contains(held.role), !held.hasNavigableText else { return }
+        if behind == nil || !(behind!.held.isSame(held.element)) { Log.io("focus: news from the \(event.obj.axRole) after a key while the \(held.axRole) holds the focus") }
         behind = (event.obj.element, held.element, Date())
     }
 
@@ -69,7 +70,7 @@ extension AXHandler {
         if StaleFocus.actsOnFieldBehindPopup(typedCharacter: gesture.typedCharacter, keyName: gesture.keyName),
            let held = API.focusObject, !RebuiltField.editable.contains(held.role), !held.hasNavigableText,
            API.focusTreeInterceptor?.passThrough ?? true, MenuNavigationPlugin.heldBar == nil, MenuNavigationPlugin.heldStatus == nil,
-           NSWorkspace.shared.frontmostApplication?.processIdentifier == held.pid,
+           isInFront(pid: held.pid),
            let field = StaleFocus.fieldBehind(held: held.element) {
             Log.io("focus: the \(held.axRole) holds the focus, but the keys go to the field behind it; the field is the focus now, without a word")
             takeFocusQuietly(field)
@@ -79,7 +80,7 @@ extension AXHandler {
               let held = API.focusObject,
               API.focusTreeInterceptor?.passThrough ?? true,
               MenuNavigationPlugin.heldBar == nil, MenuNavigationPlugin.heldStatus == nil,
-              NSWorkspace.shared.frontmostApplication?.processIdentifier == held.pid,
+              isInFront(pid: held.pid),
               StaleFocus.due() else { return }
         let gone = RebuiltField.isGone(held.element)
         guard gone || (!RebuiltField.editable.contains(held.role) && !held.hasNavigableText) else { return }
@@ -89,6 +90,16 @@ extension AXHandler {
                                     namedIsEditable: RebuiltField.editable.contains(obj.role), same: held.isSameElement(as: named)) else { return }
         Log.io("focus: the keys go to the \(obj.axRole), and TurnOver held the \(held.axRole)\(gone ? " (gone)" : ""); the field is the focus now, without a word")
         takeFocusQuietly(named, as: obj)
+    }
+
+    /// The application in front, or a helper process of it: Teams' page lives in "com.microsoft.teams2.helper", and the
+    /// focus held there is never the pid of the app in front (16 Nov 2026), so the check never passed for it.
+    private func isInFront(pid: pid_t) -> Bool {
+        guard let front = NSWorkspace.shared.frontmostApplication else { return false }
+        if front.processIdentifier == pid { return true }
+        guard let helper = NSRunningApplication(processIdentifier: pid) else { return false }
+        guard let f = front.bundleIdentifier, let b = helper.bundleIdentifier else { return false }
+        return b.hasPrefix(f + ".")
     }
 
     private func takeFocusQuietly(_ element: AXUIElement, as made: TurnOverObject? = nil) {

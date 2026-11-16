@@ -17,6 +17,9 @@ public enum TextNews {
         public let word: String?
     }
     private struct Deletion { let at: Date; let text: String }
+    /// Characters a Backspace was found to have removed by reading the text (the field sent no detail); the news of
+    /// that same deletion, if it comes late, must not take the character from the word a second time.
+    private static var told: [Deletion] = []
 
     /// WebKit's AXTextEditType (and Chromium's, which follows it).
     private enum EditType { static let deletion = 1, insertion = 2, typing = 3, attributes = 7 }
@@ -66,12 +69,28 @@ public enum TextNews {
         }
     }
 
+    /// A single character deleted that the field did not announce, but the text showed it lost (GitHub Copilot sends
+    /// no detail for a Backspace, 16 Nov 2026: "hti", Backspace twice, "it" was said as "htiit").
+    public static func noteLostCharacter(_ text: String, pid: pid_t, at: Date = Date()) {
+        guard text.count == 1, pid == self.pid else { return }
+        told.removeAll { at.timeIntervalSince($0.at) > 1 }
+        told.append(Deletion(at: at, text: text))
+        if clean, !word.isEmpty { word.removeLast() } else { word = ""; clean = false }
+    }
+
     public static func apply(type: Int, text: String, pid: pid_t, at: Date = Date()) {
         if pid != self.pid { self.pid = pid; reset() }
         if type == EditType.attributes { return }
         lastEditAt = at
         switch type {
         case EditType.deletion:
+            told.removeAll { at.timeIntervalSince($0.at) > 1 }
+            if let i = told.firstIndex(where: { $0.text == text }) {
+                told.remove(at: i)
+                deletions.append(Deletion(at: at, text: text))
+                if deletions.count > keep { deletions.removeFirst() }
+                return
+            }
             deletions.append(Deletion(at: at, text: text))
             if deletions.count > keep { deletions.removeFirst() }
             if text.count == 1, clean, !word.isEmpty { word.removeLast() } else { word = ""; clean = false }

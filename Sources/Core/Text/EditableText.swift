@@ -519,6 +519,7 @@ open class EditableText: TurnOverObject {
                 if deleted == nil { usleep(3000) }
             }
             if let d = deleted, d.count == 1 {
+                if how == "text" { TextNews.noteLostCharacter(d, pid: pid) }
                 if d != chunk { TypingRecorder.note("NEWS", "Backspace said the character the \(how) lost (\(Symbols.name(of: d.first!))), not the one read before (\(chunk.isEmpty ? "none" : Symbols.name(of: chunk.first!)))") }
                 chunk = d
             } else { TypingRecorder.note("NEWS", "Backspace: no deleted character in the news or the text in 100 ms") }
