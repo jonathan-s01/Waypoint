@@ -10,8 +10,9 @@ nonisolated package enum PointerContext {
     /// How many levels above the text or image are looked at. A text is at most a few levels inside its link or
     /// heading; going further would name far-off groups for every paragraph.
     static let levels = 4
-    /// The most words said after the content (a heading that is also a link: "heading level 2, link").
-    static let mostWords = 2
+
+    /// The most items said after the content (a heading that is also a link: "heading level 2, link").
+    static let mostItems = 2
 
     /// Roles that say what an item does or is: all of those found on the way up are said.
     private static let controls: Set<String> = ["AXLink", "AXHeading", "AXButton", "AXCheckBox", "AXRadioButton", "AXMenuItem",
@@ -154,13 +155,14 @@ nonisolated package enum PointerContext {
     package static func words(above e: AXUIElement, deadline: Date) -> (words: [String], selected: Bool) {
         var found: [String] = []
         var selected = false
+        var items = 0
         var container: String?
         var cur = e
         for distance in 1...levels {
             guard Date() < deadline, let p = cur.element(kAXParentAttribute) else { break }
             AXUIElementSetMessagingTimeout(p, PointerReader.messagingTimeout)
             let a = p.attrs([kAXRoleAttribute, kAXSubroleAttribute, kAXRoleDescriptionAttribute, kAXTitleAttribute,
-                             kAXDescriptionAttribute, kAXValueAttribute, "AXHeadingLevel", kAXSelectedAttribute])
+                             kAXDescriptionAttribute, kAXValueAttribute, "AXHeadingLevel", kAXSelectedAttribute, kAXEnabledAttribute, kAXExpandedAttribute])
             func text(_ k: String) -> String { (a[k] as? String) ?? "" }
             let role = text(kAXRoleAttribute)
             if role == "AXWindow" || role == "AXWebArea" || role == "AXApplication" { break }
@@ -172,7 +174,18 @@ nonisolated package enum PointerContext {
             case .control:
                 let w = word(role: role, subrole: subrole, roleDescription: text(kAXRoleDescriptionAttribute),
                              headingLevel: ((a["AXHeadingLevel"] ?? a[kAXValueAttribute]) as? NSNumber)?.intValue)
-                if !w.isEmpty, !found.contains(w) { found.append(w) }
+                if !w.isEmpty, !found.contains(w), items < mostItems {
+                    items += 1
+                    found.append(w)
+                    // The item's state goes with its role: "tab, selected", "check box, checked".
+                    var s = PointerSnapshot()
+                    s.axRole = role; s.subrole = subrole
+                    s.number = (a[kAXValueAttribute] as? NSNumber)?.intValue
+                    s.selected = (a[kAXSelectedAttribute] as? Bool) ?? false
+                    s.expanded = a[kAXExpandedAttribute] as? Bool
+                    s.enabled = (a[kAXEnabledAttribute] as? Bool) ?? true
+                    found.append(contentsOf: PointerReader.stateWords(s))
+                }
             case .container:
                 container = word(role: role, subrole: subrole, roleDescription: text(kAXRoleDescriptionAttribute), headingLevel: nil)
             case .none: break
@@ -180,7 +193,7 @@ nonisolated package enum PointerContext {
             if container != nil { break }
             cur = p
         }
-        if !found.isEmpty { return (Array(found.prefix(mostWords)), selected) }
+        if !found.isEmpty { return (found, selected) }
         return (container.flatMap { $0.isEmpty ? nil : [$0] } ?? [], selected)
     }
 }

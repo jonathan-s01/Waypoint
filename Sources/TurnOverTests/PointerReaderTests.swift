@@ -81,6 +81,17 @@ func pointerReaderTests() {
         expect(PointerContext.word(role: "AXButton", subrole: "", roleDescription: "", headingLevel: nil), "button")
     }
 
+    test("pointer reader: the states of the item a text is inside") {
+        var tab = PointerSnapshot(); tab.axRole = "AXTab"; tab.number = 1
+        expect(PointerReader.stateWords(tab), [State.selected.displayString])
+        var box = PointerSnapshot(); box.axRole = "AXCheckBox"; box.number = 1
+        expect(PointerReader.stateWords(box), [State.checked.displayString])
+        var off = PointerSnapshot(); off.axRole = "AXButton"; off.enabled = false
+        expect(PointerReader.stateWords(off), [State.unavailable.displayString])
+        var link = PointerSnapshot(); link.axRole = "AXLink"
+        expect(PointerReader.stateWords(link), [])
+    }
+
     test("pointer reader: a long text is cut at a word, never inside one") {
         expect(PointerReader.clip("one two three", limit: 100), "one two three")
         expect(PointerReader.clip("one two three", limit: 9), "one two")
