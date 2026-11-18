@@ -76,6 +76,7 @@ nonisolated final class KeyboardHandler: @unchecked Sendable {
     private var loneOption = LoneModifier()
     /// Arrow-key Quick Nav (VoiceOver's): the arrow held, waiting to see whether a second joins it (a chord).
     private var arrowHeld: Int64?
+    private var arrowDownAt = Date()
     private var arrowChorded = false
     private var arrowRepeated = false
     /// With Quick Nav off: the bare arrow physically held (passed to the app as usual), so Left and Right pressed
@@ -629,7 +630,15 @@ nonisolated final class KeyboardHandler: @unchecked Sendable {
             if code == arrowDownWhileOff { arrowDownWhileOff = nil }
             guard code == arrowHeld else { return nil }   // the chord's second arrow is let go through `quarantined`
             arrowHeld = nil
-            if !arrowChorded && !arrowRepeated { onMain { ArrowQuickNav.single(name) } }
+            if !arrowChorded && !arrowRepeated {
+                // Timed for the log: how long the key was held (the move waits for its release) and how long the move took.
+                let held = Int(Date().timeIntervalSince(arrowDownAt) * 1000), released = Date()
+                onMain {
+                    let waited = Int(Date().timeIntervalSince(released) * 1000), began = Date()
+                    ArrowQuickNav.single(name)
+                    Log.io("Quick Nav \(name): held \(held) ms, waited \(waited) ms for the main thread, move took \(Int(Date().timeIntervalSince(began) * 1000)) ms")
+                }
+            }
             return .some(nil)
         }
         let bare = !capsDown && event.flags.intersection([.maskShift, .maskControl, .maskAlternate, .maskCommand]).isEmpty
@@ -646,6 +655,14 @@ nonisolated final class KeyboardHandler: @unchecked Sendable {
             return nil
         }
         guard bare else { return nil }
+        // These arrows are swallowed here, before the cut every other key makes in InputManager: without it each move
+        // queued behind whatever was still being said, so speech lagged behind the cursor (Finder, 18 Nov 2026).
+        onMain {
+            SayAll.noteStopPoint()
+            Speech.cancel()
+            Speech.clearTypedWordBuffer()
+            SayAll.stop(byGesture: true)
+        }
         if let first = arrowHeld, first != code, let firstName = Self.arrowNames[first] {
             arrowChorded = true
             quarantined.insert(code)
@@ -658,7 +675,7 @@ nonisolated final class KeyboardHandler: @unchecked Sendable {
             onMain { ArrowQuickNav.single(name) }
             return .some(nil)
         }
-        arrowHeld = code; arrowChorded = false; arrowRepeated = false
+        arrowHeld = code; arrowDownAt = Date(); arrowChorded = false; arrowRepeated = false
         return .some(nil)
     }
 
