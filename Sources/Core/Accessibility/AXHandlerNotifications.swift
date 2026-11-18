@@ -152,6 +152,7 @@ extension AXHandler {
             // costing the main thread four round trips for a log line (a code review, 14 Oct 2026).
             // A second window: does this app list every window's elements under each (Qt Quick)? Checked once it does.
             if name == kAXWindowCreatedNotification, !ForeignChildren.contains(pid) { ForeignChildren.check(pid: pid) }
+            if name == kAXWindowCreatedNotification { panelOpenedByKey(element, pid: pid) }
             if Date().timeIntervalSince(loggedOnlyWindow) > 1 { loggedOnlyWindow = Date(); loggedOnlyCount = 0 }
             loggedOnlyCount += 1
             if loggedOnlyCount <= 20 { Log.io("notification \(name): \(element.role) \"\(Log.words(element.string(kAXTitleAttribute) ?? ""))\"") }
