@@ -23935,6 +23935,9 @@
         }
       }
     },
+    "Straight to part %lld of the window" : {
+      "comment" : "A command: %lld is the number of a part of the window"
+    },
     "Straight to part or area %lld of the window (an app with a recipe, such as Teams, goes by its recipe's parts)" : {
       "comment" : "A command, as the key list and keyboard help say it: %lld is a number"
     },

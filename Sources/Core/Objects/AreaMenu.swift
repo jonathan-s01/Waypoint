@@ -230,6 +230,7 @@ public enum AreaMenu {
         if second, let w = ReviewLayer.windowAndPid() { pid = w.pid }
         // An app with a panes recipe keeps its parts, numbered from 1; 0 is still the global area.
         if n > 0, let view = PanesView.current(pid: pid) {
+            view.settleParts()
             guard view.parts.indices.contains(n - 1) else {
                 Speech.speakMessage(String(localized: "this window has \(view.parts.count) parts", comment: "Spoken message: %lld is how many parts"))
                 return

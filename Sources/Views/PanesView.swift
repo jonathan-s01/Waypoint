@@ -10,7 +10,13 @@ import ApplicationServices
 
 public final class PanesView {
     public let pid: pid_t
-    public let parts: [RecipeView.Panes.Part]
+    /// The parts of the window in front: the recipe's own, or those of an alternate window (Teams' call) while it is
+    /// the front one. Kept, not looked up, so reading it costs nothing; `settleParts` is what looks.
+    public private(set) var parts: [RecipeView.Panes.Part]
+    private let baseParts: [RecipeView.Panes.Part]
+    private let alternates: [RecipeView.Panes.Alternate]
+    private var variant: String?
+    private var variantCheckedAt = Date.distantPast
     private var hinted = Set<Int>()
     /// Elements found, kept for a moment: finding one walks the window.
     private var found: [Int: (AXUIElement, Date)] = [:]
@@ -34,7 +40,27 @@ public final class PanesView {
     private static var registry: [pid_t: WeakView] = [:]
     public static func current(pid: pid_t) -> PanesView? { registry[pid]?.view }
 
-    public init(pid: pid_t, panes: RecipeView.Panes) { self.pid = pid; parts = panes.parts; Self.registry[pid] = WeakView(view: self) }
+    public init(pid: pid_t, panes: RecipeView.Panes) {
+        self.pid = pid; parts = panes.parts; baseParts = panes.parts; alternates = panes.alternates ?? []
+        Self.registry[pid] = WeakView(view: self)
+    }
+
+    /// The most parts any window of the app has: how many numbered keys the app gets.
+    public static func mostParts(_ panes: RecipeView.Panes) -> Int { ([panes.parts.count] + (panes.alternates ?? []).map { $0.parts.count }).max() ?? 0 }
+
+    /// Which window is in front: the recipe's, or an alternate whose `when` is in the front window (Teams' call window
+    /// has none of the chat window's parts, 18 Nov 2026). Asked at each command, at most every 1.5 s, as the walk
+    /// can take a moment; a change forgets everything kept by part number.
+    public func settleParts() {
+        guard !alternates.isEmpty, Date().timeIntervalSince(variantCheckedAt) >= 1.5 else { return }
+        variantCheckedAt = Date()
+        let hit = alternates.first { Self.find($0.when, pid: pid, budget: 0.4) != nil }
+        guard hit?.name != variant else { return }
+        variant = hit?.name
+        parts = hit?.parts ?? baseParts
+        found = [:]; hinted = []; placed = nil; documentEntered = nil; lastIn = [:]; persisted = [:]; focusPart = nil; documentNewest = [:]
+        Log.io("panes: the front window is \(hit?.name ?? "the usual one"): \(parts.count) parts")
+    }
 
     /// The element of a part, now. Parts are containers, so the search never goes into rows, cells, text and the
     /// like, and visits a few hundred elements at most: a search that walked Notes' 800-row list held the main
@@ -177,12 +203,14 @@ public final class PanesView {
 
     /// Tab and Shift Tab: the next or previous part, round the end.
     public func step(forward: Bool) {
+        settleParts()
         guard !parts.isEmpty else { return }
         go(to: neighbour(of: currentIndex(), forward: forward))
     }
 
     /// The second reader's Tab: the part after the one it is in, which it goes to without moving the keyboard.
     public func stepSecond(forward: Bool) {
+        settleParts()
         guard !parts.isEmpty else { return }
         var cur: Int?
         if let at = ReviewLayer.cursorElement() { cur = parts.indices.first { i in element(of: i).map { isInside(at, $0) } ?? false } }
@@ -191,6 +219,7 @@ public final class PanesView {
 
     /// The second reader to a part: it says the part's name and what is there; the keyboard stays where it is.
     public func goSecond(to i: Int) {
+        settleParts()
         guard parts.indices.contains(i) else { Tones.edge(); return }
         guard let e = element(of: i) else { Tones.edge(); Speech.speakMessage(String(localized: "\(parts[i].name) is not on screen", comment: "Spoken message: %@ is a part of the window")); return }
         Speech.speakMessage(parts[i].name)
@@ -233,6 +262,7 @@ public final class PanesView {
 
     /// Command Control 1 to 9.
     public func go(to i: Int, forceRestore: Bool = false) {
+        settleParts()
         guard parts.indices.contains(i) else { Tones.edge(); return }
         guard let e = element(of: i) else { Tones.edge(); Speech.speakMessage(String(localized: "\(parts[i].name) is not on screen", comment: "Spoken message: %@ is a part of the window")); return }
         let part = parts[i]

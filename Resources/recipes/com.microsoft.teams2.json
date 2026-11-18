@@ -41,6 +41,34 @@
           "name": "Message box",
           "match": { "role": "AXTextArea", "description": "Type a message" }
         }
+      ],
+      "alternates": [
+        {
+          "name": "Call window",
+          "when": { "role": "AXToolbar", "description": "Meeting controls" },
+          "parts": [
+            {
+              "name": "Meeting controls",
+              "match": { "role": "AXToolbar", "description": "Meeting controls" },
+              "hint": "Raise, React, View, Controls, Copilot, More, camera, microphone and Share."
+            },
+            {
+              "name": "Calling controls",
+              "match": { "subrole": "AXApplicationGroup", "description": "Calling controls" },
+              "hint": "Leave the call."
+            },
+            {
+              "name": "Call stage",
+              "match": { "subrole": "AXLandmarkMain", "description": "Shared content view" },
+              "hint": "Who is in the call and what is shared."
+            },
+            {
+              "name": "Calling indicators",
+              "match": { "role": "AXToolbar", "description": "Calling indicators" },
+              "hint": "Encryption and how long the call has lasted."
+            }
+          ]
+        }
       ]
     }
   }

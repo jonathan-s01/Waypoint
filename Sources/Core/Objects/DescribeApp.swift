@@ -71,6 +71,7 @@ final class DescribeAppPlugin: GlobalPlugin {
         let title = window?.string(kAXTitleAttribute)
         let kind = DescribeApp.windowKind(role: window?.string(kAXRoleAttribute), subrole: window?.string(kAXSubroleAttribute))
         let view = PanesView.current(pid: pid)
+        view?.settleParts()
         let regions = view?.parts.map(\.name) ?? []
         let current = view?.currentIndex()
         var focus: String?

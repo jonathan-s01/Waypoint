@@ -994,6 +994,27 @@ func pureTests() {
         check(ProfileStore.load(folder: plugin).error?.contains("spreadsheet") == true, "refused: \(ProfileStore.load(folder: plugin).error ?? "no error")")
         Recipes.load(builtIn: repo.appendingPathComponent("Resources/recipes"), plugins: [])
     }
+    test("recipes: Teams' call window has parts of its own") {
+        let repo = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+        Recipes.load(builtIn: repo.appendingPathComponent("Resources/recipes"), plugins: [])
+        guard let panes = Recipes.recipe(for: "com.microsoft.teams2")?.view.panes else { return Harness.fail("no Teams panes") }
+        expect(panes.alternates?.first?.parts.map(\.name), ["Meeting controls", "Calling controls", "Call stage", "Calling indicators"])
+        var f = AXFixture(app: "T", bundle: "t", recorded: "", root: 0, application: 9, focus: 1, nodes: [])
+        f.nodes = [
+            .init(id: 0, attrs: ["AXRole": .string("AXWindow"), "AXChildren": .elements([1]), "AXParent": .element(9)]),
+            .init(id: 1, attrs: ["AXRole": .string("AXToolbar"), "AXDescription": .string("Meeting controls"), "AXParent": .element(0)]),
+            .init(id: 9, attrs: ["AXRole": .string("AXApplication"), "AXWindows": .elements([0]), "AXFocusedWindow": .element(0), "AXFocusedUIElement": .element(1)]),
+        ]
+        AXReplay.load(f); defer { AXReplay.unload() }
+        let view = PanesView(pid: 900_009, panes: panes)
+        view.settleParts()
+        expect(view.parts.first?.name, "Meeting controls", "the call window's parts, when its control bar is there")
+        expect(view.element(of: 0).flatMap(AXReplay.id(of:)), 1, "the bar is found")
+        f.nodes[1].attrs["AXDescription"] = .string("Other")
+        AXReplay.load(f)
+        view.settleParts()
+        expect(view.parts.first?.name, "Meeting controls", "asked again only after a moment")
+    }
     test("recipes: the panes shape validates and loads (Notes)") {
         let repo = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
         Recipes.load(builtIn: repo.appendingPathComponent("Resources/recipes"), plugins: [])

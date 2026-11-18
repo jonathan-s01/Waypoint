@@ -20,8 +20,10 @@ final class PanesAppModule: AppModule {
         }
         script("panes_next", String(localized: "The next part of the window: \(panes.parts.map(\.name).joined(separator: ", "))", comment: "A command: %@ lists the window's parts"), gestures: ["kb:tab"], category: cat) { [weak self] _ in self?.view.step(forward: true) }.isAvailable = active
         script("panes_previous", String(localized: "The previous part of the window", comment: "A command, as the key list and keyboard help say it"), gestures: ["kb:shift+tab"], category: cat) { [weak self] _ in self?.view.step(forward: false) }.isAvailable = active
-        for (i, part) in panes.parts.prefix(9).enumerated() {
-            script("panes_part\(i + 1)", String(localized: "Straight to \(part.name)", comment: "A command: %@ is a part of the window"), gestures: ["kb:control+command+\(i + 1)"], category: cat) { [weak self] _ in self?.view.go(to: i) }.isAvailable = active
+        for i in 0..<min(9, PanesView.mostParts(panes)) {
+            let label = panes.parts.indices.contains(i) ? String(localized: "Straight to \(panes.parts[i].name)", comment: "A command: %@ is a part of the window")
+                : String(localized: "Straight to part \(i + 1) of the window", comment: "A command: %lld is the number of a part of the window")
+            script("panes_part\(i + 1)", label, gestures: ["kb:control+command+\(i + 1)"], category: cat) { [weak self] _ in self?.view.go(to: i) }.isAvailable = active
         }
         script("panes_returnToPlace", String(localized: "Back to where you were in this part of the window, when you last left it", comment: "A command, as the key list and keyboard help say it"), gestures: [], category: cat) { [weak self] _ in self?.view.returnToPlace() }.isAvailable = active
         // (No key of its own: VO Shift W is VoiceOver's "read window" in the Mac style; it is in the shortcuts list.)

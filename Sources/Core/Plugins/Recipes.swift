@@ -19,7 +19,15 @@ nonisolated public struct RecipeView: Codable {
     /// read by the cursor. The shape most Mac apps have (PanesView).
     public struct Panes: Codable {
         public var parts: [Part]
-        public init(parts: [Part]) { self.parts = parts }
+        /// Another window of the same app with parts of its own (Teams' call window): used instead of `parts` while
+        /// the front window holds an element matching `when`. Absent: the app has the one set of parts.
+        public var alternates: [Alternate]?
+        public init(parts: [Part], alternates: [Alternate]? = nil) { self.parts = parts; self.alternates = alternates }
+        public struct Alternate: Codable {
+            public var name: String
+            public var when: ElementMatch
+            public var parts: [Part]
+        }
         public struct Part: Codable {
             public var name: String
             public var match: ElementMatch
@@ -65,7 +73,10 @@ nonisolated public struct RecipeView: Codable {
     public func validate() throws {
         guard Self.kinds.contains(kind) else { throw RecipeError.unknownKind(kind) }
         if kind == "chat", chat == nil { throw RecipeError.missing("chat") }
-        if kind == "panes" { guard let p = panes, !p.parts.isEmpty else { throw RecipeError.missing("panes with at least one part") } }
+        if kind == "panes" {
+            guard let p = panes, !p.parts.isEmpty else { throw RecipeError.missing("panes with at least one part") }
+            if (p.alternates ?? []).contains(where: { $0.parts.isEmpty }) { throw RecipeError.missing("alternates with at least one part each") }
+        }
     }
 }
 
