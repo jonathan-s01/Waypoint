@@ -536,12 +536,23 @@ enum ReviewLayer {
     /// empty, or a page change can empty it), and the key says so instead of doing nothing (Copilot's chat, 13 Nov
     /// 2026: Shift+H and Shift+Tab with the layer held bumped, and no key started the read again).
     private static func readyToRead(_ d: BrowseModeDocument, why: String) -> Bool {
-        if d.isAlive, d.refreshIfNavigated() { Log.io("review layer: the page changed under the second reader; reading it again") }
+        if d.isAlive, d.refreshIfNavigated() {
+            Log.io("review layer: the page changed under the second reader; reading it again")
+            forgetStart(of: d)
+        }
         guard d.buffer.lines.isEmpty else { return true }
+        forgetStart(of: d)
         if !d.buffer.isLoading { d.buffer.build() }
         Log.io("review layer: nothing read yet (\(why)); reading now")
         Speech.speakMessage(String(localized: "second reader loading", comment: "Spoken message: the review layer is still reading the page"))
         return false
+    }
+
+    /// A page read again (another chat opened in the same window) or not read yet: the next key starts from the focus
+    /// again, as for a new field, instead of keeping the place the empty page left (the top of the app). Copilot's chat,
+    /// 18 Nov 2026: after opening another chat, the second reader began at the top, not at the latest message.
+    private static func forgetStart(of d: BrowseModeDocument) {
+        if syncedDocument == ObjectIdentifier(d) { syncedDocument = nil; syncedFocus = nil; messageStart = nil }
     }
 
     /// The page's reading document (a chat in a browser), or one over the focused window (a native app), made once.
@@ -594,7 +605,10 @@ enum ReviewLayer {
                         doc.position = start
                         messageStart = start
                     }
-                } else if Date().timeIntervalSince(doc.buffer.builtAt) > 1 {
+                } else if Date().timeIntervalSince(doc.buffer.builtAt) <= 1 {
+                    // Read a moment ago and the focus is not in it yet: look again at the next key.
+                    syncedDocument = nil; syncedFocus = nil
+                } else {
                     // The focus is somewhere the copy of the window has not seen (a part that appeared, a new row).
                     doc.rebuildKeepingPlace(anchor: focus.element)
                     if let at = offsetNear(focus.element, in: doc) { doc.position = at }
