@@ -21,6 +21,26 @@ nonisolated private func sampleCollection(_ root: AXUIElement, text: String, sto
 }
 
 func webBufferTests() {
+    test("web field: lines are cut at the field's own breaks, an empty line and the end included") {
+        let t = "abc\n\nxyz"
+        check(EditableWebField.hardLine(in: t, at: 1) == (0, 4), "a letter")
+        check(EditableWebField.hardLine(in: t, at: 3) == (0, 4), "on its break")
+        check(EditableWebField.hardLine(in: t, at: 4) == (4, 5), "empty line")
+        check(EditableWebField.hardLine(in: t, at: 8) == (5, 8), "the end")
+        check(EditableWebField.hardLine(in: "abc\n", at: 4) == (4, 4), "after a final break")
+    }
+    test("web field: a web text area is read by its text markers only when the browser counts it from 0") {
+        func q(_ role: String = "AXTextArea", subrole: String? = nil, web: Bool = true, markers: Bool = true, start: Int? = 0) -> Bool {
+            EditableWebField.qualifies(axRole: role, subrole: subrole, inWebArea: web, hasMarkerSelection: markers, fieldStart: start)
+        }
+        check(q(), "a chat composer in a page")
+        check(!q("AXTextField"), "a one-line field keeps its value")
+        check(!q(subrole: "AXSecureTextField"), "a password")
+        check(!q(web: false), "a native text view")
+        check(!q(markers: false), "a browser without a marker selection")
+        check(!q(start: 412), "a browser that counts the field from elsewhere in the page")
+        check(!q(start: nil), "no range for the field")
+    }
     test("document snapshot: interpretation and navigation never fall back to live AX") {
         let root = AXUIElementCreateApplication(910_000)
         let entered = DispatchSemaphore(value: 0), release = DispatchSemaphore(value: 0), collected = DispatchSemaphore(value: 0)

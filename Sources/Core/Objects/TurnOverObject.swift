@@ -691,6 +691,7 @@ public enum ObjectFactory {
         if role == .button, PreferenceTab.isPreferenceTab(element) { return PreferenceTab(element: element) }
         switch role {
         case .webArea: return EditableWebArea.isEditable(element) ? EditableWebArea(element: element) : WebArea(element: element)
+        case .editableText where EditableWebField.isMarkerField(element): return EditableWebField(element: element)   // Waypoint
         case .editableText, .searchField, .passwordEdit, .document, .textFrame: return EditableText(element: element)
         // A combo box you type into (a web search box with suggestions: Wikipedia's) is edited like a text field.
         case .comboBox where element.attr(kAXSelectedTextRangeAttribute) != nil: return EditableComboBox(element: element)
