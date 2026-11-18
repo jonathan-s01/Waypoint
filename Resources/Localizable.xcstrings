@@ -11097,6 +11097,15 @@
         }
       }
     },
+    "In a toolbar: back to the window's content" : {
+      "comment" : "A command, as the key list and keyboard help say it"
+    },
+    "In a toolbar: the next control; the edge sound at the last" : {
+      "comment" : "A command, as the key list and keyboard help say it"
+    },
+    "In a toolbar: the previous control; the edge sound at the first" : {
+      "comment" : "A command, as the key list and keyboard help say it"
+    },
     "In a web page, a plain text is read as its whole paragraph or heading, so bold, emphasized or linked words in it do not start a new announcement. A link in the paragraph is still said as a link, with its role." : {
 
     },
@@ -11251,15 +11260,6 @@
           }
         }
       }
-    },
-    "In a toolbar: back to the window's content" : {
-      "comment" : "A command, as the key list and keyboard help say it"
-    },
-    "In a toolbar: the next control; the edge sound at the last" : {
-      "comment" : "A command, as the key list and keyboard help say it"
-    },
-    "In a toolbar: the previous control; the edge sound at the first" : {
-      "comment" : "A command, as the key list and keyboard help say it"
     },
     "In the ribbon, sidebar, status bar or toolbar: back to the document" : {
       "comment" : "A command, as the key list and keyboard help say it",
@@ -12442,6 +12442,9 @@
           }
         }
       }
+    },
+    "Left and Right move through the items; Return opens one." : {
+      "comment" : "A hint in the Dock at the bottom of the screen"
     },
     "Let go of the keys, then press Command Control Period again." : {
       "comment" : "Spoken message",
@@ -22066,9 +22069,6 @@
         }
       }
     },
-    "Secure input is on, so Waypoint cannot hear your keys. Press Command Tab twice to get them back." : {
-      "comment" : "Spoken message"
-    },
     "Selecting" : {
       "comment" : "A group of commands in the key list",
       "localizations" : {
@@ -28650,12 +28650,6 @@
         }
       }
     },
-    "Left and Right move through the items; Return opens one." : {
-      "comment" : "A hint in the Dock at the bottom of the screen"
-    },
-    "Up and Down move through the items; Return opens one." : {
-      "comment" : "A hint in the Dock on the side of the screen"
-    },
     "Up and Down move through the items." : {
       "comment" : "A hint, said after a pause on an item",
       "localizations" : {
@@ -28672,6 +28666,9 @@
           }
         }
       }
+    },
+    "Up and Down move through the items; Return opens one." : {
+      "comment" : "A hint in the Dock on the side of the screen"
     },
     "Up and Down move through the mailboxes; Tab goes to the messages." : {
       "comment" : "A hint, said after a pause on an item",
