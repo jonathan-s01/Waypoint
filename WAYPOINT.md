@@ -85,8 +85,9 @@ Follow AI-CONTRIBUTOR.md and CONTRIBUTING.md. In short:
 
 - `./build.sh --no-install`: about 90 seconds; builds, runs about 581 tests and the helper self-tests, and leaves
   `~/Library/Developer/TurnOver/build/Waypoint.app`. Do not run two builds at once: they share that folder.
-- The build rewrites `Resources/Localizable.xcstrings`. Revert it afterwards with
-  `git checkout Resources/Localizable.xcstrings`, unless you added translatable strings and mean to commit them.
+- The build syncs `Resources/Localizable.xcstrings` (the string catalog) with the strings in the code. Commit it with
+  the change that added or removed strings. If a build leaves it modified and you changed no strings, the catalog
+  was stale: commit it on its own. After an upstream merge, take upstream's copy and rebuild to re-sync it.
 - `./build.sh` installs to /Applications/Waypoint.app and **restarts the reader**, which interrupts the user's
   speech. Tell the user first and wait for a yes. Afterwards check `pgrep -x turnover`, and read the newest log in
   `~/Library/Application Support/TurnOver/logs/`. If the reader isn't running, start VoiceOver (`open -a VoiceOver`).
