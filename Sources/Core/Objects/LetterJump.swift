@@ -25,7 +25,7 @@ public enum LetterJump {
         var e: AXUIElement? = f.element; var hops = 0
         while let x = e, hops < 4 {
             let role = x.role
-            if containerRoles.contains(role) { return x }
+            if containerRoles.contains(role) { return LetterJumpPlaces.enabledHere ? x : nil }   // off here by VO-Shift-L: the letters go to the app
             if stopRoles.contains(role) || ItemActions.isText(x) { return nil }
             e = x.element(kAXParentAttribute); hops += 1
         }
@@ -138,5 +138,7 @@ final class LetterJumpPlugin: GlobalPlugin {
                    gestures: ["kb:\(key)"], category: "Lists") { _ in LetterJump.press(key) }
                 .isAvailable = { LetterJump.container() != nil }
         }
+        script("toggleLetterJump", String(localized: "Letter jump on or off for this page, part of the window or app, remembered (VO-Shift-L)", comment: "A command, as the key list and keyboard help say it"),
+               gestures: [], category: "Lists") { _ in LetterJumpPlaces.toggle() }
     }
 }

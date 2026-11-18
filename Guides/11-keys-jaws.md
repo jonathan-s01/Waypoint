@@ -1,6 +1,6 @@
 # JAWS keys: every key
 
-This page is made from Waypoint's own command tables (`turnover-coretest --keys-reference`, 14 Nov 2026), so it matches the build it came with. Don't edit it by hand.
+This page is made from Waypoint's own command tables (`turnover-coretest --keys-reference`, 16 Nov 2026), so it matches the build it came with. Don't edit it by hand.
 
 The JAWS keys style: JAWS's laptop layout. **Waypoint** in a key means the JAWS key: Caps Lock, or Control and Option together. Only the keys that differ from NVDA's are JAWS's own; every other key is NVDA's, so the [NVDA keys page](keys-nvda.html) lists the rest. Keyboard help (the Waypoint menu, Keys) says what any key does without doing it; Command Control Comma, then Slash, lists the keys that work where you are.
 

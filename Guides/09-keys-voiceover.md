@@ -1,6 +1,6 @@
 # VoiceOver keys: every key
 
-This page is made from Waypoint's own command tables (`turnover-coretest --keys-reference`, 14 Nov 2026), so it matches the build it came with. Don't edit it by hand.
+This page is made from Waypoint's own command tables (`turnover-coretest --keys-reference`, 16 Nov 2026), so it matches the build it came with. Don't edit it by hand.
 
 The VoiceOver keys style (the Mac style): VoiceOver's own keys, doing what they do in VoiceOver. **Waypoint** in a key means the Waypoint key: Control and Option together (VO), or Caps Lock. Keys VoiceOver has that aren't listed here go to VoiceOver as usual where VoiceOver reads, and do nothing special where Waypoint reads. Keyboard help (the Waypoint menu, Keys) says what any key does without doing it; Command Control Comma, then Slash, lists the keys that work where you are.
 
@@ -163,9 +163,10 @@ Switch styles with Command Control Comma, then K. Waypoint's own commands behind
 | Waypoint Shift Grave | Resizes the window with the arrow keys; Escape stops (VO-Tilde) |
 | Waypoint Shift H | Reads the item's help tag (VO-Shift-H) |
 | Waypoint Shift Home | In text, the first word in view; elsewhere the first item in the group (VO-Shift-Home) |
+| Waypoint Shift I | Describes the image or photo; anywhere else, what the window looks like (VO-Shift-I) |
 | Waypoint Shift J | Jumps to the input method or autocorrect panel (VO-Shift-J) |
 | Waypoint Shift K | Option key Commander on or off: right Option with a letter runs a command (VO-Shift-K) |
-| Waypoint Shift L | Describes the image or photo; anywhere else, what the window looks like (VO-Shift-L) |
+| Waypoint Shift L | Letter jump on or off for this page, part of the window or app, remembered: in a list, a letter selects the next item that starts with it (VO-Shift-L, Waypoint's own) |
 | Waypoint Shift M | The shortcut menu for the item (VO-Shift-M) |
 | Waypoint Shift N | Reads the hint for the item (VO-Shift-N) |
 | Waypoint Shift O | Opens or closes Control Centre (VO-Shift-O) |

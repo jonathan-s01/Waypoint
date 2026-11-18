@@ -177,7 +177,9 @@ extension VoiceOverKeysPlugin {
 
         // MARK: Settings and modes
         add("screenCurtain", String(localized: "Screen Curtain on or off (VO-Shift-F11)", comment: "A command, as the key list and keyboard help say it"), ["kb:turnover+shift+f11"]) { g in run("screenCurtain", g) }
-        add("describeImage", String(localized: "Describes the image or photo; anywhere else, what the window looks like (VO-Shift-L)", comment: "A command, as the key list and keyboard help say it"), ["kb:turnover+shift+l"]) { _ in ImageDescriber.describeCurrent() }
+        // VO-Shift-I, not VoiceOver's VO-Shift-L: Waypoint's VO-Shift-L is letter jump on or off (16 Nov 2026).
+        add("describeImage", String(localized: "Describes the image or photo; anywhere else, what the window looks like (VO-Shift-I)", comment: "A command, as the key list and keyboard help say it"), ["kb:turnover+shift+i"]) { _ in ImageDescriber.describeCurrent() }
+        add("letterJump", String(localized: "Letter jump on or off for this page, part of the window or app, remembered: in a list, a letter selects the next item that starts with it (VO-Shift-L, Waypoint's own)", comment: "A command, as the key list and keyboard help say it"), ["kb:turnover+shift+l"]) { _ in LetterJumpPlaces.toggle() }
         // TurnOver's own: VoiceOver has no key that reads a window's text from the screen. VO-Shift-L did it off a
         // picture until Oliver chose VO-Shift-Y (2 Nov 2026: "describing an image is different to ocr").
         add("recognizeScreen", String(localized: "Recognises the text in the window from the screen (OCR), to read with the arrows and click with Return; pressed twice, its buttons, fields and icons instead (VO-Shift-Y, Waypoint's own)", comment: "A command, as the key list and keyboard help say it"), ["kb:turnover+shift+y"]) { _ in

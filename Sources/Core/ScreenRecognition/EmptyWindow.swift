@@ -136,10 +136,10 @@ public enum EmptyWindowNotice {
     }
 
     private static func offer(pid: pid_t) {
-        // The keys in this style: with VoiceOver keys, VO-Shift-Y reads the text and VO-Shift-L describes the window
+        // The keys in this style: with VoiceOver keys, VO-Shift-Y reads the text and VO-Shift-I describes the window
         // (2 Nov 2026); with NVDA or JAWS keys, the TurnOver key with R reads the text.
         if config.general.style == .voiceOver {
-            let text = GlobalCommands.spoken("kb:turnover+shift+y"), look = GlobalCommands.spoken("kb:turnover+shift+l")
+            let text = GlobalCommands.spoken("kb:turnover+shift+y"), look = GlobalCommands.spoken("kb:turnover+shift+i")
             Log.info("empty window: nothing readable in the front window of pid \(pid); screen recognition offered (\(text), \(look))")
             Speech.speakMessage(String(localized: "Nothing in this window can be read. Press \(text) to recognise its text, or \(look) to describe it.", comment: "Spoken message: %1$@ is the key that recognises the text, %2$@ the key that describes the window"))
             return

@@ -1,6 +1,6 @@
 # NVDA keys: every key
 
-This page is made from Waypoint's own command tables (`turnover-coretest --keys-reference`, 14 Nov 2026), so it matches the build it came with. Don't edit it by hand.
+This page is made from Waypoint's own command tables (`turnover-coretest --keys-reference`, 16 Nov 2026), so it matches the build it came with. Don't edit it by hand.
 
 The NVDA keys style (the Windows style): NVDA's own keys, doing what they do in NVDA. **Waypoint** in a key means the NVDA key: Caps Lock, or Control and Option together. NVDA's Alt is the Mac's Command key, by position. Keyboard help (the Waypoint menu, Keys) says what any key does without doing it; Command Control Comma, then Slash, lists the keys that work where you are.
 

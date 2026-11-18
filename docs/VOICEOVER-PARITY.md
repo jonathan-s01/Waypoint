@@ -26,7 +26,7 @@ three ways, VO-F6, window and item size and place (VO-Command-F2, F3), mouse to 
 VO-Shift-F5), window to the front (VO-Shift-F2), the desktop (VO-Shift-D), Notification Centre (VO-O), Control
 Centre (VO-Shift-O), parent folder (VO-Command-Backslash), scroll bars (VO-Shift-S), groups (VO-Shift-Left, Right),
 window spots (VO-Left and Right Bracket, and your own with Command), page statistics and the sort button
-(VO-Shift-Vertical Line), Screen Curtain (VO-Shift-F11), describe image (VO-Shift-L; off a picture, the window, since 2 Nov 2026), save the last phrase
+(VO-Shift-Vertical Line), Screen Curtain (VO-Shift-F11), describe image (VO-Shift-I since 16 Nov 2026, VO-Shift-L is Waypoint's letter jump; off a picture, the window, since 2 Nov 2026), save the last phrase
 (VO-Shift-Z), lock the VO keys (VO-Semicolon), cursor tracking off and on (VO-Shift-F3), move and resize the window
 or the item (VO-Grave Accent, VO-Tilde, with Command for the item), multiple selection (VO-Command-Return), sticky
 mouse (VO-Command-Shift-Space), arrow-key Quick Nav (VO-Shift-Q).

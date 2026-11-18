@@ -1352,12 +1352,13 @@ func browseTextNavTests() {
         check(ScreenRecognition.differs(blank, dialog), "a dialog's worth of pixels: a change")
         check(!ScreenRecognition.differs(blank, speck), "one pixel (a cursor's blink): no change")
     }
-    test("VoiceOver keys: VO-Shift-L describes, VO-Shift-Y recognises the screen's text") {
+    test("VoiceOver keys: VO-Shift-I describes, VO-Shift-L is letter jump, VO-Shift-Y recognises the screen's text") {
         let saved = config
         defer { config = saved }
         config.general.keyboardStyle = "mac"
         let vo = VoiceOverKeysPlugin()
-        expect(vo.script(for: KeyboardGesture(identifier: "kb:turnover+shift+l")!)?.name, "vo_describeImage")
+        expect(vo.script(for: KeyboardGesture(identifier: "kb:turnover+shift+i")!)?.name, "vo_describeImage")
+        expect(vo.script(for: KeyboardGesture(identifier: "kb:turnover+shift+l")!)?.name, "vo_letterJump")
         expect(vo.script(for: KeyboardGesture(identifier: "kb:turnover+shift+y")!)?.name, "vo_recognizeScreen")
         config.general.keyboardStyle = "windows"
         expect(ScriptHandler.findScript(for: KeyboardGesture(identifier: "kb:turnover+r")!)?.name, "recognizeScreen", "NVDA keys keep TurnOver R")
@@ -1543,6 +1544,25 @@ func browseTextNavTests() {
         let late = LetterJump.query(typed: "d", key: "o", within: false)
         check(late.text == "o" && late.cycling, "after a pause it starts again")
         check(go(1, "a", cycling: true) != nil && LetterJump.target(count: 0, current: nil, text: "a", cycling: true, name: { _ in "" }) == nil, "an empty list finds nothing")
+    }
+    test("letter jump places: the most specific choice wins, a fresh place is on, the page ignores its fragment, old choices go") {
+        let now = Date()
+        let page = LetterJumpPlaces.candidates(bundle: "b", url: "https://x.org/a?q=1#top", part: "List")
+        check(page.map(\.key) == ["page|b|https://x.org/a?q=1", "part|b|List", "app|b"], "page, then part, then app")
+        check(LetterJumpPlaces.candidates(bundle: "b", url: "", part: nil).map(\.key) == ["app|b"], "no page, no part: the app")
+        let first = LetterJumpPlaces.toggled(page, in: [:], now: now)
+        check(!first.on && first.scope == .page && first.table.count == 1, "first press turns it off for the page only")
+        let other = LetterJumpPlaces.candidates(bundle: "b", url: "https://x.org/b", part: "List")
+        check(LetterJumpPlaces.choice(other, in: first.table) == nil, "another page has no choice: on")
+        let again = LetterJumpPlaces.toggled(page, in: first.table, now: now)
+        check(again.on, "pressed again, it is on")
+        let appOff = LetterJumpPlaces.toggled(LetterJumpPlaces.candidates(bundle: "b", url: nil, part: nil), in: [:], now: now).table
+        check(LetterJumpPlaces.choice(page, in: appOff) == false, "an app that is off covers its places")
+        check(LetterJumpPlaces.toggled(page, in: appOff, now: now).on, "and a place in it can be turned on")
+        var big: [String: LetterJumpPlaces.Place] = [:]
+        for i in 0..<LetterJumpPlaces.limit { big["k\(i)"] = .init(on: false, at: Date(timeIntervalSince1970: Double(i))) }
+        let grown = LetterJumpPlaces.toggled(page, in: big, now: now).table
+        check(grown.count == LetterJumpPlaces.limit && grown["k0"] == nil && grown[page[0].key] != nil, "the oldest choice is dropped")
     }
     let t = "Home News Sport\nThe big story\nA lot happened today, and here it is.\nMore Next Previous\nThat was the news.\n" as NSString
     func r(_ s: String) -> NSRange { t.range(of: s) }

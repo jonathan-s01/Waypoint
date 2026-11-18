@@ -37,6 +37,7 @@ predictable behaviour from saved rules rather than AI guesses.
 | Describe this app | Built | `DescribeApp.swift` |
 | Item actions menu | Built | `ItemActions.swift` |
 | First-letter jump in any list | Built | `LetterJump.swift` |
+| Letter jump on or off for the exact page, part of a window or app, remembered (VO-Shift-L; describe image moved to VO-Shift-I). A recipe default is not built | Built; not yet tried by ear | `LetterJumpPlaces.swift` |
 | Places: bookmarks and recent places | Built | `Places*.swift` |
 | Anywhere: apps, menus, item actions, window parts, Waypoint commands | Built, no language model | `System/Anywhere*.swift`, `System/MenuBarList.swift` |
 | Launcher: Right Command + key opens apps, runs commands | Built | `Launcher*.swift` |
