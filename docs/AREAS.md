@@ -83,7 +83,11 @@ work only while that window is visible to accessibility); if not, the per-window
 - Announcing "side panel opened" or "closed" without a key press.
 - In an app with a recipe, the number after the last part goes to the side panel when the window has one (19 Nov 2026:
   Copilot's Workspace, which is the canvas, the browser or the library; found by the generic areas, so it adapts to what
-  it holds). It is read as the generic side panel: a list of its controls. Not yet heard by ear.
+  it holds). It is read as the generic side panel: a list of its controls, and the list's first entry, "go into the
+  panel", puts the keyboard in what the panel shows (its first list, outline, table or text area, else its first row,
+  link, heading or text; `AreaMap.contentTarget`). Teams' chat and people panel in a call logged as a side panel with 4
+  to 13 tools (19 Nov 2026) but its content tree was not dumped, so what "go into the panel" lands on there is a guess:
+  the log line `areas: ... content is ...` says what it chose. Not yet heard by ear.
 - Teams' and GitHub Copilot's recipes are still in place: Right Option 1 to 9 go to the recipe's parts there (Control
   Command 1 to 9 too), and Right Option 0 is still the generic Global list. Trial the generic areas in Teams before
   slimming the recipe.

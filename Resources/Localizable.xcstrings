@@ -517,6 +517,9 @@
         }
       }
     },
+    "%@ content" : {
+      "comment" : "Entry of the tools list of a side panel that goes into what the panel shows: %@ is the panel's name"
+    },
     "%@ could not be removed: %@" : {
       "comment" : "A plugin not removed: %1$@ is its name, %2$@ the error",
       "localizations" : {
@@ -34466,6 +34469,9 @@
           }
         }
       }
+    },
+    "go into the panel" : {
+      "comment" : "Entry of the tools list of a side panel: Return puts the keyboard in what the panel shows"
     },
     "graphic" : {
       "comment" : "A kind of thing to find, after next or previous\nA role, spoken after an item's name",

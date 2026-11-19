@@ -378,6 +378,27 @@ nonisolated public enum AreaMap {
         }
     }
 
+    /// What a side panel shows besides its buttons: its first list, outline, table or text area, else its first row, link,
+    /// heading or text. Goes by the elements inside it, whatever the app calls them (Teams' chat or people in a call).
+    public static func contentTarget(of area: Area, in els: [AreaElement]) -> Int? {
+        guard let root = area.element else { return nil }
+        func inside(_ i: Int) -> Bool {
+            var p = els[i].parent
+            while p >= 0 { if p == root { return true }; p = els[p].parent }
+            return false
+        }
+        let tools = Set(area.tools)
+        let candidates = els.indices.filter { !tools.contains($0) && inside($0) }
+        for roles in [["AXList", "AXOutline", "AXTable", "AXBrowser", "AXTextArea"], ["AXRow", "AXLink", "AXHeading", "AXStaticText"]] as [[String]] {
+            if let found = candidates.first(where: { roles.contains(els[$0].role) }) {
+                Log.io("areas: \"\(Log.words(area.name))\" content is \(els[found].role) among \(candidates.count) elements")
+                return found
+            }
+        }
+        Log.io("areas: \"\(Log.words(area.name))\" has no content besides its \(area.tools.count) tools (\(candidates.count) other elements)")
+        return nil
+    }
+
     /// An area to be moved around with arrows and Return whatever the app does with them: bars, ribbons, side panels
     /// full of controls. A list, text or page keeps its own keys and takes the focus instead.
     public static func isToolArea(_ area: Area) -> Bool {

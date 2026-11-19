@@ -47,7 +47,7 @@ enum AreaPanel {
         nextID += 1
         let s = Session(id: nextID, pid: snap.pid, areaName: area.name, areaKind: area.kind, areaIndex: areaIndex, title: title, snap: snap, groups: groups, kind: groups[0].name)
         mode.value = .none; target = nil; typed = ""
-        TurnOverMenu.shared.openRotor(categories(for: groups, in: snap), typeToFilter: false, intro: groups.count > 1 ? title : "")
+        TurnOverMenu.shared.openRotor(categories(for: groups, in: snap, areaIndex: areaIndex), typeToFilter: false, intro: groups.count > 1 ? title : "")
         session = s
         TurnOverMenu.shared.keyHook = { g in hook(g) }
         TurnOverMenu.shared.onClose = { cleanup() }
@@ -61,8 +61,8 @@ enum AreaPanel {
 
     // MARK: The list
 
-    private static func categories(for groups: [AreaMap.ToolGroup], in snap: AreaMenu.Snapshot) -> [(name: String, items: [MenuItem])] {
-        groups.map { g in
+    private static func categories(for groups: [AreaMap.ToolGroup], in snap: AreaMenu.Snapshot, areaIndex: Int) -> [(name: String, items: [MenuItem])] {
+        var out: [(name: String, items: [MenuItem])] = groups.map { g in
             (g.name, g.tools.map { t in
                 let e = snap.elements[t]
                 var item = MenuItem(verbatim: label(e, tab: g.isTabs), .select { activate(t) })
@@ -70,6 +70,16 @@ enum AreaPanel {
                 return item
             })
         }
+        // A side panel is mostly its content (Teams' chat or people while in a call), not its buttons: the first entry goes into it.
+        if snap.areas[areaIndex].kind == .side, let content = AreaMap.contentTarget(of: snap.areas[areaIndex], in: snap.elements) {
+            let area = snap.areas[areaIndex]
+            let name = String(localized: "\(area.name) content", comment: "Entry of the tools list of a side panel that goes into what the panel shows: %@ is the panel's name")
+            out.insert((name, [MenuItem(verbatim: String(localized: "go into the panel", comment: "Entry of the tools list of a side panel: Return puts the keyboard in what the panel shows"), .select {
+                TurnOverMenu.shared.close()
+                AreaMenu.go(to: snap.refs[content], name: area.name, second: snap.second, area: area.frame)
+            })]), at: 0)
+        }
+        return out
     }
 
     private static let choicesRoles: Set<String> = ["AXMenuButton", "AXPopUpButton"]
@@ -245,7 +255,7 @@ enum AreaPanel {
                 kind = groups[tabs + 1].name
                 let pressed = groups[tabs].tools.first { key(snap.elements[$0]) == oldKey }.map { snap.elements[$0].name } ?? ""
                 session?.snap = snap; session?.groups = groups; session?.kind = kind
-                TurnOverMenu.shared.replaceRotor(categories(for: groups, in: snap), kind: kind, index: 0, say: pressed.isEmpty ? nil : String(localized: "\(pressed) tab", comment: "Spoken message: a tab of the tools panel was chosen, %@ is its name"))
+                TurnOverMenu.shared.replaceRotor(categories(for: groups, in: snap, areaIndex: found!), kind: kind, index: 0, say: pressed.isEmpty ? nil : String(localized: "\(pressed) tab", comment: "Spoken message: a tab of the tools panel was chosen, %@ is its name"))
                 return
             }
             if !groups.contains(where: { $0.name == kind }) { kind = groups.first { !$0.isTabs }?.name ?? groups[0].name }
@@ -257,7 +267,7 @@ enum AreaPanel {
             }
             let unchanged = k != nil && (before ?? []) == now
             session?.snap = snap; session?.groups = groups; session?.kind = kind
-            TurnOverMenu.shared.replaceRotor(categories(for: groups, in: snap), kind: kind, index: position, say: say ?? (unchanged ? String(localized: "pressed", comment: "Spoken message: a control in the tools panel was pressed and nothing visibly changed") : nil), announceItem: say == nil && !unchanged)
+            TurnOverMenu.shared.replaceRotor(categories(for: groups, in: snap, areaIndex: found!), kind: kind, index: position, say: say ?? (unchanged ? String(localized: "pressed", comment: "Spoken message: a control in the tools panel was pressed and nothing visibly changed") : nil), announceItem: say == nil && !unchanged)
         }
     }
 

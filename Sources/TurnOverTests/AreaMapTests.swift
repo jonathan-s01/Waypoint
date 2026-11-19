@@ -81,6 +81,28 @@ func areaMapTests() {
             expect(t.names(areas, areas.count - 1), ["Add tab", "New file", "File tree"])
         }
     }
+    test("areas: a side panel's content is its list, not its buttons") {
+        // A call's chat panel (Teams): header buttons, then a list of messages and a box; the buttons are never the content.
+        var t = Tree()
+        let win = CGRect(x: 0, y: 30, width: 1920, height: 1050)
+        let w = t.add(-1, "AXWindow", "", 0, 30, 1920, 1050)
+        let page = t.add(w, "AXWebArea", "Call", 0, 30, 1920, 1050)
+        t.add(page, "AXGroup", "Stage", 0, 30, 1500, 1050)
+        let panel = t.add(page, "AXGroup", "Chat", 1509, 30, 410, 1050, sub: "AXLandmarkRegion")
+        for (n, y) in [("Pop out", 40), ("Close", 90), ("More", 140)] { t.add(panel, "AXButton", n, 1800, CGFloat(y), 40, 40) }
+        t.add(panel, "AXStaticText", "Chat", 1520, 40, 100, 30)
+        let list = t.add(panel, "AXList", "Messages", 1520, 200, 380, 700)
+        t.add(panel, "AXTextArea", "Type a message", 1520, 950, 380, 80)
+        let areas = AreaMap.classify(t.els, window: win)
+        guard let side = areas.last(where: { $0.kind == .side }) else { check(false, "no side panel"); return }
+        expect(AreaMap.contentTarget(of: side, in: t.els), list)
+        var bare = Tree()
+        let bw = bare.add(-1, "AXWindow", "", 0, 30, 1920, 1050)
+        let bp = bare.add(bw, "AXGroup", "Panel", 1509, 30, 410, 1050)
+        for y in [40, 90, 140] { bare.add(bp, "AXButton", "Tool \(y)", 1800, CGFloat(y), 40, 40) }
+        guard let none = AreaMap.classify(bare.els, window: win).last(where: { $0.kind == .side }) else { check(false, "no bare side panel"); return }
+        expect(AreaMap.contentTarget(of: none, in: bare.els), nil)
+    }
     test("areas: Notes' toolbar is split by column and the list rows' controls are not tools") {
         var t = Tree()
         let win = CGRect(x: 0, y: 0, width: 1000, height: 660)
