@@ -466,6 +466,16 @@ open class EditableText: TurnOverObject {
         // A one-line field has no new line: Return in Safari's address field said "new line" as the page was opening
         // (12 Oct 2026), after a 100 ms wait for a caret that never moves there.
         if axRole == "AXTextField" { gesture.send(); return }
+        // Teams reports the caret about 310 ms after Return, just past the wait for it: each Return and Shift Return
+        // held the keys behind it for 300 ms and found nothing to say (27 presses, 18 Nov 2026, Teams 2 on macOS
+        // 27.2.1). Return sends the message there; Shift Return makes a line, said at once without waiting.
+        if appModule.bundleIdentifier == "com.microsoft.teams2" {
+            gesture.send()
+            Speech.speakTypedCharacter("\r", inEditable: true)
+            TextNews.startFresh()
+            if gesture.modifiers.contains(.shift), config.keyboard.speakNewLine { Speech.speakOnly(String(localized: "new line", comment: "Spoken message")) }
+            return
+        }
         guard let info = try? makeTextInfo(.caret) else { gesture.send(); return }
         let bookmark = info.bookmark
         let lengthBefore = info.storyLength()
