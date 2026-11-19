@@ -37,6 +37,14 @@ func readWhileTypingTests() {
         expect(chord("upArrow", extra: Layer.Device.rightOption), .review("kb:option+upArrow"))
     }
 
+    test("review layer: only a bare arrow is governed by the layer's own Quick Nav") {
+        expect(Layer.bareArrow(of: chord("leftArrow")), "leftArrow")
+        expect(Layer.bareArrow(of: chord("leftArrow", extra: Layer.Device.rightOption)), nil, "by word is not bare")
+        expect(Layer.bareArrow(of: chord("leftArrow", extra: Layer.Device.leftShift)), nil, "selecting is not bare")
+        expect(Layer.bareArrow(of: chord("h")), nil, "a letter is not an arrow")
+        expect(Layer.bareArrow(of: nil), nil)
+    }
+
     test("review layer: Left Shift and an arrow select in the field, with Right Option by word") {
         expect(chord("rightArrow", extra: Layer.Device.leftShift), .select("kb:shift+rightArrow"))
         expect(chord("leftArrow", extra: Layer.Device.leftShift | Layer.Device.rightOption), .select("kb:option+shift+leftArrow"))

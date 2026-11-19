@@ -83,6 +83,11 @@ nonisolated final class KeyboardHandler: @unchecked Sendable {
     /// together can turn Quick Nav on, as VoiceOver's do (13 Oct 2026: they turned it off, never on).
     private var arrowDownWhileOff: Int64?
     private static let arrowNames: [Int64: String] = [123: "leftArrow", 124: "rightArrow", 125: "downArrow", 126: "upArrow"]
+    /// The same for the review layer's arrows (its own Quick Nav, apart from the base layer's above).
+    private var layerArrowHeld: Int64?
+    private var layerArrowChorded = false
+    private var layerArrowRepeated = false
+    private var layerArrowDownWhileOff: Int64?
     private var optionCode: Int64 = 0
     /// Keyboard help: the name of a modifier key as it goes down (keyboard thread; spoken on the main thread).
     private var lastModifierNamed: (code: Int64, at: Date) = (0, .distantPast)
@@ -516,6 +521,7 @@ nonisolated final class KeyboardHandler: @unchecked Sendable {
         }
         controlAlone = false; loneShift.cancel(); loneOption.cancel(); loneCommand.cancel()
         if let r = keypad(type, event, code, settings) { return r }
+        if let r = layerArrow(type, event, code) { return r }
         if let r = quickNavArrow(type, event, code, settings) { return r }
         if type == .keyUp {
             if quarantined.contains(code) { quarantined.remove(code); return nil }
@@ -619,6 +625,58 @@ nonisolated final class KeyboardHandler: @unchecked Sendable {
             e.setIntegerValueField(.eventSourceUserData, value: Self.marker)
             e.post(tap: .cghidEventTap)
         }
+    }
+
+    /// The review layer's arrow Quick Nav, held and chorded as the base layer's is (quickNavArrow) but with a state of
+    /// its own: with the layer's chord held (or the layer latched), a bare arrow waits for its release so a second arrow
+    /// makes a chord; Left and Right together turn the layer's Quick Nav on or off. Off, the arrows go to the field.
+    /// nil: not the layer's; otherwise swallowed.
+    private func layerArrow(_ type: CGEventType, _ event: CGEvent, _ code: Int64) -> Unmanaged<CGEvent>?? {
+        guard let name = Self.arrowNames[code], type == .keyDown || type == .keyUp else { return nil }
+        if type == .keyUp {
+            if code == layerArrowDownWhileOff { layerArrowDownWhileOff = nil }
+            guard code == layerArrowHeld else { return nil }
+            layerArrowHeld = nil
+            if !layerArrowChorded && !layerArrowRepeated { onMain { ReviewLayerArrows.single(name) } }
+            return .some(nil)
+        }
+        let snap = ReviewLayerArrows.snapshot.value
+        guard snap.enabled, !capsDown,
+              ReviewLayerLogic.bareArrow(of: ReviewLayerLogic.decide(flags: UInt(event.flags.rawValue), keyName: name, chord: snap.chord, armed: snap.latched, turnOverKey: false)) == name
+        else { return nil }
+        let repeating = event.getIntegerValueField(.keyboardEventAutorepeat) != 0
+        if !snap.quickNav {
+            // Off: the arrow goes on to the field as usual; Left and Right together turn the layer's Quick Nav on.
+            guard !repeating else { return nil }
+            if let first = layerArrowDownWhileOff, first != code, Set([first, code]) == Set<Int64>([123, 124]) {
+                layerArrowDownWhileOff = nil
+                quarantined.insert(code)
+                onMain { Log.io("input chord leftArrow+rightArrow (review layer Quick Nav off)"); ReviewLayerArrows.toggle() }
+                return .some(nil)
+            }
+            layerArrowDownWhileOff = code
+            return nil
+        }
+        onMain {
+            SayAll.noteStopPoint()
+            Speech.cancel()
+            Speech.clearTypedWordBuffer()
+            SayAll.stop(byGesture: true)
+        }
+        if let first = layerArrowHeld, first != code, let firstName = Self.arrowNames[first] {
+            layerArrowChorded = true
+            quarantined.insert(code)
+            onMain { Log.io("input chord \(firstName)+\(name) (review layer)"); ReviewLayerArrows.chord(firstName, name) }
+            return .some(nil)
+        }
+        if repeating {
+            guard !layerArrowChorded else { return .some(nil) }
+            layerArrowRepeated = true
+            onMain { ReviewLayerArrows.single(name) }
+            return .some(nil)
+        }
+        layerArrowHeld = code; layerArrowChorded = false; layerArrowRepeated = false
+        return .some(nil)
     }
 
     /// VoiceOver's arrow-key Quick Nav: while it is on and the arrows are its (ArrowQuickNav.applies), a bare arrow

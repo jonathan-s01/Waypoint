@@ -95,6 +95,13 @@ nonisolated public enum ReviewLayerLogic {
         return nil
     }
 
+    /// The arrow a decision is, when it is a bare arrow of the layer ("leftArrow"): the keys the layer's own Quick Nav
+    /// state governs. Arrows with Option (by word) or Shift (select) are not, and neither is any other key.
+    public static func bareArrow(of decision: Decision?) -> String? {
+        guard case .review(let id)? = decision, id.hasPrefix("kb:"), arrows.contains(String(id.dropFirst(3))) else { return nil }
+        return String(id.dropFirst(3))
+    }
+
     /// Whether a command key (Waypoint's own commands, such as the areas and the tools) is meant for the second reader.
     /// Left Option and Right Option do not share a meaning: Left Option is the keyboard's (and half of the layer's chord),
     /// Right Option is the command key. Right Option with the TurnOver key, Left Option not held, or with the chord held,
@@ -117,6 +124,23 @@ nonisolated public enum ReviewLayerLogic {
     public static let idleLimit: TimeInterval = 300
 }
 
+/// What the keyboard thread needs to know about the layer's arrows, kept current by the main thread (ReviewLayer.publish).
+nonisolated public struct ReviewLayerSnapshot: Sendable {
+    public var enabled = false
+    public var chord = ReviewLayerLogic.Chord.standard
+    public var latched = false
+    /// The layer's own arrow Quick Nav, apart from the base layer's (ArrowQuickNav).
+    public var quickNav = true
+}
+
+nonisolated public enum ReviewLayerArrows {
+    public static let snapshot = Locked(ReviewLayerSnapshot())
+    /// The keyboard thread's way into the layer, on the main thread.
+    @MainActor public static func single(_ name: String) { ReviewLayer.arrowSingle(name) }
+    @MainActor public static func chord(_ a: String, _ b: String) { ReviewLayer.arrowChord(a, b) }
+    @MainActor public static func toggle() { ReviewLayer.toggleArrowQuickNav() }
+}
+
 /// The layer itself.
 @MainActor
 enum ReviewLayer {
@@ -125,17 +149,65 @@ enum ReviewLayer {
 
     /// On unless switched off: it is a held chord, so it cannot get stuck.
     static var enabled: Bool = UserDefaults.standard.object(forKey: enabledKey) as? Bool ?? true {
-        didSet { UserDefaults.standard.set(enabled, forKey: enabledKey) }
+        didSet { UserDefaults.standard.set(enabled, forKey: enabledKey); publish() }
+    }
+
+    /// The layer's arrow Quick Nav (Left and Right together turn it on and off, in the layer), with its own rotor kind,
+    /// both apart from the base layer's (ArrowQuickNav): each keeps its state while the other is in use. On to begin
+    /// with, since the layer's arrows always read around; off, they go to the field as typed.
+    static var arrowQuickNav = true { didSet { publish() } }
+    private static var arrowKind: Int?
+
+    // MARK: Remembered per app and window
+
+    /// The layer's Quick Nav state is kept the way focus memory keeps places: by app and window (a window's own, else the
+    /// app's last), so each app comes back as it was left. In UserDefaults: bundle id, or "bundle id|window title".
+    static let contextsKey = "waypoint.reviewLayer.quickNavContexts"
+    private static var contextKey = ""
+    private static var contextWindow: AXUIElement?
+
+    private static func stored() -> [String: [String: Int]] { UserDefaults.standard.dictionary(forKey: contextsKey) as? [String: [String: Int]] ?? [:] }
+
+    private static func remember() {
+        guard !contextKey.isEmpty else { return }
+        var all = stored()
+        let state = ["on": arrowQuickNav ? 1 : 0, "kind": arrowKind ?? -1]
+        all[contextKey] = state
+        all[String(contextKey.prefix { $0 != "|" })] = state
+        UserDefaults.standard.set(all, forKey: contextsKey)
+    }
+
+    /// The focus moved to another app or window: the layer's Quick Nav takes that context's state (on, item by item, when new).
+    static func contextChanged(_ obj: TurnOverObject) {
+        guard let bundle = NSRunningApplication(processIdentifier: obj.pid)?.bundleIdentifier else { return }
+        let window = obj.element.role == "AXWindow" ? obj.element : obj.element.element(kAXWindowAttribute)
+        if let w = window, let known = contextWindow, known.isSame(w) { return }
+        contextWindow = window
+        let key = bundle + "|" + FocusMemory.normalise(window?.string(kAXTitleAttribute) ?? "")
+        guard key != contextKey else { return }
+        contextKey = key
+        let all = stored()
+        let state = all[key] ?? all[bundle]
+        let on = state.map { $0["on"] != 0 } ?? true
+        let kind = state.flatMap { $0["kind"] }.flatMap { $0 >= 0 && $0 < ArrowQuickNav.kinds.count ? $0 : nil }
+        if on != arrowQuickNav || kind != arrowKind { Log.io("review layer: Quick Nav \(on ? "on" : "off") for \(bundle)") }
+        arrowQuickNav = on
+        arrowKind = kind
+    }
+
+    /// The state the keyboard thread reads.
+    static func publish() {
+        ReviewLayerArrows.snapshot.value = ReviewLayerSnapshot(enabled: enabled, chord: chord, latched: latched, quickNav: arrowQuickNav)
     }
 
     static var chord: ReviewLayerLogic.Chord = {
         let d = UserDefaults.standard, std = ReviewLayerLogic.Chord.standard
         func bits(_ k: String, _ fallback: UInt) -> UInt { d.object(forKey: k).flatMap { ($0 as? NSNumber)?.uintValue } ?? fallback }
         return .init(hold: bits(holdKey, std.hold), reverse: bits(reverseKey, std.reverse), word: bits(wordKey, std.word))
-    }()
+    }() { didSet { publish() } }
 
     private(set) static var armed = false
-    private(set) static var latched = false
+    private(set) static var latched = false { didSet { publish() } }
     private static var armedAt = Date.distantPast
     private(set) static var lastUsed = Date.distantPast
     private static var syncedFocus: AXUIElement?
@@ -162,7 +234,10 @@ enum ReviewLayer {
         let raw = UInt(g.flags.rawValue)
         if !on, raw & chord.hold != chord.hold { return nil }
         guard on || chord.hold != 0 else { return nil }
-        return ReviewLayerLogic.decide(flags: raw, keyName: g.keyName, chord: chord, armed: on, turnOverKey: g.modifiers.contains(.turnover))
+        let d = ReviewLayerLogic.decide(flags: raw, keyName: g.keyName, chord: chord, armed: on, turnOverKey: g.modifiers.contains(.turnover))
+        // With the layer's Quick Nav off its bare arrows are the field's (armed for one key, they are still the layer's).
+        if !arrowQuickNav, !(armed && !latched), ReviewLayerLogic.bareArrow(of: d) != nil { return nil }
+        return d
     }
 
     /// Armed (for one key) or latched, and still valid: a lapsed one ends here, silently.
@@ -176,19 +251,13 @@ enum ReviewLayer {
 
     // MARK: Arming
 
-    /// The arm command: once, the next key; twice, the layer stays on; again when it is on, off.
+    /// The arm command: the layer stays on until it is pressed again (or Escape).
     static func armCommand() {
         enabled = true
-        if latched { end(speaking: true); return }
-        if armed, ScriptHandler.lastScriptRepeatCount >= 1 {
-            armed = false; latched = true; lastUsed = Date()
-            tone(on: true)
-            Speech.speakMessage(String(localized: "review layer on", comment: "Spoken message"))
-            return
-        }
-        armed = true; armedAt = Date()
-        armedTone()
-        Speech.speakMessage(String(localized: "review", comment: "Spoken message: the next key reads around instead of typing"))
+        if armed || latched { end(speaking: true); return }
+        latched = true; lastUsed = Date()
+        tone(on: true)
+        Speech.speakMessage(String(localized: "review layer on", comment: "Spoken message"))
     }
 
     static func end(speaking: Bool) {
@@ -200,6 +269,7 @@ enum ReviewLayer {
     }
 
     static func handle(_ event: Event) {
+        if event.kind == .foreground || event.kind == .gainFocus { contextChanged(event.obj) }
         guard armed || latched else { return }
         switch event.kind {
         case .foreground, .menuStart, .appModuleLoseFocus:
@@ -272,7 +342,6 @@ enum ReviewLayer {
         Speech.speakMessage(enabled ? String(localized: "review layer enabled", comment: "Spoken message") : String(localized: "review layer disabled", comment: "Spoken message"))
     }
 
-    static func armedTone() { Tones.beep(880, 35, volume: 0.18) }
 
     static func tone(on: Bool) {
         let (first, second) = on ? (880.0, 1320.0) : (1320.0, 880.0)
@@ -360,6 +429,54 @@ enum ReviewLayer {
         setChord(.standard)
         clearResetKey()
         Speech.speakMessage(String(localized: "review layer keys back to Left Option and Right Shift", comment: "Spoken message"))
+    }
+
+    // MARK: Arrow Quick Nav
+
+    /// Left and Right together, in the layer: its arrow Quick Nav on or off, the base layer's untouched.
+    static func toggleArrowQuickNav() {
+        arrowQuickNav.toggle()
+        remember()
+        lastUsed = Date()
+        if !VoiceOverSounds.play(arrowQuickNav ? "QuickNavArrowKeyOn.wav" : "QuickNavArrowKeyOff.wav") {
+            Speech.speakMessage(arrowQuickNav ? String(localized: "Review Quick Nav on", comment: "Spoken message") : String(localized: "Review Quick Nav off", comment: "Spoken message"))
+        }
+    }
+
+    /// One arrow of the layer, let go without another joining it: by the layer's rotor kind (Up and Down, on a page), else as the document's own key.
+    static func arrowSingle(_ name: String) {
+        guard enabled else { KeyboardGesture(identifier: "kb:" + name)?.send(); return }
+        lastUsed = Date()
+        if name == "upArrow" || name == "downArrow", let k = arrowKind, let doc = document(),
+           let q = BrowseModeDocument.voiceOverQuickNav.first(where: { $0.name == ArrowQuickNav.kinds[k] }) {
+            doc.quickNav(q, forward: name == "downArrow")
+            return
+        }
+        review("kb:" + name)
+    }
+
+    /// Two arrows together in the layer, in either order: VoiceOver's chords, for the second reader.
+    static func arrowChord(_ a: String, _ b: String) {
+        let pair = Set([a, b])
+        Log.io("review layer Quick Nav chord: \(pair.sorted().joined(separator: " and "))")
+        lastUsed = Date()
+        switch pair {
+        case ["leftArrow", "rightArrow"]: toggleArrowQuickNav()
+        case ["upArrow", "downArrow"]: activateHere()
+        case ["rightArrow", "downArrow"]:
+            if let doc = document() { doc.reviewInteract() } else { ObjectNavigator.shared.interact() }
+        case ["leftArrow", "downArrow"]:
+            if let doc = document() { doc.reviewStopInteracting() } else { ObjectNavigator.shared.stopInteracting() }
+        case ["rightArrow", "upArrow"], ["leftArrow", "upArrow"]:
+            guard document() != nil else { Speech.speakMessage(String(localized: "no Quick Nav kinds here", comment: "Spoken message")); return }
+            let forward = pair.contains("rightArrow")
+            let n = ArrowQuickNav.kinds.count + 1   // and "item by item"
+            let next = ((arrowKind.map { $0 + 1 } ?? 0) + (forward ? 1 : n - 1)) % n
+            arrowKind = next == 0 ? nil : next - 1
+            remember()
+            Speech.speakMessage(arrowKind.map { ArrowQuickNav.kindNames[$0] } ?? String(localized: "Items", comment: "Spoken message"))
+        default: break
+        }
     }
 
     // MARK: Running a key
@@ -633,11 +750,12 @@ final class ReviewLayerPlugin: GlobalPlugin {
 
     required init() {
         super.init()
+        ReviewLayer.publish()
         let category = "Waypoint"
         layerKey = Script(name: "reviewLayerKey", description: String(localized: "A key of the review layer: reads around while the keyboard stays in the field", comment: "A command, as the key list and keyboard help say it"), category: category, owner: self) { g in
             ReviewLayer.run(g)
         }
-        script("reviewLayerArm", String(localized: "Review layer: once, the next key reads around the field instead of typing; twice, the layer stays on until pressed again", comment: "A command, as the key list and keyboard help say it"), gestures: ["kb:turnover+option+r"], category: category) { _ in
+        script("reviewLayerArm", String(localized: "Review layer: on until pressed again (or Escape); its keys read around the field instead of typing", comment: "A command, as the key list and keyboard help say it"), gestures: ["kb:turnover+option+r"], category: category) { _ in
             ReviewLayer.armCommand()
         }
         script(ReviewLayer.resetScript, String(localized: "Puts the second reader back with the keyboard: it follows the focus again, in this app and window (it stays where an area jump put it until then)", comment: "A command, as the key list and keyboard help say it"),

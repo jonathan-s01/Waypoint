@@ -21146,7 +21146,13 @@
         }
       }
     },
-    "Review layer: once, the next key reads around the field instead of typing; twice, the layer stays on until pressed again" : {
+    "Review Quick Nav off" : {
+      "comment" : "Spoken message"
+    },
+    "Review Quick Nav on" : {
+      "comment" : "Spoken message"
+    },
+    "Review layer: on until pressed again (or Escape); its keys read around the field instead of typing" : {
       "comment" : "A command, as the key list and keyboard help say it"
     },
     "Review modes" : {
@@ -41171,9 +41177,6 @@
           }
         }
       }
-    },
-    "review" : {
-      "comment" : "Spoken message: the next key reads around instead of typing"
     },
     "review cursor doesn't follow the system caret" : {
       "comment" : "Spoken message",

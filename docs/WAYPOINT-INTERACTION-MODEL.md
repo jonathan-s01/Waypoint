@@ -30,7 +30,7 @@ predictable behaviour from saved rules rather than AI guesses.
 | Waypoint off and on without VoiceOver, kept across restarts | Built | `Core/Support/WaypointPause.swift` |
 | Focus memory (app and region, kept a week, survives restarts) | Built | `FocusMemory*.swift` |
 | Areas: jump to any window area without a recipe, and the Tools list | Built | `AreaMap`, `AreaMenu`, `AreaPanel` |
-| Second reader (review layer): read around a text field without leaving it | Built | `ReviewLayer*.swift`, `ReadWhileTyping.swift` |
+| Second reader (review layer): read around a text field without leaving it; its own arrow Quick Nav, on or off with Left and Right together, with its own rotor kind | Built | `ReviewLayer*.swift`, `ReadWhileTyping.swift` |
 | Skim: a list by key words, fast | Built (one item per key press; no auto-advance) | `SkimMode`, `SkimText` |
 | Important words first, outside skim | Not built (only inside skim) | |
 | What changed in a region since you left it | Built | `WhatChanged.swift` |
@@ -63,7 +63,7 @@ predictable behaviour from saved rules rather than AI guesses.
 | Right Option 1 to 9 | Jump to a pane or band of the window, in layout order; the side panel is last |
 | Right Option 0 | The Global area: the app's bars and every toolbar button, as a list |
 | VO-Option-O, M, A, F | Tools of this area; main content; first list (navigation); the window's search field |
-| Left Option + Right Shift, then a key | Second reader: read around the field. VO-Option-R arms it; VO-Option-S, Q, I, Y then say, quote, insert or copy |
+| Left Option + Right Shift, then a key | Second reader: read around the field. VO-Option-R latches it on and off; VO-Option-S, Q, I, Y then say, quote, insert or copy |
 | VO-Option-N | Skim on or off in a list; Return reads the item in full |
 | VO-Option-B, G, P | Bookmark here; open bookmarks; recent places |
 | VO-Command-Space | The item's actions |
@@ -92,7 +92,7 @@ and list sounds; the review, skim and off/on tones have no setting yet.
 | Mode | Entering | Leaving | Made by |
 | --- | --- | --- | --- |
 | Focus mode | Two notes rising | Browse mode's: two notes falling | Sound files `focus_mode`, `browse_mode` |
-| Review layer | Two notes rising, high | The same falling; a single note when armed | Plain tones, `ReviewLayer` |
+| Review layer | Two notes rising, high | The same falling | Plain tones, `ReviewLayer` |
 | Skim | Two notes rising, lower | The same falling; a tick between items | Plain tones, `SkimMode` |
 | Waypoint off and on | Rising for on | Falling for off | Plain tones, `WaypointPause` |
 | Any menu or list: the Waypoint menu, Anywhere, an item's actions, bookmarks, recent places, an area's tools, the application chooser | Three notes rising (D, F sharp, A) | The same falling | Plain tones, `Tones.listOpened` and `listClosed`, called from `TurnOverMenu` |
@@ -108,7 +108,7 @@ the same code as in use, so with VoiceOver's sound set chosen it is VoiceOver's 
 
 ## Open questions
 
-- Held modifier or toggle for the second reader: both exist (chord, and VO-Option-R once or twice).
+- Held modifier or toggle for the second reader: both exist (chord, and VO-Option-R).
 - Skim: auto-advance (the plan) or one item per key (built). Which, and at what rate?
 - How personal changes layer over shared profiles, when customize mode exists.
 - Whether spatial audio is worth an experiment.

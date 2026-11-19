@@ -22,8 +22,7 @@ In a text field, such as a chat box, you can read the page or window without lea
 anything. The layer is on by default.
 
 1. Hold **Left Option + Right Shift** and press a key. Each press is one step and the field keeps the keyboard.
-   Or tap **VO-Option-R**, then press the key; tap it twice to keep the layer on until you press it again. **Escape** ends
-   it.
+   Or tap **VO-Option-R** to keep the layer on until you tap it again. **Escape** ends it.
 2. Keys: letters are browse-mode quick keys (**H** next heading, with **Left Shift** added, previous); **Up** and **Down**
    read by line, **Left** and **Right** by character, **Right Option** with them by word; **Home**, **End** and the
    **Page** keys jump; **Tab** goes to the next link or control (**Left Shift** for the previous), in the review only,
@@ -31,6 +30,12 @@ anything. The layer is on by default.
    From a chat's message box the review starts at the latest message. It keeps its place while you type; it moves to a
    message only when a new one arrives, and says "new message".
 3. **Left Shift** with the chord and an arrow selects text in the field (with **Right Option**, by word).
+   The layer has its own arrow Quick Nav, apart from the main one. With the chord held (or the layer kept on), press
+   **Left and Right Arrow together** to turn it off or on; each layer keeps its own state, rotor kind and place. The
+   layer's on or off and rotor kind are remembered for each app and window. The arrow chords work as in the main layer:
+   **Up and Down** presses what is under the cursor; **Up** with **Left** or **Right** changes the rotor kind; **Right
+   and Down** interacts (into the list or table ahead), **Left and Down** stops interacting. It starts on. Off, the
+   arrows go to the field as typed.
 4. Afterwards, for five minutes: **VO-Option-S** says where the review cursor is, **VO-Option-Q** puts the reviewed text
    into the field as a quote, **VO-Option-I** inserts it as it is, and **VO-Option-Y** copies it.
 
