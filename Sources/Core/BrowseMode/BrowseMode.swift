@@ -131,6 +131,8 @@ public final class BrowseModeDocument: ScriptableObject {
     let rootRunner = AXWalkRunner<BrowseRootCollection>()
     var discoveringRoot = false
     var followingRootFailure = false
+    var retryingAfterRest = false
+    var restRetries = 0
 
     /// After Back, Forward or a link: a new page in the same web area. Rebuild, and resume where this page was left.
     @discardableResult
@@ -139,7 +141,7 @@ public final class BrowseModeDocument: ScriptableObject {
         guard now != lastURL else { return false }
         let first = lastURL.isEmpty
         lastURL = now
-        rootRunner.cancel(); discoveringRoot = false; followingRootFailure = false; watchingFor = nil
+        rootRunner.cancel(); discoveringRoot = false; followingRootFailure = false; watchingFor = nil; restRetries = 0
         buffer.newPage()
         pageGeneration += 1
         buffer.build()

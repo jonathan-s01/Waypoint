@@ -49,6 +49,7 @@ extension BrowseModeDocument {
         }
         buffer.didFail = { [weak self] in
             guard let self, API.focusTreeInterceptor === self else { return }
+            readAgainAfterRest()
         }
         buffer.willPublish = { [weak self] in
             guard let self else { return }
@@ -67,6 +68,7 @@ extension BrowseModeDocument {
             // Nothing is said of a long page as it arrives: its rest is read on by itself (WebBuffer.fillOnIfWanted),
             // and "read in part" is for the reader who gets to the end of what there is first (reportBufferEnd).
             if buffer.rootFailed { followAfterRootFailure() }
+            if buffer.lines.isEmpty { readAgainAfterRest() } else { restRetries = 0 }
             if !buffer.lines.isEmpty, !passThrough, (announceWhenReady || announcedURL != lastURL) {
                 announceWhenReady = false
                 announcePage()
@@ -86,6 +88,25 @@ extension BrowseModeDocument {
         }
     }
 
+    /// A reading that stopped because the app was being left alone (not answering) is read again when the rest ends.
+    /// Nothing else asked: Safari stopped answering as a page loaded, the page was replaced meanwhile, and the empty
+    /// copy stayed silent for 38 s until a key (19 Nov 2026, macOS 27.2.1). Ten tries, about half a minute.
+    func readAgainAfterRest() {
+        guard buffer.lastStop == .backoff, buffer.lines.isEmpty, !retryingAfterRest, restRetries < 10 else { return }
+        retryingAfterRest = true
+        restRetries += 1
+        let epoch = pageGeneration, pid = webArea.pid
+        let wait = Double(AXHealth.backoff(for: pid)?.remainingNanoseconds ?? 0) / 1e9 + 0.25
+        DispatchQueue.main.asyncAfter(deadline: .now() + wait) { [weak self] in
+            guard let self else { return }
+            retryingAfterRest = false
+            guard pageGeneration == epoch, API.focusTreeInterceptor === self, buffer.lines.isEmpty, !buffer.isLoading else { return }
+            Log.io("browse mode: the app was left alone while the page was read; reading it again (try \(restRetries))")
+            if refreshIfNavigated() { return }
+            buffer.build()
+        }
+    }
+
     func reportBufferEnd(forward: Bool) {
         if !forward { Speech.speakMessage(String(localized: "top", comment: "Spoken message")) }
         else if buffer.isLoading { Speech.speakMessage(String(localized: "loading page", comment: "Spoken message")) }
@@ -96,7 +117,7 @@ extension BrowseModeDocument {
 
     func cancelBuffer() {
         pageGeneration += 1
-        rootRunner.cancel(); discoveringRoot = false; followingRootFailure = false
+        rootRunner.cancel(); discoveringRoot = false; followingRootFailure = false; retryingAfterRest = false
         watchingFor = nil
         buffer.cancel()
     }

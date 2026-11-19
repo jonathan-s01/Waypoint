@@ -62,15 +62,21 @@ extension BrowseModeDocument {
     }
 
     /// The page's own element stopped answering (the app replaced it): look for the window's current page now and
-    /// for five seconds, rather than at the next key and a second after it. One chase at a time.
+    /// for five seconds, rather than at the next key and a second after it. One chase at a time. While the app is
+    /// being left alone (not answering) a look finds nothing, so it waits and is not counted: Safari's rests used up
+    /// the whole five seconds and the new page was never followed (19 Nov 2026). At most 30 s in all.
     func followAfterRootFailure() {
         guard !followingRootFailure else { return }
         followingRootFailure = true
-        let epoch = pageGeneration
+        let epoch = pageGeneration, pid = webArea.pid, began = Date()
         func attempt(_ left: Int) {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { [weak self] in
                 guard let self, pageGeneration == epoch else { return }
                 guard API.focusTreeInterceptor === self, buffer.lines.isEmpty else { followingRootFailure = false; return }
+                if AXHealth.backoff(for: pid) != nil {
+                    if Date().timeIntervalSince(began) < 30 { attempt(left) } else { followingRootFailure = false }
+                    return
+                }
                 followCurrentRoot { [weak self] followed in
                     guard let self, pageGeneration == epoch else { return }
                     if followed || left <= 1 { followingRootFailure = false } else { attempt(left - 1) }
