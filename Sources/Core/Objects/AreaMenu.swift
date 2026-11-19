@@ -3,7 +3,7 @@
 // Right Option 0 to 9 go to the areas (0 is Global: the app's own bars and every toolbar button, as a list); the
 // Tools key lists the controls of the area you are in, as a menu, and pressed twice those of Global. Return uses a
 // control (presses it, or puts the focus in a field); Escape closes the list and leaves the focus where it was.
-// An app with a panes recipe (PanesAppModule) is gone to by its recipe's parts, with the same keys; Control Command and a number still work there too.
+// An app with a panes recipe (PanesAppModule) is gone to by its recipe's parts, with the same keys, and the number after the last part is the side panel when there is one; Control Command and a number still work there too.
 import Foundation
 import AppKit
 import ApplicationServices
@@ -231,6 +231,8 @@ public enum AreaMenu {
         // An app with a panes recipe keeps its parts, numbered from 1; 0 is still the global area.
         if n > 0, let view = PanesView.current(pid: pid) {
             view.settleParts()
+            // The side panel (Copilot's Workspace, an inspector) is not a recipe part and comes and goes: it takes the number after the last part.
+            if n == view.parts.count + 1 { jumpToSidePanel(pid: pid, partCount: view.parts.count, second: second); return }
             guard view.parts.indices.contains(n - 1) else {
                 Speech.speakMessage(String(localized: "this window has \(view.parts.count) parts", comment: "Spoken message: %lld is how many parts"))
                 return
@@ -247,10 +249,26 @@ public enum AreaMenu {
                 Speech.speakMessage(String(localized: "this window has \(snap.areas.count) areas", comment: "Spoken message: %lld is how many areas"))
                 return
             }
-            let area = snap.areas[number]
-            if AreaMap.isToolArea(area) { showTools(of: number, in: snap); return }
-            guard let i = area.element else { showTools(of: 0, in: snap); return }
-            go(to: snap.refs[i], name: area.name, second: second, area: area.frame)
+            open(area: number, in: snap, second: second)
+        }
+    }
+
+    private static func open(area number: Int, in snap: Snapshot, second: Bool) {
+        let area = snap.areas[number]
+        if AreaMap.isToolArea(area) { showTools(of: number, in: snap); return }
+        guard let i = area.element else { showTools(of: 0, in: snap); return }
+        go(to: snap.refs[i], name: area.name, second: second, area: area.frame)
+    }
+
+    /// The side panel of a window whose other parts come from a recipe, found as the generic areas find it, whatever it
+    /// holds (Copilot's panel is the canvas, the browser or the library; observed 19 Nov 2026).
+    static func jumpToSidePanel(pid: pid_t, partCount: Int, second: Bool) {
+        snapshot(pid: pid, second: second) { snap in
+            guard let side = snap.areas.firstIndex(where: { $0.kind == .side }) else {
+                Speech.speakMessage(String(localized: "this window has \(partCount) parts", comment: "Spoken message: %lld is how many parts"))
+                return
+            }
+            open(area: side, in: snap, second: second)
         }
     }
 

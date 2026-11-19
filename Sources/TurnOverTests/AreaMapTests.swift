@@ -59,6 +59,28 @@ func areaMapTests() {
         expect(t.names(areas, 3).sorted(), ["Call", "Close", "FaceTime", "Mail", "Request Location", "Start FaceTime"])
         check(!t.names(areas, 2).contains("Close"), "and not to the transcript")
     }
+    test("areas: a web app's right-hand panel is the side panel, whatever its name or content") {
+        // The shape seen in GitHub Copilot on 19 Nov 2026: one web page holding a sidebar, the main column and a
+        // full-height landmark at the right edge (the canvas, the browser or the library), with invented names.
+        for name in ["Workspace", "Library"] {
+            var t = Tree()
+            let win = CGRect(x: 0, y: 30, width: 1920, height: 1050)
+            let w = t.add(-1, "AXWindow", "", 0, 30, 1920, 1050)
+            let page = t.add(w, "AXWebArea", "App", 0, 30, 1920, 1050)
+            let side = t.add(page, "AXGroup", "Sidebar", 0, 30, 385, 1050, sub: "AXLandmarkRegion")
+            t.add(side, "AXOutline", "Sessions", 14, 200, 339, 800)
+            let main = t.add(page, "AXGroup", "", 385, 30, 1123, 1050, sub: "AXLandmarkMain")
+            t.add(main, "AXTextArea", "Message", 400, 900, 1000, 100)
+            let panel = t.add(page, "AXGroup", name, 1509, 30, 410, 1050, sub: "AXLandmarkRegion")
+            t.add(panel, "AXPopUpButton", "Add tab", 1775, 121, 49, 49)
+            t.add(panel, "AXButton", "New file", 1744, 194, 50, 49)
+            t.add(panel, "AXCheckBox", "File tree", 1856, 194, 50, 49, sub: "AXToggle")
+            let areas = AreaMap.classify(t.els, window: win)
+            expect(areas.last?.name, name)
+            expect(areas.last?.kind == .side, true)
+            expect(t.names(areas, areas.count - 1), ["Add tab", "New file", "File tree"])
+        }
+    }
     test("areas: Notes' toolbar is split by column and the list rows' controls are not tools") {
         var t = Tree()
         let win = CGRect(x: 0, y: 0, width: 1000, height: 660)
