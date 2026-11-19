@@ -621,7 +621,7 @@ open class EditableText: TurnOverObject {
                     guard let self, API.focusObject?.isSameElement(as: self) == true,
                           Date().timeIntervalSince(InputManager.lastKeyDownAt) >= 0.5,
                           let sel = try? self.makeTextInfo(.selection), !sel.isCollapsed else { return }
-                    Speech.speakOnly(String(localized: "selected \(Speech.processed(sel.text))", comment: "Selected text, read: %@ is the text"))   // the display marks it with dots 7 and 8
+                    Speech.speakOnly(String(localized: "\(Speech.processed(sel.text)) selected", comment: "Selected text, read: %@ is the text"))   // the display marks it with dots 7 and 8
                 }
                 completionWork = work
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.6, execute: work)
@@ -667,7 +667,7 @@ open class EditableText: TurnOverObject {
         Speech.clearTypedWordBuffer()
         if let sel = try? makeTextInfo(.selection), sel.end > sel.start {
             lastSelection = sel
-            Speech.speakMessage(String(localized: "selected \(sel.text)", comment: "Selected text, read: %@ is the text"))
+            Speech.speakMessage(String(localized: "\(sel.text) selected", comment: "Selected text, read: %@ is the text"))
             return
         }
         guard let caret = try? makeTextInfo(.caret) else { return }

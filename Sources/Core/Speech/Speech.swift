@@ -342,7 +342,7 @@ public enum Speech {
             parts.append(secureCount(obj))
         } else if reportText, let info = try? obj.makeTextInfo(.selection) {
             if !info.isCollapsed {
-                parts.append(String(localized: "selected \(processed(info.text))", comment: "Selected text, read: %@ is the text"))
+                parts.append(String(localized: "\(processed(info.text)) selected", comment: "Selected text, read: %@ is the text"))
             } else {
                 let line = (try? obj.makeTextInfo(.caret)) ?? info
                 line.expand(.line)
@@ -847,7 +847,7 @@ public enum Speech {
         let added = outside(after, before).map { new.textRange($0.start, $0.end) }
         let removed = outside(before, after).map { old.textRange($0.start, $0.end) }
         func spoken(_ t: String) -> String { t.count == 1 ? Symbols.name(of: t.first!) : (t.count > 1000 ? Phrases.characters(t.count) : processed(t)) }
-        func selected(_ t: String) -> String { String(localized: "selected \(spoken(t))", comment: "Selected text, read: %@ is the text") }
+        func selected(_ t: String) -> String { String(localized: "\(spoken(t)) selected", comment: "Selected text, read: %@ is the text") }
         if generalize {
             if !added.isEmpty { enqueue(selected(new.text)) }
             if !removed.isEmpty { enqueue(new.isCollapsed ? String(localized: "selection removed", comment: "The selection went")

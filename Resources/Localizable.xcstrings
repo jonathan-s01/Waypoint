@@ -1861,7 +1861,7 @@
       }
     },
     "%@ selected" : {
-      "comment" : "A long selection: %@ is the count of characters",
+      "comment" : "A long selection: %@ is the count of characters\nSelected text, read: %@ is the text",
       "localizations" : {
         "ru" : {
           "stringUnit" : {
@@ -41930,6 +41930,7 @@
     },
     "selected %@" : {
       "comment" : "Selected text, read: %@ is the text",
+      "extractionState" : "stale",
       "localizations" : {
         "ru" : {
           "stringUnit" : {

@@ -41,7 +41,7 @@ extension VoiceOverKeysPlugin {
         guard e > s else { Speech.speakMessage(String(localized: "nothing selected", comment: "Spoken message")); return }
         caret.setSelectionOffsets(s, e)
         let chosen = (try? f.makeTextInfo(.bookmark(Bookmark(start: s, end: e))))?.text ?? ""
-        Speech.speakMessage(chosen.count > 300 ? String(localized: "\(Phrases.characters(e - s)) selected", comment: "A long selection: %@ is the count of characters") : String(localized: "selected \(chosen)", comment: "Selected text, read: %@ is the text"))
+        Speech.speakMessage(chosen.count > 300 ? String(localized: "\(Phrases.characters(e - s)) selected", comment: "A long selection: %@ is the count of characters") : String(localized: "\(chosen) selected", comment: "Selected text, read: %@ is the text"))
     }
 
     /// VO-F4 twice: more about the keyboard focus; in text, where the insertion point is.

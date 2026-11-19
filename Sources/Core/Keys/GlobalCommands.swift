@@ -234,7 +234,7 @@ public final class GlobalCommands: ScriptableObject {
             guard let obj = API.caretObject, let info = try? obj.makeTextInfo(.selection), !info.isCollapsed else { Speech.speakMessage(String(localized: "no selection", comment: "Nothing is selected")); return }
             let t = info.text
             Speech.speakMessage(t.count > 1000 ? String(localized: "\(Phrases.characters(t.count)) selected", comment: "A long selection: %@ is the count of characters")
-                : String(localized: "selected \(Speech.processed(t))", comment: "Selected text, read: %@ is the text"))
+                : String(localized: "\(Speech.processed(t)) selected", comment: "Selected text, read: %@ is the text"))
         }
         // JAWS keys' own commands (docs/KEYBOARD-STYLES-PLAN.md step 3, 20 Oct 2026). No keys here: JAWS's table
         // (Resources/keymaps/jaws.json) gives them theirs; any style can give them one under My own keys.
@@ -263,7 +263,7 @@ public final class GlobalCommands: ScriptableObject {
             let t = info.text
             if ScriptHandler.lastScriptRepeatCount > 0 { Speech.speakSpelling(String(t.prefix(500))); return }
             Speech.speakMessage(t.count > 1000 ? String(localized: "\(Phrases.characters(t.count)) selected", comment: "A long selection: %@ is the count of characters")
-                : String(localized: "selected \(Speech.processed(t))", comment: "Selected text, read: %@ is the text"))
+                : String(localized: "\(Speech.processed(t)) selected", comment: "Selected text, read: %@ is the text"))
         }
         script("jaws_timeWithSeconds", String(localized: "Reports the time with seconds. Pressed twice, the week of the year (JAWS: Control+Insert+F12)", comment: "A command, as the key list and keyboard help say it"), gestures: [], category: sys) { _ in
             if ScriptHandler.lastScriptRepeatCount > 0 {
