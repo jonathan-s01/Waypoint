@@ -604,6 +604,20 @@ open class EditableText: TurnOverObject {
     private var lastTypedAt = Date.distantPast
     private var completionWork: DispatchWorkItem?
 
+    /// Logs a caret or selection that moved with no key near it (positions only, never text), so a jump the user did
+    /// not make can be told from a move the reader caused: a script logs its own input line first. TextEdit, 19 Nov 2026:
+    /// two caret events with no key in 30 s, then the caret was found at the end of the document.
+    private func noteUnkeyedMove(from old: TextInfo, to new: TextInfo, contentChanged: Bool) {
+        guard !new.isSame(old) else { return }
+        let sinceKey = Date().timeIntervalSince(InputManager.lastKeyDownAt)
+        guard sinceKey > 1.5, Date().timeIntervalSince(lastTypedAt) > 1.5 else { return }
+        let buttons = [("left", CGMouseButton.left), ("right", .right), ("other", .center)]
+            .filter { CGEventSource.buttonState(.combinedSessionState, button: $0.1) }.map(\.0)
+        let key = sinceKey > 3600 ? "no key yet" : "last key \(Int(sinceKey * 1000)) ms ago"
+        Log.io("caret: moved with no key near it, \(old.start)-\(old.end) to \(new.start)-\(new.end) of \(new.storyLength()) (\(key); mouse buttons down: \(buttons.isEmpty ? "none" : buttons.joined(separator: ", ")); text changed: \(contentChanged); \(Self.appName(pid: element.pid)))")
+    }
+    private static func appName(pid: pid_t) -> String { NSRunningApplication(processIdentifier: pid)?.bundleIdentifier ?? "unknown app" }
+
     public func detectPossibleSelectionChange() {
         guard autoSelectDetection, let new = try? makeTextInfo(.selection) else { return }
         let old = lastSelection
@@ -611,6 +625,7 @@ open class EditableText: TurnOverObject {
         guard let old else { return }
         let changed = hasContentChangedSinceLastSelection
         hasContentChangedSinceLastSelection = false
+        noteUnkeyedMove(from: old, to: new, contentChanged: changed)
         if Date().timeIntervalSince(lastTypedAt) < 0.3 {
             // An address bar completing what is typed: say the completion, not what was unselected (NVDA's generalized
             // form) — once typing pauses. Safari completes again on every letter; each one read was a stutter
