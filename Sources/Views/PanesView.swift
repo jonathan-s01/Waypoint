@@ -17,9 +17,14 @@ public final class PanesView {
     private let alternates: [RecipeView.Panes.Alternate]
     private var variant: String?
     private var variantCheckedAt = Date.distantPast
+    /// The front window when the alternates were last looked for: the walk is asked again when it changes.
+    private var variantWindow: AXUIElement?
     private var hinted = Set<Int>()
     /// Elements found, kept for a moment: finding one walks the window.
     private var found: [Int: (AXUIElement, Date)] = [:]
+    /// Parts looked for and not found, for a moment: a part not on screen walked the whole window again at every
+    /// look, several times a Tab (Teams' Tab took 700 ms, about 24,000 accessibility calls, 19 Nov 2026).
+    private var missed: [Int: Date] = [:]
     /// The part last moved to when it could not take the keyboard (a web app's message list): the keyboard focus stays
     /// where it was, so Tab would otherwise measure from the old place and go back to the same part (Teams, 9 Nov 2026).
     private var placed: (index: Int, focus: AXUIElement?)?
@@ -53,12 +58,18 @@ public final class PanesView {
     /// can take a moment; a change forgets everything kept by part number.
     public func settleParts() {
         guard !alternates.isEmpty, Date().timeIntervalSince(variantCheckedAt) >= 1.5 else { return }
-        variantCheckedAt = Date()
+        // The same front window as last time is the same window for ten seconds: in Teams' chat window the call's
+        // toolbar is never there, and looking for it walked the window at nearly every Tab (19 Nov 2026).
+        let app = AXUIElementCreateApplication(pid)
+        let window = app.element(kAXFocusedWindowAttribute) ?? app.element(kAXMainWindowAttribute)
+        let sameWindow = window != nil && variantWindow != nil && window!.isSame(variantWindow!)
+        if sameWindow, Date().timeIntervalSince(variantCheckedAt) < 10 { return }
+        variantCheckedAt = Date(); variantWindow = window
         let hit = alternates.first { Self.find($0.when, pid: pid, budget: 0.4) != nil }
         guard hit?.name != variant else { return }
         variant = hit?.name
         parts = hit?.parts ?? baseParts
-        found = [:]; hinted = []; placed = nil; documentEntered = nil; lastIn = [:]; persisted = [:]; focusPart = nil; documentNewest = [:]
+        found = [:]; missed = [:]; hinted = []; placed = nil; documentEntered = nil; lastIn = [:]; persisted = [:]; focusPart = nil; documentNewest = [:]
         Log.io("panes: the front window is \(hit?.name ?? "the usual one"): \(parts.count) parts")
     }
 
@@ -68,8 +79,9 @@ public final class PanesView {
     public func element(of i: Int) -> AXUIElement? {
         guard parts.indices.contains(i) else { return nil }
         if let (e, at) = found[i], Date().timeIntervalSince(at) < 10, e.role != "?" { return e }
-        guard let e = Self.find(parts[i].match, pid: pid) else { found[i] = nil; return nil }
-        found[i] = (e, Date())
+        if let at = missed[i], Date().timeIntervalSince(at) < 3 { return nil }
+        guard let e = Self.find(parts[i].match, pid: pid) else { found[i] = nil; missed[i] = Date(); return nil }
+        found[i] = (e, Date()); missed[i] = nil
         return e
     }
 
@@ -172,7 +184,7 @@ public final class PanesView {
         refreshing = Task {
             let hits = await Task.detached(priority: .utility) { matches.value.map { PanesView.find($0, pid: pid, budget: 0.4).map { Handed($0) } } }.value
             refreshing = nil
-            for (i, h) in hits.enumerated() { if let h { found[i] = (h.value, Date()) } }
+            for (i, h) in hits.enumerated() { if let h { found[i] = (h.value, Date()); missed[i] = nil } }
             guard let f = API.focusObject?.element else { return }
             var ancestors: [AXUIElement] = []
             var p = f.element(kAXParentAttribute)
@@ -205,7 +217,8 @@ public final class PanesView {
     public func step(forward: Bool) {
         settleParts()
         guard !parts.isEmpty else { return }
-        go(to: neighbour(of: currentIndex(), forward: forward))
+        let cur = currentIndex()
+        go(to: neighbour(of: cur, forward: forward), from: cur)
     }
 
     /// The second reader's Tab: the part after the one it is in, which it goes to without moving the keyboard.
@@ -260,8 +273,8 @@ public final class PanesView {
         go(to: i, forceRestore: true)
     }
 
-    /// Command Control 1 to 9.
-    public func go(to i: Int, forceRestore: Bool = false) {
+    /// Command Control 1 to 9. `from` is the part the user is in, when the caller has just worked it out.
+    public func go(to i: Int, forceRestore: Bool = false, from known: Int?? = nil) {
         settleParts()
         guard parts.indices.contains(i) else { Tones.edge(); return }
         guard let e = element(of: i) else { Tones.edge(); Speech.speakMessage(String(localized: "\(parts[i].name) is not on screen", comment: "Spoken message: %@ is a part of the window")); return }
@@ -271,7 +284,7 @@ public final class PanesView {
         let takesKeys = AXUIElementIsAttributeSettable(e, kAXFocusedAttribute as CFString, &settable) == .success && settable.boolValue
         Log.io("panes: to \(part.name) (\(e.role), takes the keyboard \(takesKeys))")
         // Waypoint focus memory: leaving a part keeps its place; entering one with a place restores it.
-        let from = currentIndex()
+        let from = known ?? currentIndex()
         if FocusMemory.regionsEnabled, let from, from != i { rememberPlace(of: from) }
         if let from, from != i, let left = element(of: from) { WhatChanged.leaving(region: parts[from], pid: pid, element: left) }
         var recall: (place: FocusPlace, at: Date)?
