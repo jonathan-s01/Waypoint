@@ -656,6 +656,12 @@ public enum Speech {
             if reason != .sayAll, unit == .line || unit == .character, text.contains(where: { $0.isNewline }) {
                 return (prefix + [String(localized: "new line", comment: "Spoken message")]).joined(separator: " ")
             }
+            // The empty last line of a document that ends in a line break has no break of its own in its range, so it
+            // was "blank" while every empty line before it was "new line" (TextEdit, 19 Nov 2026).
+            if reason != .sayAll, unit == .line, text.isEmpty, info.start > 0, info.start == info.storyLength(),
+               info.textRange(info.start - 1, info.start).contains(where: { $0.isNewline }) {
+                return (prefix + [String(localized: "new line", comment: "Spoken message")]).joined(separator: " ")
+            }
             return (prefix + [Phrases.blank]).joined(separator: " ")
         }
         let letterLocale = trimmed.count == 1 ? characterLocale(info, trimmed) : nil

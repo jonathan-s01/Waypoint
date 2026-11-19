@@ -109,6 +109,17 @@ func localizationTests() {
         expect(said(3, 5, .line, .caret), "blank")
         expect(said(2, 3, .line, .sayAll), "blank")
     }
+    test("speech: the empty last line after a final line break is a new line, not blank") {
+        final class Ends: TextInfo {
+            static let text = "a\nb\n" as NSString
+            override func storyLength() -> Int { Self.text.length }
+            override func textRange(_ s: Int, _ e: Int) -> String { Self.text.substring(with: NSRange(location: s, length: max(0, e - s))) }
+        }
+        let obj = ObjectFactory.make(AXUIElementCreateApplication(getpid()))
+        expect(Speech.textInfoSpeech(Ends(obj: obj, start: 4, end: 4), unit: .line, reason: .caret), "new line")
+        expect(Speech.textInfoSpeech(Ends(obj: obj, start: 4, end: 4), unit: .line, reason: .sayAll), "blank")
+        expect(Speech.textInfoSpeech(Ends(obj: obj, start: 0, end: 0), unit: .line, reason: .caret), "blank", "an empty document")
+    }
     test("localization: moving by character, a capital is lowered in its line's language") {
         // The tests speak English: a Turkish line's I is still dotless ı, so the line's language reached the letter.
         final class Line: TextInfo {
