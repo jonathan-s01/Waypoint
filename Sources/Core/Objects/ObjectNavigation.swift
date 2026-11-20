@@ -816,11 +816,25 @@ public final class ObjectNavigator {
         land(on: target, followFocus: web == nil, speaking: web == nil)
         guard web != nil else { return }
         moveReading(to: target, in: web, keyboardAlreadyThere: keyboardAlreadyThere)
-        if let d = API.focusTreeInterceptor, !d.passThrough, d.isAlive, !d.buffer.lines.isEmpty,
-           let at = ReviewLayer.offset(of: target, at: point, in: d) {
-            d.position = at
-            d.speakQuickNavText(at: at, link: false)
-            return
+        if let d = API.focusTreeInterceptor, !d.passThrough, d.isAlive, !d.buffer.lines.isEmpty {
+            // A copy that lacks the item itself would put the cursor on the nearest ancestor's first text (the top of
+            // the Copilot app's chat list, for a click on one chat): the page is read again, and the item looked for in that.
+            if d.buffer.offset(of: target) == nil {
+                Log.io("review: the pointer's item (\(target.role)) is not in the copy of the page; reading the page again")
+                let epoch = d.pageGeneration, movedAt = d.positionMovedAt
+                d.buffer.build { [weak d] in
+                    guard let d, d.pageGeneration == epoch, API.focusTreeInterceptor === d, !d.passThrough, d.positionMovedAt == movedAt,
+                          let at = ReviewLayer.offset(of: target, at: point, in: d) else { return }
+                    d.position = at
+                    d.speakQuickNavText(at: at, link: false)
+                }
+                return
+            }
+            if let at = ReviewLayer.offset(of: target, at: point, in: d) {
+                d.position = at
+                d.speakQuickNavText(at: at, link: false)
+                return
+            }
         }
         Log.io("review: the pointer's item (\(target.role)) is not in the page being read; the cursor is on it")
         report(target)
