@@ -67,8 +67,9 @@ nonisolated public enum VolumeLogic {
         let step = clampStep(step)
         let outcome: Outcome
         if backend.canSet(.virtualMain, on: device), let current = backend.get(.virtualMain, on: device) {
-            let new = stepped(current, up: up, step: step)
-            if backend.set(.virtualMain, new, on: device) { outcome = .changed(from: current, to: new, unmuted: false) }
+            if let landed = setMoving(.virtualMain, from: current, up: up, step: step, device: device, backend: backend) {
+                outcome = .changed(from: current, to: landed, unmuted: false)
+            }
             else { outcome = channels(up: up, step: step, device: device, backend: backend) ?? .failed }   // refused: try the channels
         } else {
             outcome = channels(up: up, step: step, device: device, backend: backend) ?? .notAdjustable
@@ -80,6 +81,27 @@ nonisolated public enum VolumeLogic {
             unmuted = true
         }
         return .changed(from: from, to: to, unmuted: unmuted)
+    }
+
+    /// Sets one step from `current`, then reads back. A device that snaps to its own grid can land on or below where it
+    /// was when raising (a USB dock did, at one percent steps, 20 Nov 2026), so a press that did not move is retried
+    /// a quarter of a percent further each time, to the device's next level (about 1 percent apart when quiet, about 3 when
+    /// loud on that dock), and no more than 6 percent in all.
+    /// Returns the volume it landed on, nil if the device refused.
+    static func setMoving(_ control: VolumeControl, from current: Float, up: Bool, step: Double, device: UInt32, backend: VolumeBackend) -> Float? {
+        let nudge = 0.0025
+        var size = step
+        var accepted = false
+        while size <= max(step, 0.06) + 1e-9 {
+            let target = stepped(current, up: up, step: size)
+            if target == current { break }
+            guard backend.set(control, target, on: device) else { return accepted ? current : nil }
+            accepted = true
+            guard let now = backend.get(control, on: device) else { return target }
+            if up ? now > current + 0.0005 : now < current - 0.0005 { return now }
+            size += nudge
+        }
+        return accepted ? (backend.get(control, on: device) ?? current) : current
     }
 
     /// No virtual main volume to set: the two channels, both to the same level so the balance comes out even. Nil when

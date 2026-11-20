@@ -388,7 +388,12 @@ nonisolated public enum AreaMap {
             return false
         }
         let tools = Set(area.tools)
-        let candidates = els.indices.filter { !tools.contains($0) && inside($0) }
+        // Copilot's panel holds zero-size headings just outside its edge (19 Nov 2026); the keyboard on one leaves the area it is in.
+        func placed(_ i: Int) -> Bool {
+            let f = els[i].frame
+            return f.width >= 8 && f.height >= 8 && area.frame.contains(CGPoint(x: f.midX, y: f.midY))
+        }
+        let candidates = els.indices.filter { !tools.contains($0) && inside($0) && placed($0) }
         for roles in [["AXList", "AXOutline", "AXTable", "AXBrowser", "AXTextArea"], ["AXRow", "AXLink", "AXHeading", "AXStaticText"]] as [[String]] {
             if let found = candidates.first(where: { roles.contains(els[$0].role) }) {
                 Log.io("areas: \"\(Log.words(area.name))\" content is \(els[found].role) among \(candidates.count) elements")

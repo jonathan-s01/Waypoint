@@ -90,6 +90,7 @@ func areaMapTests() {
         t.add(page, "AXGroup", "Stage", 0, 30, 1500, 1050)
         let panel = t.add(page, "AXGroup", "Chat", 1509, 30, 410, 1050, sub: "AXLandmarkRegion")
         for (n, y) in [("Pop out", 40), ("Close", 90), ("More", 140)] { t.add(panel, "AXButton", n, 1800, CGFloat(y), 40, 40) }
+        t.add(panel, "AXHeading", "Chat", 1507, 28, 3, 2)
         t.add(panel, "AXStaticText", "Chat", 1520, 40, 100, 30)
         let list = t.add(panel, "AXList", "Messages", 1520, 200, 380, 700)
         t.add(panel, "AXTextArea", "Type a message", 1520, 950, 380, 80)

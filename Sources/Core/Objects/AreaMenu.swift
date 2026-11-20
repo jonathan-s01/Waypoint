@@ -255,6 +255,12 @@ public enum AreaMenu {
 
     private static func open(area number: Int, in snap: Snapshot, second: Bool) {
         let area = snap.areas[number]
+        // A side panel is gone into like a pane, so the tools key (VO-Option-O) lists its controls from there: its tabs, Close.
+        if area.kind == .side, let root = area.element {
+            let target = AreaMap.contentTarget(of: area, in: snap.elements) ?? root
+            go(to: snap.refs[target], name: area.name, second: second, area: area.frame)
+            return
+        }
         if AreaMap.isToolArea(area) { showTools(of: number, in: snap); return }
         guard let i = area.element else { showTools(of: 0, in: snap); return }
         go(to: snap.refs[i], name: area.name, second: second, area: area.frame)

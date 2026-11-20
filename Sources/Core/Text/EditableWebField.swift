@@ -28,6 +28,23 @@ open class EditableWebField: EditableText, WebBridged {
         return element.param("AXStringForTextMarkerRange", v) as? String
     }
 
+    /// The marker text, when the field's own range counts it from 0 to its length; nil otherwise, so the field is read
+    /// by its value. Chromium counts a marker within its paragraph instead (Teams, 20 Nov 2026: at the start of a
+    /// second paragraph the marker caret was 0 and the index caret 314, and the typed word was echoed from the first
+    /// paragraph), which only shows once the text has a second paragraph, so this is checked on every read.
+    public func trustedMarkerText() -> String? {
+        let text = markerText()
+        let length = text.map { ($0 as NSString).length }
+        let ok = length != nil && bridge.range(of: element).map { $0 == (0, length!) } == true
+        if ok != lastTrusted {
+            Log.io(ok ? "web field: the markers count the whole field; read by its markers"
+                      : "web field: the markers don't count the whole field (\(bridge.range(of: element).map { "\($0.0)-\($0.1)" } ?? "none") for \(length.map(String.init) ?? "no") characters); read by its value")
+            lastTrusted = ok
+        }
+        return ok ? text : nil
+    }
+    private var lastTrusted: Bool?
+
     /// The line around `offset` by its breaks, the break included; after a final break, the empty line at the end.
     public nonisolated static func hardLine(in text: String, at offset: Int) -> (Int, Int) {
         let u = Array(text.utf16), n = u.count
@@ -70,7 +87,7 @@ open class EditableWebField: EditableText, WebBridged {
         if let r = cfRange(element.attr(kAXSelectedTextRangeAttribute)), let m = bridge.selection() {
             let pair = (r.location + r.length, m.1)
             if pair.0 != pair.1, lastDisagreement.map({ $0 != pair }) ?? true {
-                Log.io("web field: the caret is \(pair.1) by the markers, \(pair.0) by the index; the markers are read")
+                Log.io("web field: the caret is \(pair.1) by the markers, \(pair.0) by the index")
             }
             lastDisagreement = pair.0 != pair.1 ? pair : nil
         }
@@ -80,22 +97,26 @@ open class EditableWebField: EditableText, WebBridged {
 
 /// A web field's text: the marker text, sliced by offset; the caret by the marker selection.
 public final class WebFieldTextInfo: AXTextInfo {
-    private lazy var markerText: String = (obj as? EditableWebField)?.markerText() ?? ""
+    /// Nil when the markers can't be trusted: then every answer is the value's, as for any other field.
+    private lazy var trusted: String? = (obj as? EditableWebField)?.trustedMarkerText()
+    private var markerText: String { trusted ?? "" }
     private var bridge: WebDocumentBridge { (obj as? WebBridged)?.bridge ?? WebDocumentBridge(webArea: obj.element) }
 
-    public override func storyLength() -> Int { (markerText as NSString).length }
-    public override func characterStoryLength() -> Int? { storyLength() }
+    public override func storyLength() -> Int { trusted == nil ? super.storyLength() : (markerText as NSString).length }
+    public override func characterStoryLength() -> Int? { trusted == nil ? super.characterStoryLength() : storyLength() }
     public override func textRange(_ s: Int, _ e: Int) -> String {
+        guard trusted != nil else { return super.textRange(s, e) }
         let ns = markerText as NSString
         let cs = min(max(s, 0), ns.length), ce = min(max(e, cs), ns.length)
         return ns.substring(with: NSRange(location: cs, length: ce - cs))
     }
-    public override func characterTextRange(_ s: Int, _ e: Int) -> String { textRange(s, e) }
-    public override func caretOffset() -> Int? { bridge.selection()?.1 ?? super.caretOffset() }
-    public override func selectionOffsets() -> (Int, Int)? { bridge.selection() ?? super.selectionOffsets() }
+    public override func characterTextRange(_ s: Int, _ e: Int) -> String { trusted == nil ? super.characterTextRange(s, e) : textRange(s, e) }
+    public override func caretOffset() -> Int? { trusted == nil ? super.caretOffset() : bridge.selection()?.1 ?? super.caretOffset() }
+    public override func selectionOffsets() -> (Int, Int)? { trusted == nil ? super.selectionOffsets() : bridge.selection() ?? super.selectionOffsets() }
 
     /// The caret's line as the browser wraps it, from the caret's own marker; any other offset's by its breaks.
     public override func lineOffsets(_ offset: Int) -> (Int, Int)? {
+        guard trusted != nil else { return super.lineOffsets(offset) }
         let hard = EditableWebField.hardLine(in: markerText, at: offset)
         guard hard.0 < hard.1, let sel = obj.element.attr("AXSelectedTextMarkerRange"), CFGetTypeID(sel) == AXTextMarkerRangeGetTypeID(),
               let (_, caret) = bridge.indices(of: sel as! AXTextMarkerRange), caret == offset,
