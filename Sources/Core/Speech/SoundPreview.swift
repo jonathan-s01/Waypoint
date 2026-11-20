@@ -86,6 +86,7 @@ package enum SoundPreview {
                 ("Graphic", "An image", { Tones.graphic() }),
                 ("Block quote", "A quotation", { Tones.blockQuote() }),
                 ("Comment", "Commented text in Word or Preview", { Tones.comment() }),
+                ("Text field", "Browsing onto a text field on a page: Enter goes into it", { Tones.editField() }),
                 ("Spelling mistake", "A misspelled word", { Tones.spellingError() }),
                 ("Secure character", "Typing in a password field", {
                     if !VoiceOverSounds.play("SecureCharacter.aiff"), config.general.navigationSounds {

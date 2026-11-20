@@ -257,6 +257,7 @@ public final class BrowseModeDocument: ScriptableObject {
         buffer = suppliedBuffer ?? WebBuffer(webArea: webArea)
         super.init()
         configureBuffer()
+        watchClicks()
         refreshIfNavigated()
         buffer.build()
         let nav = "Browse mode"

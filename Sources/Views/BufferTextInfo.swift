@@ -154,6 +154,7 @@ public final class BufferTextInfo: TextInfo {
             Self.lastQuoteLevel = lvl
         }
         if line.isControl {
+            if let e = line.element, ["AXTextField", "AXTextArea", "AXComboBox", "AXSearchField"].contains(e.role) { pendingTones.append { Tones.editField() } }
             // "button Create", then its states and value (NVDA's control field, role first).
             let role = line.fields.first.map { [$0] } ?? []
             let rest = Array(line.fields.dropFirst())

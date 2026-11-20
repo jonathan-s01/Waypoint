@@ -112,4 +112,10 @@ public enum Tones {
     package static func progressFrequency(_ percent: Int) -> Double { 110 * pow(2, Double(max(0, min(100, percent))) / 25) }
     /// Commented text in a document (Word): two quick notes.
     public static func comment() { if fresh("comment") { return }; beep(880, 35, volume: 0.18); DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { beep(1175, 35, volume: 0.18) } }
+    /// Browsing onto a text field (Enter goes into it): two short equal ticks, apart from the rising and falling pairs
+    /// that are the modes.
+    public static func editField() {
+        guard config.general.navigationSounds else { return }
+        beep(660, 25, volume: 0.18); DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { beep(660, 25, volume: 0.18) }
+    }
 }

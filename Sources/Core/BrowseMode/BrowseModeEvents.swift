@@ -81,7 +81,14 @@ extension BrowseModeDocument {
             }
             // Into a player, say so (a page that puts the focus on its player by itself must not leave the letters
             // silently going to the page).
-            let wanted = shouldPassThrough(event.obj)
+            var wanted = shouldPassThrough(event.obj)
+            // A click on a field is going into it to type: focus mode, even after a switch by hand (which holds for the
+            // keyboard's own moves, Tab and the arrows). Browsing over a field does not move the focus, so it is not this.
+            if !wanted || disableAutoPassThrough, Self.clickedJustNow(), !event.obj.isSameElement(as: webArea), Self.isTextEntry(event.obj) {
+                Log.io("browse mode: clicked into \(event.obj.axRole); focus mode (manual \(disableAutoPassThrough))")
+                disableAutoPassThrough = false
+                wanted = true
+            }
             Log.io("browse mode: focus on \(event.obj.axRole) wants \(wanted ? "focus" : "browse") mode (editable \(event.obj.states.contains(.editable)), manual \(disableAutoPassThrough))")
             // Said (or its sound) whenever TurnOver switches by itself, as NVDA: a silent switch on a list or table left
             // H and K doing nothing (8 Oct 2026).
