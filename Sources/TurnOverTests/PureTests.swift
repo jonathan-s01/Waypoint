@@ -1593,6 +1593,11 @@ func browseTextNavTests() {
         check(same.text == "d" && same.cycling, "the same letter again cycles")
         let late = LetterJump.query(typed: "d", key: "o", within: false)
         check(late.text == "o" && late.cycling, "after a pause it starts again")
+        check(LetterJump.keepsPrefix(typed: "b", keyCode: 11, modifiers: []) && LetterJump.keepsPrefix(typed: "B", keyCode: 11, modifiers: .shift)
+              && LetterJump.keepsPrefix(typed: "7", keyCode: 26, modifiers: []) && LetterJump.keepsPrefix(typed: " ", keyCode: 49, modifiers: []), "letters, digits and Space keep the typed prefix")
+        check(!LetterJump.keepsPrefix(typed: nil, keyCode: 125, modifiers: []) && !LetterJump.keepsPrefix(typed: nil, keyCode: 125, modifiers: .command)
+              && !LetterJump.keepsPrefix(typed: "\r", keyCode: 36, modifiers: []) && !LetterJump.keepsPrefix(typed: "b", keyCode: 11, modifiers: .command), "any other key ends it")
+        check(LetterJump.keepsPrefix(typed: nil, keyCode: 56, modifiers: .shift), "a modifier key alone does not")
         check(go(1, "a", cycling: true) != nil && LetterJump.target(count: 0, current: nil, text: "a", cycling: true, name: { _ in "" }) == nil, "an empty list finds nothing")
     }
     test("letter jump places: the most specific choice wins, a fresh place is on, the page ignores its fragment, old choices go") {

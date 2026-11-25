@@ -701,12 +701,13 @@ public enum ArrowQuickNav {
     static func run(_ key: String) {
         if let d = API.focusTreeInterceptor, !d.passThrough {
             switch key {
-            case "leftArrow": d.move(.line, -1)
-            case "rightArrow": d.move(.line, 1)
+            // A paragraph a press, as VoiceOver reads an element; a line at a time was too little to read (25 Nov 2026).
+            case "leftArrow": d.move(.paragraph, -1)
+            case "rightArrow": d.move(.paragraph, 1)
             default:
                 let down = key == "downArrow"
                 if let k = kind, let q = BrowseModeDocument.voiceOverQuickNav.first(where: { $0.name == kinds[k] }) { d.quickNav(q, forward: down) }
-                else { d.move(.line, down ? 1 : -1) }
+                else { d.move(.paragraph, down ? 1 : -1) }
             }
             return
         }

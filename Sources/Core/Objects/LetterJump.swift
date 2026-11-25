@@ -53,6 +53,19 @@ public enum LetterJump {
         typed = ""; typedAt = .distantPast; typingAt = .distantPast
     }
 
+    /// Whether a key leaves the letters typed so far as they are: letters, digits and Space, and the modifier keys alone.
+    nonisolated public static func keepsPrefix(typed: Character?, keyCode: Int64, modifiers: Modifiers) -> Bool {
+        if (54...62).contains(keyCode) { return true }
+        guard modifiers.intersection([.control, .command, .option, .turnover]).isEmpty, let c = typed else { return false }
+        return c.isLetter || c.isNumber || c == " "
+    }
+
+    /// Any other key (an arrow, Command-Down into a folder, Return) ends the letters typed: the next letter in the new
+    /// view is a new search, not "ab" for Finder's "a" a second ago (25 Nov 2026).
+    public static func noteKeyEndsPrefix(_ g: KeyboardGesture) {
+        if !keepsPrefix(typed: g.typedCharacter, keyCode: g.keyCode, modifiers: g.modifiers) { typed = ""; typedAt = .distantPast }
+    }
+
     /// Called for each key passed on to the application.
     static func noteKey(_ g: KeyboardGesture) {
         let key = g.keyName

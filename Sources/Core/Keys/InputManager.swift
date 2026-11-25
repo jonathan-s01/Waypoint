@@ -100,6 +100,7 @@ public enum InputManager {
         TypingRecorder.key(gesture)
         Hints.cancel()
         if gesture.isTurnOverModifier { DispatchQueue.main.async { LetterJump.reset() } }
+        else { DispatchQueue.main.async { LetterJump.noteKeyEndsPrefix(gesture) } }
         ObjectNavigator.shared.cancelWindowSearch()
         FormattingFeedback.shared.cancel()
         lastKeyDownAt = Date()
