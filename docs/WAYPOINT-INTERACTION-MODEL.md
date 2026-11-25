@@ -36,7 +36,9 @@ predictable behaviour from saved rules rather than AI guesses.
 | What changed in a region since you left it | Built | `WhatChanged.swift` |
 | Describe this app | Built | `DescribeApp.swift` |
 | Item actions menu | Built | `ItemActions.swift` |
-| First-letter jump in any list | Built | `LetterJump.swift` |
+| First-letter jump in any list; the typed letters start over after any key that is not a letter, digit or space (so opening a folder and typing again starts fresh) | Built; not yet tried by ear | `LetterJump.swift` |
+| Arrow Quick Nav reads a paragraph or element at a time on a page (Left and Right, and Up and Down with no rotor kind); the review layer's Quick Nav does the same | Built; not yet tried by ear | `VoiceOverParity.swift`, `ReviewLayer.swift` |
+| Terminal and iTerm2: Waypoint is quiet in the shell to begin with (for TDSR), menus and review keys still speak; VO-S in a terminal turns the shell's speech on or off for that app | Built; not yet tried by ear | `Apps/Terminal/TerminalAppModule.swift` |
 | Letter jump on or off for the exact page, part of a window or app, remembered (VO-Shift-L; describe image moved to VO-Shift-I). A recipe default is not built | Built; not yet tried by ear | `LetterJumpPlaces.swift` |
 | Places: bookmarks and recent places | Built | `Places*.swift` |
 | Anywhere: apps, menus, item actions, window parts, Waypoint commands | Built, no language model | `System/Anywhere*.swift`, `System/MenuBarList.swift` |

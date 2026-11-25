@@ -19,13 +19,16 @@ func terminalUnicodeTests() {
                                 params: [kAXStringForRangeParameterizedAttribute, kAXLineForIndexParameterizedAttribute, kAXRangeForLineParameterizedAttribute])])
         AXReplay.load(fixture)
         let savedSink = Speech.sink, savedPoster = KeyboardGesture.poster, savedConfig = config
+        // The shell is quiet to begin with; the fixture's process has no bundle, so it is named by "".
+        let savedSpeaks = UserDefaults.standard.object(forKey: TerminalQuiet.key)
+        UserDefaults.standard.set([""], forKey: TerminalQuiet.key)
         var said: [String] = []
         let delivered = Locked(0)
         Speech.sink = { said.append($0) }
         KeyboardGesture.poster = { _ in delivered.lock.lock(); delivered.unsafeValue += 1; delivered.lock.unlock() }
         config.speech.sayCapForCapitals = false
         config.speech.capitalPitch = 0
-        defer { Speech.sink = savedSink; KeyboardGesture.poster = savedPoster; config = savedConfig; AXReplay.unload() }
+        defer { Speech.sink = savedSink; KeyboardGesture.poster = savedPoster; config = savedConfig; AXReplay.unload(); UserDefaults.standard.set(savedSpeaks, forKey: TerminalQuiet.key) }
         let element = AXReplay.element(1)
         let module = type.init(pid: element.pid, bundleIdentifier: "com.apple.Terminal", appName: "Public Terminal sample")
         guard let overlay = module.objectClass(for: element, role: .editableText, subrole: "AXTerminalTextArea") else {
@@ -33,6 +36,27 @@ func terminalUnicodeTests() {
         }
         let object = overlay.init(element: element)
         body(object, delivered, { said })
+    }
+
+    test("Terminal: the shell is quiet to begin with, and the toggle turns it on and off per app") {
+        let saved = UserDefaults.standard.object(forKey: TerminalQuiet.key)
+        defer { UserDefaults.standard.set(saved, forKey: TerminalQuiet.key) }
+        UserDefaults.standard.removeObject(forKey: TerminalQuiet.key)
+        expect(TerminalQuiet.quiet(bundle: "com.apple.Terminal"), true, "quiet to begin with")
+        expect(TerminalQuiet.toggle(bundle: "com.apple.Terminal"), false, "toggled on")
+        expect(TerminalQuiet.quiet(bundle: "com.apple.Terminal"), false, "speaks")
+        expect(TerminalQuiet.quiet(bundle: "com.googlecode.iterm2"), true, "iTerm2 unaffected")
+        expect(TerminalQuiet.toggle(bundle: "com.apple.Terminal"), true, "toggled off")
+    }
+
+    test("Terminal: quiet shell says nothing for Backspace but still delivers the key") {
+        withTerminal("prompt x", cursor: 8) { object, delivered, said in
+            UserDefaults.standard.removeObject(forKey: TerminalQuiet.key)
+            guard let script = object.script(named: "terminal_backspace") else { return Harness.fail("Backspace script exists") }
+            script.handler(KeyboardGesture(identifier: "kb:backspace")!)
+            expect(delivered.value, 1, "the key goes to the shell")
+            expect(said().isEmpty, true, "nothing said")
+        }
     }
 
     test("Terminal: registered Backspace script reads complete Unicode characters and still delivers the key") {

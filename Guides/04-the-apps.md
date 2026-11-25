@@ -51,6 +51,8 @@ Command T goes to today.
 
 New output is read as it arrives; your own typing isn't read twice. Waypoint Up and Down review earlier lines.
 
+In Terminal and iTerm2 Waypoint is quiet in the shell to begin with, so a screen reader that runs inside it, such as TDSR, can speak without a second voice. Menus, dialogs and the Waypoint Up and Down review keys still speak. Waypoint S in a terminal turns the shell's speech on or off for that app.
+
 ## Steam
 
 Steam's Big Picture is read as you move, once you turn it on: Settings, Other apps' speech, Read Steam's Big Picture, then Restart Steam there. It's

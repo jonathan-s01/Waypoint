@@ -28198,6 +28198,9 @@
         }
       }
     },
+    "Turns Waypoint's speech in this terminal's shell on or off (off to begin with, for a screen reader that runs in the shell); menus and the review keys still speak (VO-S in the shell)" : {
+      "comment" : "A command, as the key list and keyboard help say it"
+    },
     "Turns bookmarks and recent places on or off" : {
       "comment" : "A command, as the key list and keyboard help say it"
     },
@@ -44545,6 +44548,12 @@
           }
         }
       }
+    },
+    "terminal speech off" : {
+      "comment" : "Spoken message"
+    },
+    "terminal speech on" : {
+      "comment" : "Spoken message"
     },
     "text" : {
       "comment" : "A role, spoken after an item's name",
