@@ -66,10 +66,10 @@ public enum Tones {
     /// that found nothing is "Search did not find anything", NotFound.aiff. TurnOver's set has no sound for it.
     public static func searchNotFound() { _ = voiceOver("NotFound.aiff") }   // a custom set answers inside VoiceOverSounds.play
     /// A menu opening is "Menu or popup displayed", MenuDown.aiff. TurnOver's set has none for a menu opening.
-    public static func menuOpened() { _ = voiceOver("MenuDown.aiff") }
+    public static func menuOpened() { if ContextCues.enter(.menu) { return }; _ = voiceOver("MenuDown.aiff") }
     /// A context menu is a menu, so with VoiceOver's sounds it is MenuDown (menuOpened); PopupAppeared.aiff is VoiceOver's
     /// "Popover appeared". TurnOver's set keeps its popup sound for a context menu, as before.
-    public static func contextMenuOpened() { if chosen { _ = voiceOver("PopupAppeared.aiff") } }
+    public static func contextMenuOpened() { if ContextCues.enter(.menu) { return }; if chosen { _ = voiceOver("PopupAppeared.aiff") } }
     /// A page finished loading: VoiceOver's "Web area loaded" event plays WebPageLoaded.aiff (WebAreaLoaded.aiff is not
     /// the file its configuration names for it).
     public static func pageLoaded() { _ = voiceOver("WebPageLoaded.aiff") }
@@ -89,7 +89,7 @@ public enum Tones {
     /// activated" plays WindowActivated.aiff. TurnOver's own set has none.
     public static func windowActivated() { if custom("window-activated") { return }; if !chosen { _ = voiceOver("WindowActivated.aiff") } }
     /// A dialog or a system prompt appeared: VoiceOver's "System dialog appeared" plays Alert.aiff. TurnOver's own set has none.
-    public static func dialogAppeared() { if custom("dialog-appeared") { return }; if !chosen { _ = voiceOver("Alert.aiff") } }
+    public static func dialogAppeared() { if custom("dialog-appeared") { return }; if ContextCues.enter(.dialog) { return }; if !chosen { _ = voiceOver("Alert.aiff") } }
     /// Text was added to the selection: only a sound set of your own plays here, once per change however many pieces
     /// were added. VoiceOver's DragShort.aiff ("Text added to selection") played here for a day and was wrong by ear
     /// on Select All and on Shift with the arrows (20 Nov 2026), so VoiceOver's set and TurnOver's own have none.
@@ -139,6 +139,7 @@ public enum Tones {
     public static func focusTick() {
         guard invented("focus_tick") else { return }
         guard config.general.navigationSounds else { return }
+        if ContextCues.justPlayed { return }   // the cue for a new kind of place stands in for the tick
         if Date().timeIntervalSince(lastTick) < 0.05 { return }   // a burst of focus events is one move
         lastTick = Date()
         if custom("focus-tick") { return }
@@ -162,6 +163,25 @@ public enum Tones {
     // (The browse and focus mode tones are TurnOver's own idea, NVDA's: VoiceOver plays nothing when a field takes the
     // focus, so its Quick Nav sounds were wrong here: every return to Claude played "Quick Nav off", 17 Oct 2026.)
     public static func focusMode() { guard invented("focus_mode") else { return }; if custom("focus-mode") { return }; if fresh("focus_mode") { return }; beep(523, 35, volume: 0.18); DispatchQueue.main.asyncAfter(deadline: .now() + 0.045) { beep(784, 45, volume: 0.18) } }
+    /// The cue for a kind of place (ContextCues). Edit fields and pages with Quick Nav use the focus and browse mode sounds.
+    static func contextCue(_ kind: ContextCues.Kind) {
+        switch kind {
+        case .edit: focusMode()
+        case .quickNav: browseMode()
+        case .reading: placeCue("place_reading", "place-reading", 523, 60)
+        case .list: placeCue("place_list", "place-list", 1200, 40)
+        case .menu: placeCue("place_menu", "place-menu", 700, 50)
+        case .terminal: placeCue("place_terminal", "place-terminal", 200, 70)
+        case .secure: placeCue("place_secure", "place-secure", 430, 50)
+        case .dialog: placeCue("place_dialog", "place-dialog", 280, 60)
+        }
+    }
+    private static func placeCue(_ file: String, _ event: String, _ hertz: Double, _ ms: Int) {
+        guard invented(file) else { return }
+        if custom(event) { return }
+        if fresh(file) { return }
+        beep(hertz, ms, volume: 0.18)
+    }
     public static func browseMode() { guard invented("browse_mode") else { return }; if custom("browse-mode") { return }; if fresh("browse_mode") { return }; beep(784, 35, volume: 0.18); DispatchQueue.main.asyncAfter(deadline: .now() + 0.045) { beep(523, 45, volume: 0.18) } }
     /// A menu or list opening (Waypoint's menu, Anywhere, an item's actions, bookmarks, an area's tools): three notes
     /// rising, D5 F#5 A5. Closing: the same falling. Three notes, where the two-note modes have two, so it is never

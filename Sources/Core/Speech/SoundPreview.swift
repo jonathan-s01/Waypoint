@@ -42,6 +42,16 @@ package enum SoundPreview {
 
     private static var groups: [(String, [Entry])] {
         [
+            ("Places", [
+                ("Edit field", "When the focus enters a place where keys type", { Tones.contextCue(.edit) }),
+                ("Page with Quick Nav", "When the focus enters a page in browse mode", { Tones.contextCue(.quickNav) }),
+                ("Reading text", "When the focus enters text to read, not to type in", { Tones.contextCue(.reading) }),
+                ("List or table", "When the focus enters a list, table or outline moved through with the arrows", { Tones.contextCue(.list) }),
+                ("Menu", "When a menu or context menu opens", { Tones.contextCue(.menu) }),
+                ("Terminal", "When the focus enters a terminal's shell", { Tones.contextCue(.terminal) }),
+                ("Password field", "When the focus enters a password field", { Tones.contextCue(.secure) }),
+                ("Dialog", "When a dialog or sheet appears", { Tones.contextCue(.dialog) }),
+            ]),
             ("Modes", [
                 ("Browse mode", "When a page takes over from a field, and Escape in focus mode", { Tones.browseMode() }),
                 ("Focus mode", "When the focus lands in a field and keys go to the page", { Tones.focusMode() }),

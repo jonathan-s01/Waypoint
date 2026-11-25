@@ -36,9 +36,10 @@ import TurnOverCore
         expect(asked, [], "text added to a selection asks for none of VoiceOver's files: DragShort was wrong by ear")
     }
     test("sounds: with TurnOver's chosen, a context menu keeps its popup sound and the new events add none of their own") {
-        let saved = config.general.sounds
-        defer { config.general.sounds = saved; VoiceOverSounds.requestProbe = nil }
+        let saved = config.general.sounds, savedCues = config.general.contextCues
+        defer { config.general.sounds = saved; config.general.contextCues = savedCues; VoiceOverSounds.requestProbe = nil }
         config.general.sounds = "turnover"
+        config.general.contextCues = false
         var asked: [String] = []
         VoiceOverSounds.requestProbe = { name, sounds in asked.append(name + "/" + sounds) }
         Tones.contextMenuOpened()

@@ -1,9 +1,68 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import Foundation
+import ApplicationServices
 import TurnOverCore
 
 // 19 Nov 2026: the gate sits at the lowest level (Tones.beep, the bell, TurnOverSounds.play), and a sound is never
 // prepared on the thread that asks for it. Logic evidence only: probes record what would play, nothing is played.
+/// A focused object with only the role and states a test gives it.
+private final class PlaceStub: TurnOverObject {
+    var stubRole: Role = .unknown
+    var stubStates: Set<State> = []
+    var stubText: String?
+    required init(element: AXUIElement) { super.init(element: element) }
+    convenience init(_ role: Role, _ states: Set<State> = [], text: String? = nil) {
+        self.init(element: AXUIElementCreateSystemWide()); stubRole = role; stubStates = states; stubText = text
+    }
+    override var role: Role { stubRole }
+    override var states: Set<State> { stubStates }
+    override var roleText: String? { stubText }
+}
+
+@MainActor func contextCueTests() {
+    final class Heard { var items: [String] = []; var count: Int { items.count } }
+    func run(_ body: (Heard) -> Void) {
+        let savedSounds = config.general.sounds, savedCues = config.general.contextCues
+        defer { config.general.sounds = savedSounds; config.general.contextCues = savedCues; Tones.outputProbe = nil; ContextCues.reset() }
+        let heard = Heard()
+        Tones.outputProbe = { heard.items.append($0) }
+        config.general.sounds = "turnover"; config.general.contextCues = true
+        ContextCues.reset()
+        body(heard)
+    }
+    test("place cues: a kind of place is cued once, and again after a plain control or another kind") {
+        run { heard in
+            ContextCues.focusGained(PlaceStub(.list)); expect(heard.count, 1, "entering a list is cued")
+            ContextCues.focusGained(PlaceStub(.tableRow)); ContextCues.focusGained(PlaceStub(.listItem)); expect(heard.count, 1, "rows of one list are silent")
+            ContextCues.focusGained(PlaceStub(.groupBox)); expect(heard.count, 1, "a container changes nothing")
+            ContextCues.focusGained(PlaceStub(.button)); ContextCues.focusGained(PlaceStub(.list)); expect(heard.count, 2, "a list after a button is cued again")
+            ContextCues.focusGained(PlaceStub(.editableText, [.editable])); expect(heard.count, 3, "an edit field is another kind")
+        }
+    }
+    test("place cues: each kind of place is told apart") {
+        let cases: [(PlaceStub, ContextCues.Place)] = [
+            (PlaceStub(.editableText, [.editable]), .cue(.edit)), (PlaceStub(.searchField), .cue(.edit)),
+            (PlaceStub(.editableText, [.readOnly]), .cue(.reading)), (PlaceStub(.staticText), .cue(.reading)),
+            (PlaceStub(.outline), .cue(.list)), (PlaceStub(.browser), .cue(.list)),
+            (PlaceStub(.menuItem), .cue(.menu)), (PlaceStub(.popupMenu), .cue(.menu)),
+            (PlaceStub(.passwordEdit), .cue(.secure)), (PlaceStub(.editableText, [.editable], text: "terminal"), .cue(.terminal)),
+            (PlaceStub(.sheet), .cue(.dialog)), (PlaceStub(.checkBox), .plain), (PlaceStub(.window), .ignore),
+        ]
+        for (object, place) in cases { expect(ContextCues.place(of: object), place, "\(object.stubRole)") }
+    }
+    test("place cues: a menu opening and a mode change use the same state, and the toggle and VoiceOver's set silence them") {
+        run { heard in
+            Tones.menuOpened(); Tones.contextMenuOpened(); expect(heard.count, 1, "a menu opening is cued once")
+            ContextCues.mode(focus: true); ContextCues.mode(focus: true); expect(heard.count, 2, "focus mode is cued once")
+            ContextCues.focusGained(PlaceStub(.editableText, [.editable])); expect(heard.count, 2, "a field right after focus mode is not cued twice")
+            config.general.contextCues = false; ContextCues.reset(); heard.items = []
+            ContextCues.focusGained(PlaceStub(.list)); expect(heard.items, [], "cues off: nothing")
+            config.general.contextCues = true; config.general.sounds = "voiceover"
+            ContextCues.focusGained(PlaceStub(.table)); expect(heard.items, [], "VoiceOver's sounds: nothing")
+        }
+    }
+}
+
 @MainActor func soundGateTests() {
     let named: [(String, () -> Void)] = [
         ("the waiting beep (HelpImprove, NVDAStoreMenu, PluginAI)", { Tones.waitingTick() }),

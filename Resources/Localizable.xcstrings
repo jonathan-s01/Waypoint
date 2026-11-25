@@ -4822,6 +4822,9 @@
     "A script you approve in developer mode starts again by itself when you save it, as long as it asks for no more" : {
 
     },
+    "A short cue, before the words, for an edit field, a page with Quick Nav, text to read, a list, a menu, a terminal, a password field or a dialog. It plays only when the kind of place changes." : {
+
+    },
     "A short form opens in your browser, already filled in with %@ and how it is built, never what is in it. You say what happens. Nothing to install; you need a free GitHub account" : {
       "localizations" : {
         "ru" : {
@@ -4853,6 +4856,9 @@
           }
         }
       }
+    },
+    "A sound for the kind of place I enter" : {
+
     },
     "A starter folder with the guide, a snapshot of the app and its menus" : {
       "localizations" : {

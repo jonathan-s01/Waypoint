@@ -279,6 +279,27 @@ def _(): return room(mix(marimba(880.0), marimba(1318.5), 0.07), wet=0.15, tail=
 def _(): return mix(wood(1200, 0.04), kalimba(1046.5, 0.12), 0.03, 0.8)
 
 
+# Places (Waypoint, 25 Nov 2026): one cue for the kind of place the focus has entered, so the kind of interaction is
+# known before the words. Edit fields use focus_mode and pages with Quick Nav use browse_mode, above. Each is short.
+@sound("place_reading", 0.34)
+def _(): return glass(523.3, 0.16)
+
+@sound("place_list", 0.34)
+def _(): return mix(mix(wood(1500, 0.03), wood(1200, 0.03), 0.04), wood(950, 0.03), 0.08)
+
+@sound("place_menu", 0.4)
+def _(): return mix(marimba(880.0, 0.1), marimba(587.3, 0.14), 0.055)
+
+@sound("place_terminal", 0.4)
+def _(): return mix(thud(160, 100, 0.1, 0.04), wood(820, 0.03), 0.03, 0.6)
+
+@sound("place_secure", 0.3)
+def _(): return mix(wood(430, 0.05), noise(0.05, lowpass=0.08, decay=0.02), 0, 0.4)
+
+@sound("place_dialog", 0.4)
+def _(): return mix(thud(280, 210, 0.06, 0.022), thud(280, 210, 0.06, 0.022), 0.085)
+
+
 if __name__ == "__main__":
     out = sys.argv[1] if len(sys.argv) > 1 else os.path.join(os.path.dirname(os.path.abspath(__file__)), "Resources", "Sounds")
     os.makedirs(out, exist_ok=True)

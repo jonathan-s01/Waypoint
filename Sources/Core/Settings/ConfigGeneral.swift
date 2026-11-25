@@ -53,17 +53,21 @@ extension Config {
         public var handOverNothing = false
         /// VoiceOver's sounds: a tick as the focus moves, a click as an item is pressed.
         public var navigationSounds = true
+        /// Waypoint (25 Nov 2026): one short cue, before the words, when the focus enters a different kind of place (a
+        /// field to type in, a page with Quick Nav, text to read, a list, a menu, a terminal, a password, a dialog).
+        public var contextCues = true
         /// Screen Curtain while TurnOver leads: "follow" VoiceOver's, "on" or "off".
         public var screenCurtain = "follow"
         /// "voiceover" (VoiceOver's sound files where VoiceOver has a sound: links, misspellings, edges, the rotor, the
         /// trackpad; TurnOver's own set for the rest) or "turnover" (TurnOver's own set throughout); "" until one is
         /// chosen (effectiveSounds says what plays then).
         public var sounds = ""
-        /// Whose sounds play ("voiceover" or "turnover"): the choice, or until one is made what always played, VoiceOver's
-        /// unless the settings file says "experimental" (Tones).
-        public var effectiveSounds: String { sounds.isEmpty ? (edition != "experimental" ? "voiceover" : "turnover") : sounds }
+        /// Whose sounds play ("voiceover" or "turnover"): the choice, or until one is made Waypoint's own set throughout
+        /// (25 Nov 2026: upstream's default is VoiceOver's, which silences every sound VoiceOver has no file for, and Waypoint's
+        /// cues for the kind of place, the focus tick and the heading sounds went quiet).
+        public var effectiveSounds: String { sounds.isEmpty ? "turnover" : sounds }
         public init() {}
-        enum Keys: String, CodingKey { case openAtLogin, showInMenuBar, windowsKeys, keyboardStyle, keysWhereVoiceOverReads, navigateByGroups, groupsInWindowsStyle, focusFollowsCursor, turnOverKey = "bosunKey", handOverChimes, navigationSounds, screenCurtain, edition, handOverNothing, sounds }
+        enum Keys: String, CodingKey { case openAtLogin, showInMenuBar, windowsKeys, keyboardStyle, keysWhereVoiceOverReads, navigateByGroups, groupsInWindowsStyle, focusFollowsCursor, turnOverKey = "bosunKey", handOverChimes, navigationSounds, contextCues, screenCurtain, edition, handOverNothing, sounds }
         public init(from decoder: Decoder) throws {
             let c = try decoder.container(keyedBy: Keys.self)
             openAtLogin = (try? c.decodeIfPresent(Bool.self, forKey: .openAtLogin)) ?? false
@@ -80,6 +84,7 @@ extension Config {
             turnOverKey = (try? c.decodeIfPresent(String.self, forKey: .turnOverKey)) ?? "both"
             handOverChimes = (try? c.decodeIfPresent(Bool.self, forKey: .handOverChimes)) ?? false
             navigationSounds = (try? c.decodeIfPresent(Bool.self, forKey: .navigationSounds)) ?? true
+            contextCues = (try? c.decodeIfPresent(Bool.self, forKey: .contextCues)) ?? true
             screenCurtain = (try? c.decodeIfPresent(String.self, forKey: .screenCurtain)) ?? "follow"
             sounds = (try? c.decodeIfPresent(String.self, forKey: .sounds)).flatMap { ["voiceover", "turnover"].contains($0) || SoundSets.setName(fromSaved: $0) != nil ? $0 : nil } ?? ""
         }
@@ -94,6 +99,7 @@ extension Config {
             try c.encode(turnOverKey, forKey: .turnOverKey)
             try c.encode(handOverChimes, forKey: .handOverChimes)
             try c.encode(navigationSounds, forKey: .navigationSounds)
+            try c.encode(contextCues, forKey: .contextCues)
             try c.encode(screenCurtain, forKey: .screenCurtain); try c.encode(sounds, forKey: .sounds)
         }
         /// How the TurnOver key is spoken in help and the shortcuts list.

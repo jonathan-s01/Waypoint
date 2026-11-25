@@ -42,7 +42,7 @@ extension BrowseModeDocument {
 
     // 14 Nov 2026: observe the sound request in regression tests without playing audio.
     package static var modeSound: (Bool) -> Void = { focus in
-        focus ? Tones.focusMode() : Tones.browseMode()
+        ContextCues.mode(focus: focus)
     }
 
     /// NVDA: shouldPassThrough — an editable or otherwise interactive focus means focus mode.

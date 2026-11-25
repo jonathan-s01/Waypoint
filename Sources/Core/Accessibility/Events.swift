@@ -84,6 +84,8 @@ public enum EventHandler {
         // flicks its focus to one just after its message box, 7 Oct 2026.)
         let silentGroup = event.obj.axRole == "AXGroup" && event.obj.name.isEmpty && (event.obj.element.string(kAXDescriptionAttribute) ?? "").isEmpty
         // (Nor for a focus the app module is about to ignore: Word's page between a dialog's fields, .)
+        if event.kind == .foreground { ContextCues.reset() }
+        if event.kind == .gainFocus, !silentGroup, !event.obj.appModule.ignoresFocus(event) { ContextCues.focusGained(event.obj) }
         if event.kind == .gainFocus, event.obj.axRole != "AXMenu", !AXHandler.shared.isMenuOpen, !silentGroup, !event.obj.appModule.ignoresFocus(event) { Speech.focusMoving() }
         let plugins = GlobalPluginHandler.shared.plugins
         var index = 0
