@@ -443,16 +443,25 @@ enum ReviewLayer {
         }
     }
 
-    /// One arrow of the layer, let go without another joining it: by the layer's rotor kind (Up and Down, on a page), else as the document's own key.
+    /// One arrow of the layer, let go without another joining it. With its Quick Nav on, as VoiceOver's: Left and Right
+    /// go element by element (a paragraph on a page), Up and Down by the layer's rotor kind, or element by element
+    /// with none. Off (armed for one key), the document's own keys: a character, a line.
     static func arrowSingle(_ name: String) {
         guard enabled else { KeyboardGesture(identifier: "kb:" + name)?.send(); return }
         lastUsed = Date()
-        if name == "upArrow" || name == "downArrow", let k = arrowKind, let doc = document(),
-           let q = BrowseModeDocument.voiceOverQuickNav.first(where: { $0.name == ArrowQuickNav.kinds[k] }) {
-            doc.quickNav(q, forward: name == "downArrow")
+        guard arrowQuickNav, ["leftArrow", "rightArrow", "upArrow", "downArrow"].contains(name) else { review("kb:" + name); return }
+        let forward = name == "downArrow" || name == "rightArrow"
+        guard let doc = document() else {
+            // No reading document: the object review, by item.
+            ReadWhileTyping.moveItem(forward: forward)
             return
         }
-        review("kb:" + name)
+        if name == "upArrow" || name == "downArrow", let k = arrowKind,
+           let q = BrowseModeDocument.voiceOverQuickNav.first(where: { $0.name == ArrowQuickNav.kinds[k] }) {
+            doc.quickNav(q, forward: forward)
+            return
+        }
+        doc.move(.paragraph, forward ? 1 : -1)
     }
 
     /// Two arrows together in the layer, in either order: VoiceOver's chords, for the second reader.
