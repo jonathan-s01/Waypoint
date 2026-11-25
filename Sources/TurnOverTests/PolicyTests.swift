@@ -3,11 +3,189 @@
 // every recorded window read once (code review, 16 Oct 2026).
 import Foundation
 import AppKit
+import ApplicationServices
 import TurnOverCore
 import TurnOverControl
 import AXFixtures
 
 func policyTests() {
+
+    test("spoken lists: refreshing status items preserves the open list and cannot replace a newer list") {
+        let menu = TurnOverMenu.shared
+        let show = MenuItem(verbatim: "Show hidden items", .select {})
+        let hidden = MenuItem(verbatim: "Revealed item", .action {})
+        menu.openList(verbatim: "Status menus", items: [show])
+        let generation = menu.listGeneration
+        menu.refreshList(generation: generation, items: [show, hidden]) { _ in 1 }
+        expect(menu.debugPosition?.title, "Revealed item", "announces the newly revealed item")
+        expect(menu.debugPosition?.index, 1, "cursor moved to the revealed item")
+        expect(menu.debugPosition?.count, 2, "both items are reachable")
+        let other = MenuItem(verbatim: "Other item", .action {})
+        menu.openList(verbatim: "Another list", items: [other])
+        menu.refreshList(generation: generation, items: [show, hidden]) { _ in 1 }
+        expect(menu.debugPosition?.title, "Other item", "stale refresh did not reopen the old list")
+        expect(menu.debugPosition?.count, 1, "stale refresh did not replace the newer items")
+        menu.close()
+        menu.refreshList(generation: generation, items: [show, hidden]) { _ in 1 }
+        expect(menu.isOpen, false, "an asynchronous refresh cannot reopen a closed list")
+    }
+
+    test("live regions: a growing Codex reply speaks past the old cap without repeating the prefix") {
+        var progress = LiveRegions.ReplyProgress()
+        let start = String(repeating: "word ", count: 100).trimmingCharacters(in: .whitespaces)
+        let long = start + " " + String(repeating: "another sentence. ", count: 160) + "The final marker."
+        expect(progress.pendingText(start), start, "first announcement")
+        let tail = progress.pendingText(long)
+        expect(tail.hasSuffix("The final marker."), true, "the end survives")
+        expect(tail.hasPrefix("another sentence."), true, "only new text is spoken")
+        expect(progress.pendingText(long), "", "a duplicate is not spoken")
+        expect(progress.pendingText(start), "", "an older prefix is not spoken")
+        expect(progress.pendingText("A different reply."), "A different reply.", "a new reply is read")
+    }
+
+    test("mode speech: complete readiness matrix selects only an exclusive ready reader") {
+        for coexisting in [false, true] {
+            for active in [false, true] {
+                for enabled in [false, true] {
+                    for running in [false, true] {
+                        for known in [false, true] {
+                            for silent in [false, true] {
+                                func ready(_ reader: ModeSpeechPolicy.Reader, generation: Int = 7) -> Bool {
+                                    ModeSpeechPolicy.canAnnounce(reader: reader, generation: generation, currentGeneration: 7,
+                                                                coexisting: coexisting, turnOverActive: active,
+                                                                voiceOverEnabled: enabled, voiceOverSilent: silent,
+                                                                voiceOverRunning: running, voiceOverMuteKnown: known)
+                                }
+                                let expectedTurnOver = active && (coexisting || (!enabled && !running)) && (!running || (known && silent))
+                                let expectedVoiceOver = enabled && running && !active && known && !silent
+                                expect(ready(.turnOver), expectedTurnOver, "TurnOver requires activation and confirmed exclusive output")
+                                expect(ready(.voiceOver), expectedVoiceOver, "VoiceOver requires running enabled unmuted output")
+                                check(!(ready(.turnOver) && ready(.voiceOver)), "a mode never goes to both readers")
+                                check(!ready(.turnOver, generation: 6), "an old TurnOver choice is discarded")
+                                check(!ready(.voiceOver, generation: 6), "an old VoiceOver choice is discarded")
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    test("mode delivery: foreground owner and readiness are checked again after settling") {
+        var time = 0.0
+        var queued: [(Double, @MainActor () -> Void)] = []
+        var reader: ModeSpeechPolicy.Reader? = .voiceOver
+        var current = true
+        var output: [ModeSpeechPolicy.Reader] = []
+        let delivery = ModeSpeechDelivery()
+        delivery.announce("mode", now: { time }, schedule: { queued.append((time + $0, $1)) },
+                          current: { current }, readyReader: { reader }, output: { _, r in output.append(r) })
+        @MainActor func advance() {
+            guard !queued.isEmpty else { Harness.fail("production delivery scheduled its continuation"); return }
+            let next = queued.removeFirst()
+            time = next.0
+            next.1()
+        }
+        reader = nil
+        advance()
+        check(output.isEmpty, "readiness disappearing during the delay does not speak")
+        reader = .turnOver
+        advance()
+        advance()
+        check(output == [.turnOver], "the new foreground owner receives the pending words once")
+        delivery.announce("old", now: { time }, schedule: { queued.append((time + $0, $1)) },
+                          current: { current }, readyReader: { reader }, output: { _, r in output.append(r) })
+        current = false
+        advance()
+        check(output.count == 1, "a newer choice retires delayed words")
+        current = true
+        reader = nil
+        delivery.announce("timeout", now: { time }, schedule: { queued.append((time + $0, $1)) },
+                          current: { current }, readyReader: { reader }, output: { _, r in output.append(r) })
+        while !queued.isEmpty { advance() }
+        check(output.count == 1, "unknown readiness expires without speaking")
+    }
+    test("mode delivery: TurnOver delivery reaches the real speech output gate") {
+        let oldMode = Speech.mode
+        let oldVoiceOver = Speech.voiceOverEnabledForOutput
+        let oldOutput = Speech.outputTestDriver
+        let oldEnqueue = Speech.enqueueTestDriver
+        Speech.enqueueTestDriver = nil
+        defer {
+            Speech.mode = oldMode
+            Speech.voiceOverEnabledForOutput = oldVoiceOver
+            Speech.outputTestDriver = oldOutput
+            Speech.enqueueTestDriver = oldEnqueue
+        }
+        Speech.mode = .talk
+        Speech.voiceOverEnabledForOutput = { false }
+        var spoken: [String] = []
+        Speech.outputTestDriver = { text, _, completion in spoken.append(text); completion?(true) }
+        var queued: [@MainActor () -> Void] = []
+        let delivery = ModeSpeechDelivery()
+        @MainActor func request(_ text: String) {
+            delivery.announce(text, now: { 0 }, schedule: { _, action in queued.append(action) },
+                              current: { true }, readyReader: { .turnOver },
+                              output: { text, _ in Speech.speakMessage(text) })
+            guard !queued.isEmpty else { Harness.fail("production delivery scheduled output"); return }
+            queued.removeFirst()()
+        }
+        request("mode ready")
+        check(spoken == ["mode ready"], "the shared delivery loop reaches output after the actual speech gates")
+        Speech.mode = .off
+        request("mode blocked")
+        check(spoken == ["mode ready"], "speech off still blocks coordinator output")
+    }
+    test("mode speech: requested silence and a stale VoiceOver flag are not readiness") {
+        check(!ModeSpeechPolicy.canAnnounce(reader: .voiceOver, generation: 1, currentGeneration: 1,
+                                           coexisting: true, turnOverActive: false, voiceOverEnabled: true,
+                                           voiceOverSilent: false, voiceOverRunning: false, voiceOverMuteKnown: true), "VoiceOver must be running")
+        check(!ModeSpeechPolicy.canAnnounce(reader: .turnOver, generation: 1, currentGeneration: 1,
+                                           coexisting: true, turnOverActive: true, voiceOverEnabled: true,
+                                           voiceOverSilent: true, voiceOverRunning: true, voiceOverMuteKnown: false), "a request is not a mute acknowledgement")
+    }
+    test("mode speech: helper confirmation handles pipe cuts pid changes expiry and failures") {
+        var confirmation = VoiceOverMuteConfirmation()
+        confirmation.expect("a")
+        _ = confirmation.consume(Data("status 123 o".utf8), now: 1)
+        check(confirmation.value(pid: 123, wanted: true, now: 1) == nil, "a partial reply proves nothing")
+        _ = confirmation.consume(Data("n a\nstatus 123 on a\n".utf8), now: 1)
+        check(confirmation.value(pid: 123, wanted: true, now: 1) == true, "split and coalesced replies are parsed")
+        check(confirmation.value(pid: 124, wanted: true, now: 1) == nil, "a restarted VoiceOver has no confirmation")
+        check(confirmation.value(pid: 123, wanted: false, now: 1) == nil, "changed requests invalidate old replies")
+        check(confirmation.value(pid: 123, wanted: true, now: 2) == nil, "old replies expire")
+        _ = confirmation.consume(Data("off\n".utf8), now: 1)
+        check(confirmation.value(pid: 123, wanted: true, now: 1) == nil, "lease expiry invalidates silence")
+        _ = confirmation.consume(Data("status 123 off a\n".utf8), now: 2)
+        check(confirmation.value(pid: 123, wanted: false, now: 2) == false, "unmuting also needs confirmation")
+        confirmation.expect("b")
+        _ = confirmation.consume(Data("status 123 on a\n".utf8), now: 2)
+        check(confirmation.value(pid: 123, wanted: true, now: 2) == nil, "an older request cannot confirm a newer probe")
+        confirmation.reset()
+        check(confirmation.value(pid: 123, wanted: false, now: 2) == nil, "helper exit invalidates confirmation")
+    }
+    test("mode speech: executable wiring retains delayed delivery activation and layer cue") {
+        let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+        func source(_ file: String) -> String {
+            let text = (try? String(contentsOf: root.appendingPathComponent(file), encoding: .utf8)) ?? ""
+            return text.components(separatedBy: "\n").map { line in
+                String(line.components(separatedBy: "//").first ?? "")
+            }.joined(separator: "\n")
+        }
+        let lead = source("Sources/TurnOver/LeadWatcher.swift")
+        let output = source("Sources/TurnOver/LeadWatcherModeSpeech.swift")
+        let app = source("Sources/TurnOver/TurnOverApp.swift")
+        let menu = source("Sources/TurnOver/MenuAnywhere.swift")
+        check(output.contains("modeDelivery.announce(text"), "production calls the tested delivery loop")
+        check(output.contains("self?.readyModeReader(generation: generation)"), "production supplies live foreground readiness")
+        check(lead.contains("let reader: ModeSpeechPolicy.Reader = shouldLead(front)"), "foreground app selects the receiving reader")
+        check(lead.contains("self.sayModeWhenReady(voiceOverWords, generation: generation)"), "settled handback schedules the mode words")
+        check(app.contains("MenuAnywhere.shared.cycleLeadMode =") && app.contains("self?.lead.cycleMode()"), "the actual layer callback reaches the mode change")
+        check(menu.contains("cycleLeadMode?(); return"), "the claimed layer A key invokes its callback")
+        check(app.contains("lead.announceTakeoverMode(words)"), "activation delivers the pending mode name")
+        expect(menu.components(separatedBy: "announceClaimedLayer()").count - 1, 3,
+               "both normal and Coexist layer paths call the cue owner")
+        check(menu.contains("NSSound.beep()"), "the claimed layer retains its audible cue")
+    }
     test("one app: the full reader, CoExist off unless turned on, plugins on unless turned off") {
         check(Edition.editionName == "Waypoint", "named Waypoint")
         check(Edition.includesPlugins == ((UserDefaults.standard.object(forKey: "plugins") as? Bool) ?? true), "plugins on unless the default turns them off")
@@ -88,6 +266,67 @@ func policyTests() {
             let silentGroup = obj.axRole == "AXGroup" && obj.name.isEmpty
             check(!parts.isEmpty || silentGroup, "\(url.lastPathComponent): the focus says something (role \(obj.axRole))")
             check(calls < 400, "\(url.lastPathComponent): reading the focus took \(calls) accessibility calls")
+        }
+    }
+    test("menu bar: with no owner, no app's bar is taken, not even the focus's (Siri AI's hidden menu took the keyboard, 31 Oct 2026)") {
+        let owner = MenuBarOwner.current
+        let saved = (API.focusObject, API.focusAncestors, API.focusTreeInterceptor)
+        defer { MenuBarOwner.current = owner; API.setFocusObject(saved.0, ancestors: saved.1, interceptor: saved.2) }
+        API.setFocusObject(ObjectFactory.make(AXUIElementCreateApplication(getpid())), ancestors: [])
+        MenuBarOwner.current = { nil }
+        expect(MenuBarOwner.pid, nil, "no owner, with TurnOver's focus in an app")
+        MenuBarOwner.current = { 1352 }
+        expect(MenuBarOwner.pid, 1352, "the owner's bar")
+    }
+    test("menu bar: leaving the held bar says the focus it was taken from, the Dock's too (a review, 6 Nov 2026)") {
+        // (what, the focus's pid, named, the focus the bar was taken from, the bar's pid, the window named, said)
+        let table: [(String, pid_t?, Bool, Bool, pid_t, Bool, MenuBarOwner.Leaving)] = [
+            ("the Dock: its list has no name, and the bar is the front app's", 600, false, true, 1352, true, .focus),
+            ("another app's named focus, the bar the front app's", 700, true, true, 1352, true, .focus),
+            ("the front app's named focus", 1352, true, true, 1352, true, .focus),
+            ("the front app's nameless focus: the window's name", 1352, false, true, 1352, true, .window),
+            ("the focus went to another app while the bar was held: the window's name", 600, false, false, 1352, true, .window),
+            ("no focus, and a nameless window: the app is asked", nil, false, false, 1352, false, .app),
+        ]
+        for (what, pid, named, cameFrom, bar, window, want) in table {
+            expect(MenuBarOwner.leaving(focusPid: pid, focusNamed: named, focusIsWhereItCameFrom: cameFrom, barPid: bar, windowNamed: window), want, what)
+        }
+    }
+    test("menu bar: leaving the held bar in browse mode on the focus's app says the browse cursor, not the focus (issue 353)") {
+        let browse = MenuBarOwner.leaving(focusPid: 1352, focusNamed: true, focusIsWhereItCameFrom: true, barPid: 1352, windowNamed: true, browseCursorInFocusApp: true)
+        expect(browse, .browse, "Prompt has the focus, the browse cursor is on a heading")
+        let focusMode = MenuBarOwner.leaving(focusPid: 1352, focusNamed: true, focusIsWhereItCameFrom: true, barPid: 1352, windowNamed: true, browseCursorInFocusApp: false)
+        expect(focusMode, .focus, "focus mode or no document: the focus, as before")
+        let noFocus = MenuBarOwner.leaving(focusPid: nil, focusNamed: false, focusIsWhereItCameFrom: false, barPid: 1352, windowNamed: true, browseCursorInFocusApp: true)
+        expect(noFocus, .window, "no focus to be in the app of: as before")
+    }
+    test("menu bar: a real move of the focus lets go of the held bar, holding it and quiet events do not (issue 353)") {
+        // (what, the event, it is where the bar was taken from, lets go)
+        let table: [(String, EventKind, Bool, Bool)] = [
+            ("an app came to the front", .foreground, false, true),
+            ("a new foreground window of the same app", .foreground, true, true),
+            ("the focus landed on another element", .gainFocus, false, true),
+            ("the app said its focus again: the element the bar came from", .gainFocus, true, false),
+            ("the focus left something", .loseFocus, false, false),
+            ("a value changed", .valueChange, false, false),
+            ("a caret moved", .caret, false, false),
+            ("a menu opened", .menuStart, false, false),
+        ]
+        for (what, kind, same, want) in table {
+            expect(MenuBarOwner.letsGoOfBar(kind, isWhereItCameFrom: same), want, what)
+        }
+    }
+    test("menu bar: after Escape closes a status menu the front app's focus is read, not the menu owner's (16 Nov 2026)") {
+        // (what, the menu's pid, the front app's pid, the key, whose focus is asked)
+        let table: [(String, pid_t, pid_t, String, pid_t)] = [
+            ("Escape in another process's status menu: the front app", 673, 1352, "escape", 1352),
+            ("Escape in the front app's own menu: that app, as before", 1352, 1352, "escape", 1352),
+            ("Return chose a status menu item: its effect speaks, the menu's app as before", 673, 1352, "enter", 673),
+            ("Space chose a status menu item: the menu's app as before", 673, 1352, "space", 673),
+            ("Escape with no front app known: the menu's app", 673, 0, "escape", 673),
+        ]
+        for (what, menu, front, key, want) in table {
+            expect(MenuBarOwner.focusOwnerAfterMenu(menuPid: menu, frontPid: front, key: key), want, what)
         }
     }
 }

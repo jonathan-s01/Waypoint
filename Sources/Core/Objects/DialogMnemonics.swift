@@ -77,9 +77,9 @@ extension Dialog {
 
     /// "Save, Option S; Don't Save, Option D": the choices with their letters, for the dialog's description.
     var choicesWithLetters: [String] {
-        guard config.keyboard.dialogLetterHints else { return choices.map(\.1) }
+        guard config.keyboard.dialogLetterHints else { return summaryChoices.map(\.1) }
         let lettered = letteredChoices
-        return choices.map { c in
+        return summaryChoices.map { c in
             guard let l = lettered.first(where: { $0.element.isSame(c.0) })?.letter else { return c.1 }
             return String(localized: "\(c.1), Option \(String(l).uppercased())", comment: "A dialog's choice with the key that presses it: name, then Left Option and its letter")
         }

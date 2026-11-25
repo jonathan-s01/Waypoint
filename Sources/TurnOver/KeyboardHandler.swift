@@ -35,6 +35,9 @@ nonisolated final class KeyboardHandler: @unchecked Sendable {
     /// key can't hold it; 14 Oct 2026).
     static let typedMarker: Int64 = 0xB05B
     static let typedTurnOverMarker: Int64 = 0xB05C
+    /// Keys sent on in order (ScriptHandler.sendInOrder: the keys held for a field's focus, and keys typed while they are
+    /// on their way; 16 Nov 2026, review): counted as they pass the tap, then let through as the key typed would be.
+    static let orderedMarker: Int64 = 0xB05D
 
     var onCapsLockToggled: (@MainActor (Bool) -> Void)?
     var onReadinessChanged: (@MainActor (UInt64, Bool) -> Void)?
@@ -66,9 +69,8 @@ nonisolated final class KeyboardHandler: @unchecked Sendable {
     private var quarantined = Set<Int64>()
     /// Keys translated on the way down (the Windows style): their release is translated too.
     private var remapped = Set<Int64>()
-    private var echoCode: Int64 = -1
-    private var echoAt: UInt64 = 0
-    private var echoCount = 0
+    /// The echo guard, then the stale release (KeyDownGate, 18 Nov 2026).
+    private var keyDownGate = KeyDownGate()
     private var controlAlone = false
     private var loneShift = LoneModifier()
     /// Option pressed and released with nothing else, quickly: left Option is the Windows key (the Dock),
@@ -81,7 +83,12 @@ nonisolated final class KeyboardHandler: @unchecked Sendable {
     private var arrowRepeated = false
     /// With Quick Nav off: the bare arrow physically held (passed to the app as usual), so Left and Right pressed
     /// together can turn Quick Nav on, as VoiceOver's do (13 Oct 2026: they turned it off, never on).
-    private var arrowDownWhileOff: Int64?
+    private var arrowDownWhileOff = QuickNavChord()
+    /// Bumped on the main thread when the app in front changes; the keyboard thread drops a waiting first arrow
+    /// when it sees a new value (15 Nov 2026).
+    nonisolated(unsafe) static var frontAppEpoch: Int = 0
+    private var chordEpochSeen = 0
+
     private static let arrowNames: [Int64: String] = [123: "leftArrow", 124: "rightArrow", 125: "downArrow", 126: "upArrow"]
     /// The same for the review layer's arrows (its own Quick Nav, apart from the base layer's above).
     private var layerArrowHeld: Int64?
@@ -134,6 +141,13 @@ nonisolated final class KeyboardHandler: @unchecked Sendable {
 
     init() {
         KeyboardGesture.poster = { g in KeyboardHandler.post(g) }
+        // Under secure input the tap is not shown the keys TurnOver posts, so the ordered lane would wait its 0.3 s
+        // for each one and a key typed meanwhile could go in ahead of it; the key counts as seen at once there
+        // (second review, 16 Nov 2026).
+        KeyboardGesture.orderedPoster = { g in
+            KeyboardHandler.post(g, ordered: true)
+            if IsSecureEventInputEnabled() { ScriptHandler.orderedKeySeen() }
+        }
         KeyboardGesture.typedPoster = { g in KeyboardHandler.postTyped(g) }
         KeyboardGesture.chordPoster = { codes in KeyboardHandler.postChord(codes) }
         KeyboardGesture.turnOverHeld = {
@@ -223,6 +237,7 @@ nonisolated final class KeyboardHandler: @unchecked Sendable {
         // Nothing carried over from the tap before (a restart after the watchdog): a code still in `quarantined`
         // would swallow the next real key-up, and the app would see a key held down (a code review, 14 Oct 2026).
         quarantined.removeAll(); remapped.removeAll(); capsDown = false; chordFired = false; keypadZeroDown = false
+        arrowDownWhileOff.clear()
         Self.capsHeld.value = false
         controlAlone = false; loneShift.cancel(); loneOption.cancel(); loneCommand.cancel()
         let service = IOServiceGetMatchingService(kIOMainPortDefault, IOServiceMatching(kIOHIDSystemClass))
@@ -235,6 +250,7 @@ nonisolated final class KeyboardHandler: @unchecked Sendable {
 
         openHIDManager(into: mine)
 
+        _ = Self.toggleKeyCode   // the shortcut read from macOS's defaults now, not on the tap's first key
         let mask = CGEventMask(1 << CGEventType.flagsChanged.rawValue | 1 << CGEventType.keyDown.rawValue | 1 << CGEventType.keyUp.rawValue)
         // Coexisting with VoiceOver: at the head of the HID level, before VoiceOver sees a chord (TapProbe, 16 Oct 2026).
         guard let t = CGEvent.tapCreate(tap: Coexist.on ? .cghidEventTap : .cgSessionEventTap, place: .headInsertEventTap, options: .defaultTap,
@@ -248,6 +264,7 @@ nonisolated final class KeyboardHandler: @unchecked Sendable {
         mine.tap = t
         CFRunLoopAddSource(CFRunLoopGetCurrent(), CFMachPortCreateRunLoopSource(nil, t, 0), .defaultMode)
         Log.info("keyboard: active session tap up on its own thread")
+        HandOver.personToggle.listening(true)   // the person's toggle is heard from now (VoiceOverChangeOrigin, 18 Nov 2026)
         return mine
     }
 
@@ -284,6 +301,7 @@ nonisolated final class KeyboardHandler: @unchecked Sendable {
     }
 
     private func tearDown(_ mine: Layer) {
+        HandOver.personToggle.listening(false)   // the person's toggle is no longer heard (VoiceOverChangeOrigin)
         if let t = mine.tap {
             CGEvent.tapEnable(tap: t, enable: false)
             CFMachPortInvalidate(t)
@@ -343,6 +361,23 @@ nonisolated final class KeyboardHandler: @unchecked Sendable {
         set { bypassLock.lock(); _bypass = newValue; bypassLock.unlock() }
     }
 
+    /// A key down that is VoiceOver's toggle shortcut, pressed by the person: not one TurnOver posted (its own toggle
+    /// and its re-posted keys carry a marker), and not a key repeat.
+    /// The key code alone is read first, against one already read at the tap's start (`toggleKeyCode`); only the toggle's
+    /// own key reads anything more (Codex's third review, 18 Nov 2026: as little as possible on the tap's thread).
+    private static func notePersonToggle(_ event: CGEvent) {
+        guard event.getIntegerValueField(.keyboardEventKeycode) == toggleKeyCode else { return }
+        let source = event.getIntegerValueField(.eventSourceUserData)
+        guard source != marker else { return }
+        guard source != orderedMarker else { return }
+        guard event.getIntegerValueField(.keyboardEventAutorepeat) == 0 else { return }
+        guard isVoiceOverToggle(code: toggleKeyCode, flags: event.flags) else { return }
+        HandOver.personToggle.pressed()
+    }
+    /// The toggle's key code, read once (with the shortcut from macOS's defaults) before the tap is created, never on
+    /// the first key.
+    nonisolated static let toggleKeyCode = Int64(voiceOverToggle.keyCode)
+
     /// VoiceOver's toggle shortcut as macOS has it (Keyboard Shortcuts, Accessibility), read once at launch.
     nonisolated static let voiceOverToggle = HandOver.toggleShortcut()
     nonisolated static func isVoiceOverToggle(code: Int64, flags: CGEventFlags) -> Bool {
@@ -387,6 +422,9 @@ nonisolated final class KeyboardHandler: @unchecked Sendable {
     }
 
     private func tapEvent(_ type: CGEventType, _ event: CGEvent) -> Unmanaged<CGEvent>? {
+        // The person's own press of VoiceOver's toggle, heard whatever else the tap is doing: the change of VoiceOver
+        // after it is theirs, never TurnOver's (VoiceOverChangeOrigin; Codex's second review, 18 Nov 2026).
+        if type == .keyDown { Self.notePersonToggle(event) }
         guard let generation = layer?.generation, isRequested(generation) else { return Unmanaged.passUnretained(event) }
         if Self.bypass, type != .tapDisabledByTimeout, type != .tapDisabledByUserInput {
             if !quarantined.isEmpty { quarantined.removeAll() }   // their key-ups pass now; none must be swallowed later
@@ -395,6 +433,8 @@ nonisolated final class KeyboardHandler: @unchecked Sendable {
         if type == .tapDisabledByTimeout || type == .tapDisabledByUserInput {
             Log.warning("keyboard: tap disabled (\(type.rawValue)), re-enabling")
             onMain { Launcher.stopRepeating("the keyboard tap was switched off by the system") }   // a held launcher key may have been let go unseen
+            HandOver.personToggle.listening(true)   // keys while it was off were not heard: listening starts afresh
+            arrowDownWhileOff.clear()   // a key-up may have been lost while the tap was off (15 Nov 2026)
             if let t = tap { CGEvent.tapEnable(tap: t, enable: true) }
             guard let t = tap, CGEvent.tapIsEnabled(tap: t) else {
                 Log.error("keyboard: tap could not be re-enabled; handing input back")
@@ -414,6 +454,18 @@ nonisolated final class KeyboardHandler: @unchecked Sendable {
         }
         // Our own re-posted keys (gesture.send) pass untouched.
         if event.getIntegerValueField(.eventSourceUserData) == Self.marker { return Unmanaged.passUnretained(event) }
+        // A key sent on in order: the keys typed after it may go now. Routed as the key typed would have been (an arrow
+        // to the app in front while coexisting, every key to a game TurnOver leads), since it was posted unrouted so as
+        // to come through here in its place.
+        if event.getIntegerValueField(.eventSourceUserData) == Self.orderedMarker {
+            if type == .keyDown {
+                if event.getIntegerValueField(.keyboardEventKeycode) == 48, event.flags.contains(.maskCommand) {
+                    clearLeftoverModifiers(before: "Command Tab")
+                }
+                ScriptHandler.orderedKeySeen()
+            }
+            return passOrRedirect(event)
+        }
         let code = event.getIntegerValueField(.keyboardEventKeycode)
         // VoiceOver's own on-and-off shortcut goes straight on, never held for TurnOver's decision: held for a main
         // thread that was busy, Option Apostrophe (the maintainer's) reached macOS a second late, or not at all, and
@@ -458,7 +510,7 @@ nonisolated final class KeyboardHandler: @unchecked Sendable {
                     if !InputManager.isInputHelpActive {
                         onMain {
                             if Self.controlNameSaid { Self.controlNameSaid = false; return }
-                            if stop { SayAll.stop(); Speech.cancel() } else { Speech.togglePause() }
+                            if stop { SayAll.stop(); Speech.cancel(explicit: true) } else { Speech.togglePause() }
                         }
                     }
                 }
@@ -482,6 +534,7 @@ nonisolated final class KeyboardHandler: @unchecked Sendable {
                 if event.flags.contains(.maskCommand) {
                     loneCommand.down(alone: event.flags.intersection(others).isEmpty && !capsDown, secureInput: secure)
                 } else {
+                    onMain { SwitcherCloseWatcher.commandReleased() }
                     let tapped = loneCommand.up(secureInput: secure)
                     if loneCommand.setAsideForSecureInput, settings.windowsKeys { Log.io("command released alone with secure input on: not taken") }
                     if tapped, settings.windowsKeys {
@@ -533,11 +586,18 @@ nonisolated final class KeyboardHandler: @unchecked Sendable {
         // (macOS's fastest repeat is about 30 ms). On 4 Oct 2026 Left Arrow came back 394 times in a second while
         // VoiceOver was still shutting down after the hand-over (TurnOver's own re-posted key, its marker gone), and
         // the edge sound played for each. Drop the copies: that breaks the loop.
+        // Then (18 Nov 2026), only for a press past the guard: a new press of a key whose swallowed release is still
+        // awaited means that release was lost (secure input hid it), and the entry would swallow this press's own
+        // release. It is dropped, per key, on this thread; if this press is taken too, it is entered again below.
+        // Nothing is posted, no other key's entry is touched, and an echo copy never drops one (a review).
         let nowNs = DispatchTime.now().uptimeNanoseconds
-        if code == echoCode, nowNs &- echoAt < 8_000_000 { echoCount += 1 } else { echoCount = 0 }
-        echoCode = code; echoAt = nowNs
-        if echoCount >= 2 {
-            if echoCount == 2 {
+        let isRepeat = event.getIntegerValueField(.keyboardEventAutorepeat) != 0
+        let outcome = keyDownGate.press(code: code, isRepeat: isRepeat, nowNs: nowNs, awaited: &quarantined)
+        if outcome == .accepted(droppedStale: true) {
+            Log.io("keyboard: a key pressed again whose release was not seen; its old release no longer awaited")
+        }
+        if case .echo(let first) = outcome {
+            if first {
                 // Who posted the copy (E18): the process behind the event, and whether TurnOver's marker survived.
                 let src = pid_t(event.getIntegerValueField(.eventSourceUnixProcessID))
                 let name = NSRunningApplication(processIdentifier: src)?.bundleIdentifier ?? "pid \(src)"
@@ -585,17 +645,26 @@ nonisolated final class KeyboardHandler: @unchecked Sendable {
         // same (Control C to Command C, Control Left to Option Left). TurnOver's own bindings (browse mode's Home,
         // Control Home) keep their keys. The key's release is translated to match.
         // The lookup happens once, here, and is handed on; a TurnOver chord is not looked up on this thread at all.
-        if settings.windowsKeys, !mods.contains(.turnover), ScriptHandler.mainHasScript(for: gesture) == false, WindowsRemap.apply(.keyDown, event) {
-            remapped.insert(code)
-            let c2 = event.getIntegerValueField(.keyboardEventKeycode)
-            var m2 = Modifiers()
-            if event.flags.contains(.maskShift) { m2.insert(.shift) }
-            if event.flags.contains(.maskControl) { m2.insert(.control) }
-            if event.flags.contains(.maskAlternate) { m2.insert(.option) }
-            if event.flags.contains(.maskCommand) { m2.insert(.command) }
-            gesture = KeyboardGesture(keyCode: c2, modifiers: m2, characters: Self.characters(of: event), timestamp: gesture.timestamp, isRepeat: gesture.isRepeat, flags: event.flags)
+        let prepareAfterSwitcher: (@MainActor @Sendable (KeyboardGesture) -> KeyboardGesture)?
+        if settings.windowsKeys, !mods.contains(.turnover), !mods.contains(.command),
+           SwitcherCloseWatcher.isWatching.value || ScriptHandler.hasDeferredInput.value {
+            prepareAfterSwitcher = { g in
+                let front = NSWorkspace.shared.frontmostApplication?.bundleIdentifier ?? ""
+                guard ScriptHandler.findScript(for: g) == nil,
+                      let key = CGEvent(keyboardEventSource: nil, virtualKey: CGKeyCode(g.keyCode), keyDown: true) else { return g }
+                key.flags = g.flags
+                guard WindowsRemap.apply(.keyDown, key, frontApp: front) else { return g }
+                return Self.remappedGesture(g, event: key)
+            }
+        } else {
+            prepareAfterSwitcher = nil
         }
-        switch ScriptHandler.askMain(gesture) {
+        if prepareAfterSwitcher == nil, settings.windowsKeys, !mods.contains(.turnover),
+           ScriptHandler.mainHasScript(for: gesture) == false, WindowsRemap.apply(.keyDown, event) {
+            remapped.insert(code)
+            gesture = Self.remappedGesture(gesture, event: event)
+        }
+        switch ScriptHandler.askMain(gesture, prepareAfterSwitcher: prepareAfterSwitcher) {
         case .taken, .deferred:
             quarantined.insert(code)
             return nil
@@ -605,26 +674,15 @@ nonisolated final class KeyboardHandler: @unchecked Sendable {
         }
     }
 
-    /// Command Tab did nothing eight times running, then worked once TurnOver was turned off and on (20 Oct
-    /// 2026): the Mac's view of the modifiers had drifted from the keyboard's, most likely a modifier TurnOver had
-    /// lifted or put back (post) that the hand no longer held. Before a Command Tab passes, any modifier the session
-    /// thinks is held but the keyboard doesn't is released, and both states go in the log for the next time.
-    private func clearLeftoverModifiers(before what: String) {
-        let hid = CGEventSource.flagsState(.hidSystemState), session = CGEventSource.flagsState(.combinedSessionState)
-        let watched: [(CGEventFlags, Int64, String)] = [(.maskControl, 59, "Control"), (.maskAlternate, 58, "Option"), (.maskShift, 56, "Shift"), (.maskSecondaryFn, 63, "Fn")]
-        let leftover = watched.filter { session.contains($0.0) && !hid.contains($0.0) }
-        Log.io("\(what): modifiers held by the keyboard \(hid.rawValue & 0xFFFF0000), by the session \(session.rawValue & 0xFFFF0000)\(leftover.isEmpty ? "" : "; releasing \(leftover.map(\.2).joined(separator: ", "))")")
-        guard !leftover.isEmpty else { return }
-        let src = CGEventSource(stateID: .combinedSessionState)
-        var state = session
-        for (f, code, _) in leftover {
-            state.remove(f)
-            guard let e = CGEvent(keyboardEventSource: src, virtualKey: CGKeyCode(code), keyDown: false) else { continue }
-            e.type = .flagsChanged
-            e.flags = state
-            e.setIntegerValueField(.eventSourceUserData, value: Self.marker)
-            e.post(tap: .cghidEventTap)
-        }
+    private static func remappedGesture(_ gesture: KeyboardGesture, event: CGEvent) -> KeyboardGesture {
+        let code = event.getIntegerValueField(.keyboardEventKeycode)
+        var modifiers = Modifiers()
+        if event.flags.contains(.maskShift) { modifiers.insert(.shift) }
+        if event.flags.contains(.maskControl) { modifiers.insert(.control) }
+        if event.flags.contains(.maskAlternate) { modifiers.insert(.option) }
+        if event.flags.contains(.maskCommand) { modifiers.insert(.command) }
+        return KeyboardGesture(keyCode: code, modifiers: modifiers, characters: characters(of: event),
+                               timestamp: gesture.timestamp, isRepeat: gesture.isRepeat, flags: event.flags)
     }
 
     /// The review layer's arrow Quick Nav, held and chorded as the base layer's is (quickNavArrow) but with a state of
@@ -685,7 +743,7 @@ nonisolated final class KeyboardHandler: @unchecked Sendable {
     private func quickNavArrow(_ type: CGEventType, _ event: CGEvent, _ code: Int64, _ settings: KeySettings) -> Unmanaged<CGEvent>?? {
         guard let name = Self.arrowNames[code], type == .keyDown || type == .keyUp else { return nil }
         if type == .keyUp {
-            if code == arrowDownWhileOff { arrowDownWhileOff = nil }
+            arrowDownWhileOff.up(code: code)
             guard code == arrowHeld else { return nil }   // the chord's second arrow is let go through `quarantined`
             arrowHeld = nil
             if !arrowChorded && !arrowRepeated {
@@ -703,14 +761,18 @@ nonisolated final class KeyboardHandler: @unchecked Sendable {
         // Quick Nav off: arrows go to the app as always; Left and Right together turn Quick Nav on (Mac style).
         if !ArrowQuickNav.applies.value {
             guard bare, !settings.windowsKeys, event.getIntegerValueField(.keyboardEventAutorepeat) == 0 else { return nil }
-            if let first = arrowDownWhileOff, first != code, Set([first, code]) == Set<Int64>([123, 124]) {
-                arrowDownWhileOff = nil
+            if chordEpochSeen != Self.frontAppEpoch { chordEpochSeen = Self.frontAppEpoch; arrowDownWhileOff.clear() }
+            switch arrowDownWhileOff.down(code: code) {
+            case .chord(let gap):
                 quarantined.insert(code)
-                onMain { Log.io("input chord leftArrow+rightArrow (Quick Nav off)"); ArrowQuickNav.turnOnFromChord() }
+                onMain { Log.io("input chord leftArrow+rightArrow (Quick Nav off; the first arrow went down \(gap) ms before the second, not yet let go)"); ArrowQuickNav.turnOnFromChord() }
                 return .some(nil)
+            case .tooSlow(let gap):
+                Log.debug("input chord leftArrow+rightArrow rejected (Quick Nav off; \(gap) ms apart, over the \(Int(QuickNavChord.window * 1000)) ms limit)")
+                return nil
+            case .first:
+                return nil
             }
-            arrowDownWhileOff = code
-            return nil
         }
         guard bare else { return nil }
         // These arrows are swallowed here, before the cut every other key makes in InputManager: without it each move
@@ -721,6 +783,11 @@ nonisolated final class KeyboardHandler: @unchecked Sendable {
             Speech.clearTypedWordBuffer()
             SayAll.stop(byGesture: true)
         }
+        // Quick Nav's arrows never reach InputManager: an arrow closes Find's prompt here and moves (18 Nov 2026), and
+        // stops an opening asked for before it and still queued (19 Nov 2026), by the arrow's time on the gestures' clock.
+        FindPrompt.shared.close(because: "a Quick Nav arrow", arrowAt: UInt64(Double(event.timestamp) / Self.machToNs))
+        // Nor does it reach InputManager's key time: it ends a pressed link's evidence for Safari's page host (19 Nov 2026).
+        onMain { BrowseModeDocument.keyBypassedInputManager() }
         if let first = arrowHeld, first != code, let firstName = Self.arrowNames[first] {
             arrowChorded = true
             quarantined.insert(code)
@@ -767,7 +834,7 @@ nonisolated final class KeyboardHandler: @unchecked Sendable {
         let g = KeyboardGesture(keyCode: code, modifiers: mods, characters: "", timestamp: UInt64(Double(event.timestamp) / Self.machToNs), isRepeat: repeatKey, flags: f)
         // A key with nothing assigned goes to the application (numpad Enter, Equals: typing still works).
         guard Keypad.action(for: g, windows: windows) != nil else { return nil }
-        if type == .keyDown { onMain { Keypad.run(g, windows: windows) } }
+        if type == .keyDown { onMain { BrowseModeDocument.keyBypassedInputManager(); Keypad.run(g, windows: windows) } }
         return .some(nil)
     }
 
@@ -776,86 +843,5 @@ nonisolated final class KeyboardHandler: @unchecked Sendable {
         var chars = [UniChar](repeating: 0, count: 8)
         event.keyboardGetUnicodeString(maxStringLength: 8, actualStringLength: &length, unicodeString: &chars)
         return String(utf16CodeUnits: chars, count: length)
-    }
-
-    /// Text typed as key events carrying the characters themselves (braille input), marked so the tap ignores them.
-    static func postText(_ s: String) {
-        let src = CGEventSource(stateID: .hidSystemState)
-        for unit in s.utf16 {
-            for down in [true, false] {
-                guard let e = CGEvent(keyboardEventSource: src, virtualKey: 0, keyDown: down) else { continue }
-                var u = unit
-                e.keyboardSetUnicodeString(stringLength: 1, unicodeString: &u)
-                // No modifiers: the text rides on the A key, and a modifier the system still thought held went with
-                // it. Fn left over from an arrow key made "few" typed on the display Fn A, macOS's "focus the Dock"
-                // (7 Oct 2026).
-                e.flags = .maskNonCoalesced
-                e.setIntegerValueField(.eventSourceUserData, value: marker)
-                e.post(tap: .cghidEventTap)
-            }
-        }
-    }
-
-    /// A key as if typed, for an AI trying a plugin: the tap handles it (scripts, plugins, echo) like the owner's own.
-    static func postTyped(_ g: KeyboardGesture) {
-        let src = CGEventSource(stateID: .hidSystemState)
-        for down in [true, false] {
-            guard let e = CGEvent(keyboardEventSource: src, virtualKey: CGKeyCode(g.keyCode), keyDown: down) else { continue }
-            e.flags = g.flags.union(.maskNonCoalesced)
-            e.setIntegerValueField(.eventSourceUserData, value: g.modifiers.contains(.turnover) ? typedTurnOverMarker : typedMarker)
-            e.post(tap: .cghidEventTap)
-            usleep(20_000)
-        }
-    }
-
-    /// Keys down together, then up: a chord VoiceOver recognises (Left and Right for Quick Nav), marked so the tap ignores them.
-    static func postChord(_ codes: [Int64]) {
-        let src = CGEventSource(stateID: .hidSystemState)
-        var held: CGEventFlags = [.maskSecondaryFn, .maskNumericPad]
-        for down in [true, false] {
-            for code in (down ? codes : codes.reversed()) {
-                guard let e = CGEvent(keyboardEventSource: src, virtualKey: CGKeyCode(code), keyDown: down) else { continue }
-                e.flags = held
-                e.setIntegerValueField(.eventSourceUserData, value: marker)
-                e.post(tap: .cghidEventTap)
-                usleep(15_000)
-            }
-            held = [.maskSecondaryFn, .maskNumericPad]
-        }
-    }
-
-    /// NVDA's gesture.send: the key down and up, marked so the tap ignores them.
-    static func post(_ g: KeyboardGesture) {
-        let src = CGEventSource(stateID: .hidSystemState)
-        // Modifiers the hand still holds that the key sent must not carry (Control and Option under VO-Left, when the
-        // key sent is a bare Left): Word asked the keyboard itself and saw them held, and did nothing with the arrow
-        // (17 Oct 2026: "VO Left wasn't behaving"; the key driver, holding nothing, had it working). They are
-        // lifted around the key and put back after, as events the tap lets through.
-        let held = CGEventSource.flagsState(.hidSystemState)
-        let lift: [(CGEventFlags, Int64)] = [(.maskControl, 59), (.maskAlternate, 58), (.maskCommand, 55), (.maskShift, 56)].filter { held.contains($0.0) && !g.flags.contains($0.0) }
-        var state = held
-        func modifier(_ code: Int64, down: Bool, flags: CGEventFlags) {
-            guard let e = CGEvent(keyboardEventSource: src, virtualKey: CGKeyCode(code), keyDown: down) else { return }
-            e.type = .flagsChanged
-            e.flags = flags
-            e.setIntegerValueField(.eventSourceUserData, value: marker)
-            e.post(tap: .cghidEventTap)
-        }
-        for (f, code) in lift { state.remove(f); modifier(code, down: false, flags: state) }
-        let toApp = arrowTarget(code: Int64(g.keyCode), flags: g.flags)
-        for down in [true, false] {
-            guard let e = CGEvent(keyboardEventSource: src, virtualKey: CGKeyCode(g.keyCode), keyDown: down) else { continue }
-            e.flags = g.flags
-            e.setIntegerValueField(.eventSourceUserData, value: marker)
-            if let toApp { e.postToPid(toApp) } else { e.post(tap: .cghidEventTap) }
-        }
-        // Put back only what the hand still holds: a release in between was overwritten by a synthetic press, and
-        // every key after carried Control until the next tap of it (the code review, 17 Oct 2026).
-        let stillHeld = CGEventSource.flagsState(.hidSystemState)
-        for (f, code) in lift.reversed() where stillHeld.contains(f) { state.insert(f); modifier(code, down: true, flags: state) }
-        if !lift.isEmpty {
-            let gone = lift.filter { !stillHeld.contains($0.0) }.count
-            Log.io("key sent with \(lift.count) held modifier\(lift.count == 1 ? "" : "s") lifted around it\(gone > 0 ? "; \(gone) released meanwhile, left up" : "")")
-        }
     }
 }

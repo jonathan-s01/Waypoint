@@ -83,7 +83,7 @@ enum Anywhere {
             guard let name = app.localizedName, let path = app.bundleURL?.path else { continue }
             let pid = app.processIdentifier
             out.append(Candidate(entry: AnywhereEntry(id: "app:" + path, name: name, kind: .app, place: place)) {
-                ApplicationChooser.switchTo(ApplicationChooser.Entry(pid: pid, name: name, windows: []), window: nil)
+                ApplicationChooser.switchTo(ApplicationChooser.Entry(pid: pid, name: name, windows: []), window: nil, previous: NSWorkspace.shared.frontmostApplication)
             })
         }
         return out

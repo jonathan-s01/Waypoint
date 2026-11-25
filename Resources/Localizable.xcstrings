@@ -18,6 +18,9 @@
         }
       }
     },
+    "%@" : {
+      "comment" : "The list for one NVDA add-on; the placeholder is its name"
+    },
     "%@\n\nVoiceOver is still on. Check for an update from the TurnOver menu next time, or send feedback." : {
       "comment" : "An alert: %@ is the error",
       "extractionState" : "stale",
@@ -108,6 +111,9 @@
         }
       }
     },
+    "%@ It gives no address for problems. The plugin's name and version and TurnOver's build are on the clipboard." : {
+      "comment" : "Said after Report a problem with a plugin that has no address: the first sentence says who looks after it"
+    },
     "%@ Report the problem at github.com/TurnOver-For-Mac/turnover/issues." : {
       "comment" : "Feedback: %@ says where the report is",
       "localizations" : {
@@ -121,6 +127,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ Sorunu github.com/TurnOver-For-Mac/turnover/issues adresinden bildirin."
+          }
+        }
+      }
+    },
+    "%@ To report a problem, write to %@. The address, the plugin's name and version and TurnOver's build are on the clipboard." : {
+      "comment" : "Said after Report a problem with a plugin: the first sentence says who looks after it, then the address",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ To report a problem, write to %2$@. The address, the plugin's name and version and TurnOver's build are on the clipboard."
           }
         }
       }
@@ -256,6 +273,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%1$@ uygulama bağlantısı, %2$@ satır duyuldu."
+          }
+        }
+      }
+    },
+    "%@ asks: %@" : {
+      "comment" : "A plugin's question for a typed answer: the plugin's name, then the words its author gave it",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ asks: %2$@"
           }
         }
       }
@@ -520,6 +548,20 @@
     "%@ content" : {
       "comment" : "Entry of the tools list of a side panel that goes into what the panel shows: %@ is the panel's name"
     },
+    "%@ could not be fetched: %@. Nothing was changed." : {
+      "comment" : "A download failed: the placeholders are the add-on's name and the reason, which has no full stop",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ could not be fetched: %2$@. Nothing was changed."
+          }
+        }
+      }
+    },
+    "%@ could not be fetched: its download is larger than TurnOver will read, 50 megabytes. Nothing was changed." : {
+      "comment" : "A download was too big; the placeholder is the add-on's name"
+    },
     "%@ could not be removed: %@" : {
       "comment" : "A plugin not removed: %1$@ is its name, %2$@ the error",
       "localizations" : {
@@ -542,6 +584,9 @@
           }
         }
       }
+    },
+    "%@ could not do that." : {
+      "comment" : "Said when a script's command fails; the placeholder is the plugin's name"
     },
     "%@ could not start" : {
       "comment" : "Spoken message: a launcher shell command could not be run"
@@ -596,6 +641,20 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ iletişim kutusu"
+          }
+        }
+      }
+    },
+    "%@ did not work, and the tool did not say why. Nothing was changed." : {
+      "comment" : "A store step failed with no reason: %@ names the step"
+    },
+    "%@ did not work: %@. Nothing was changed." : {
+      "comment" : "A store step failed: %1$@ names the step, %2$@ is the tool's own reason",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ did not work: %2$@. Nothing was changed."
           }
         }
       }
@@ -699,6 +758,34 @@
     },
     "%@ group" : {
       "comment" : "A cluster of controls in the tools panel, named by its first control: %@ is that control's name"
+    },
+    "%@ has a script waiting for approval. It will not run until you approve it in the Plugins menu." : {
+      "comment" : "Said once when an app comes to the front that has a plugin whose script is not approved; the placeholder is the plugin's name"
+    },
+    "%@ has a script. It works in every app you use, not only one, and goes on working whichever app you are in, except in password and permission dialogs and the login window. \"Those apps\" below means every app." : {
+      "comment" : "Said when asking a person to approve a plugin's script that works in every app: the plugin's name"
+    },
+    "%@ has a script. It works only in %@, and does nothing while you are in another app." : {
+      "comment" : "Said when asking a person to approve a plugin's script: the plugin, then the one app it works in",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ has a script. It works only in %2$@, and does nothing while you are in another app."
+          }
+        }
+      }
+    },
+    "%@ has a script. It works only in these apps: %@, and does nothing while you are in another app." : {
+      "comment" : "Said when asking a person to approve a plugin's script: the plugin, then the apps it works in",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ has a script. It works only in these apps: %2$@, and does nothing while you are in another app."
+          }
+        }
+      }
     },
     "%@ headings" : {
       "comment" : "A count on a page",
@@ -879,8 +966,33 @@
         }
       }
     },
+    "%@ is converted into a draft in %@. The translation is not reviewed." : {
+      "comment" : "An add-on was converted; the placeholders are its name and the folder",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ is converted into a draft in %2$@. The translation is not reviewed."
+          }
+        }
+      }
+    },
+    "%@ is looked after by %@." : {
+      "comment" : "Said when a person asks to report a problem with a plugin; the placeholders are the plugin's name and its author",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ is looked after by %2$@."
+          }
+        }
+      }
+    },
     "%@ is no longer in the menu" : {
       "comment" : "Spoken message: a menu item's name"
+    },
+    "%@ is not a key combination TurnOver knows." : {
+      "comment" : "Said to a plugin author; the placeholder is the key"
     },
     "%@ is not available" : {
       "comment" : "A system panel could not be opened: %@ is its name",
@@ -932,6 +1044,9 @@
           }
         }
       }
+    },
+    "%@ is not responding" : {
+      "comment" : "Spoken message: an app has stopped answering"
     },
     "%@ is now %@" : {
       "comment" : "A piece of the reading order moved: its name, then its new place (2nd)",
@@ -1038,6 +1153,15 @@
           }
         }
       }
+    },
+    "%@ is responding again" : {
+      "comment" : "Spoken message: an app that had stopped answering answers again"
+    },
+    "%@ is speaking" : {
+      "comment" : "Zoom: the answer to who is speaking; the value is a person's name"
+    },
+    "%@ is waiting for approval in the Plugins menu." : {
+      "comment" : "Said when a command of a plugin whose script is not approved is chosen; the placeholder is the plugin's name"
     },
     "%@ isn't available in TurnOver" : {
       "comment" : "A VoiceOver feature TurnOver lacks: %@ is the feature",
@@ -1631,6 +1755,9 @@
     "%@ percent a press" : {
       "comment" : "Launcher: how much one volume key press changes the volume; %@ is a number\nVolume step choice: %@ is a number"
     },
+    "%@ plugin scripts are on." : {
+      "comment" : "Said once as TurnOver starts: how many plugin scripts may run"
+    },
     "%@ plugins loaded" : {
       "comment" : "Plugins reloaded",
       "localizations" : {
@@ -1845,6 +1972,18 @@
           }
         }
       }
+    },
+    "%@ script is off. It needs your approval to run again." : {
+      "comment" : "Said when a plugin's script is turned off from the menu; the placeholder is the plugin's name"
+    },
+    "%@ script is on again." : {
+      "comment" : "Said when a plugin's script that was turned off after problems is started again; the placeholder is the plugin's name"
+    },
+    "%@ script is on." : {
+      "comment" : "Said when a plugin's script is approved; the placeholder is the plugin's name"
+    },
+    "%@ script reloaded." : {
+      "comment" : "Said in developer mode when a plugin's script was saved and started again; the placeholder is the plugin's name"
     },
     "%@ seconds" : {
       "comment" : "Braille auto scroll's speed: %@ is seconds",
@@ -2162,6 +2301,9 @@
     },
     "%@ was not found" : {
       "comment" : "Spoken message: a launcher file or folder is not there; %@ names it"
+    },
+    "%@ was not used: its file is not the one NVDA's store listed, so nothing was read. That is at the store's or its author's end, not yours. Nothing was changed." : {
+      "comment" : "A download's checksum did not match; the placeholder is the add-on's name"
     },
     "%@ will not be announced. Saved" : {
       "comment" : "An item silenced: %@ is its name",
@@ -2952,6 +3094,18 @@
         }
       }
     },
+    "%@, script off until TurnOver starts again" : {
+      "comment" : "A plugin's script in the Plugins menu after a hang; the placeholder is the plugin's name"
+    },
+    "%@, script on" : {
+      "comment" : "A plugin's script in the Plugins menu, running; the placeholder is the plugin's name"
+    },
+    "%@, script turned off after problems" : {
+      "comment" : "A plugin's script in the Plugins menu, turned off after problems; the placeholder is the plugin's name"
+    },
+    "%@, script waiting for approval" : {
+      "comment" : "A plugin's script in the Plugins menu that has not been approved; the placeholder is the plugin's name"
+    },
     "%@, scroll area" : {
       "comment" : "A scroll area the keyboard lands on: %@ is what it holds",
       "localizations" : {
@@ -2970,7 +3124,7 @@
       }
     },
     "%@, selected" : {
-      "comment" : "Text selected in browse mode: %@ is the text",
+      "comment" : "Text selected in browse mode: %@ is the text\nThe folder just selected in Notes",
       "localizations" : {
         "ru" : {
           "stringUnit" : {
@@ -3007,6 +3161,9 @@
           }
         }
       }
+    },
+    "%@, type to filter" : {
+      "comment" : "A list that narrows as you type, opened before all its items are in: its title, with no count yet"
     },
     "%@, unselected" : {
       "comment" : "Text no longer selected in browse mode: %@ is the text",
@@ -3165,8 +3322,19 @@
         }
       }
     },
+    "%@. It is now %@" : {
+      "comment" : "Asking for a plugin's text option: the author's label for it, then its value now",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@. It is now %2$@"
+          }
+        }
+      }
+    },
     "%@. Or Down Arrow for a list" : {
-      "comment" : "The Waypoint layer's letters, then the list",
+      "comment" : "The TurnOver layer's letters, then the list",
       "localizations" : {
         "ru" : {
           "stringUnit" : {
@@ -3195,6 +3363,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@. Yazın, sonra Return. Esc vazgeçer"
+          }
+        }
+      }
+    },
+    "%@: %@" : {
+      "comment" : "A plugin's list to choose from: the plugin's name, then the title its author gave it\nSaid in developer mode when a script's command fails; the placeholders are the plugin's name and the script's own error",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@: %2$@"
           }
         }
       }
@@ -3359,6 +3538,9 @@
     "%@: pages don't offer it to Waypoint" : {
       "comment" : "A VoiceOver feature pages don't give Waypoint: %@ is the feature"
     },
+    "%@: the view did not change" : {
+      "comment" : "Notes did not confirm the requested view"
+    },
     "%@: types %@" : {
       "comment" : "Braille help: the dots, then what they type",
       "localizations" : {
@@ -3507,6 +3689,28 @@
         }
       }
     },
+    "%lld controls: %@" : {
+      "comment" : "VO-Space on a line holding several controls, none pressed: how many, then their names",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld controls: %2$@"
+          }
+        }
+      }
+    },
+    "%lld fields: %@" : {
+      "comment" : "VO-Space on a label for several fields, none acted on: how many, then their names",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld fields: %2$@"
+          }
+        }
+      }
+    },
     "%lld hours" : {
       "comment" : "A battery's time: hours",
       "localizations" : {
@@ -3585,6 +3789,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%lld saat önce"
+          }
+        }
+      }
+    },
+    "%lld links: %@" : {
+      "comment" : "VO-Space on a line holding several links, none pressed: how many, then their names",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld links: %2$@"
           }
         }
       }
@@ -3812,7 +4027,7 @@
       }
     },
     ", by %@" : {
-      "comment" : "A plugin's author, after its name",
+      "comment" : "A plugin's author, after its name\nAn NVDA add-on in a list: its author, after its name",
       "localizations" : {
         "ru" : {
           "stringUnit" : {
@@ -3883,6 +4098,9 @@
         }
       }
     },
+    ", version %@" : {
+      "comment" : "An add-on's version after its name"
+    },
     ". Caps Lock pressed twice toggles caps lock" : {
       "comment" : "In the key list, after the speech keys",
       "localizations" : {
@@ -3899,6 +4117,15 @@
           }
         }
       }
+    },
+    ". Looked at before: can be converted." : {
+      "comment" : "An NVDA add-on an earlier conversion found can be converted"
+    },
+    ". Looked at before: needs work." : {
+      "comment" : "An NVDA add-on an earlier conversion found needs a person's work"
+    },
+    ". Not for the Mac%@." : {
+      "comment" : "An NVDA add-on that cannot come across; the placeholder is the reason, with its colon, or empty"
     },
     "1 app connection, %@ lines heard." : {
       "comment" : "The speech port's status",
@@ -4187,6 +4414,9 @@
         }
       }
     },
+    "1 plugin script is on." : {
+      "comment" : "Said once as TurnOver starts: one plugin script may run"
+    },
     "1 row" : {
       "comment" : "A table's size",
       "localizations" : {
@@ -4348,7 +4578,7 @@
       "comment" : "An update found: %@ is its build"
     },
     "A ask for this app" : {
-      "comment" : "A letter's command, as the Waypoint layer lists them",
+      "comment" : "A letter's command, as the TurnOver layer lists them",
       "localizations" : {
         "ru" : {
           "stringUnit" : {
@@ -4466,25 +4696,31 @@
     "A key of the review layer: reads around while the keyboard stays in the field" : {
       "comment" : "A command, as the key list and keyboard help say it"
     },
-    "A letter or digit with no command in browse mode: nothing" : {
+    "A key that would type, with no command in browse mode: nothing" : {
       "comment" : "A command, as the key list and keyboard help say it",
       "localizations" : {
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Буква или цифра без команды в режиме просмотра: ничего"
+            "value" : "Клавиша, вводящая текст, без команды в режиме просмотра: ничего"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tarama kipinde komutu olmayan harf ya da rakam: hiçbir şey"
+            "value" : "Tarama kipinde komutu olmayan, yazı yazacak tuş: hiçbir şey"
           }
         }
       }
     },
     "A link such as https://example.com, or a file or folder such as ~/Documents." : {
 
+    },
+    "A list has 1 to %lld items." : {
+      "comment" : "Said to a plugin author; the placeholder is a number"
+    },
+    "A list needs a title of at most %lld characters." : {
+      "comment" : "Said to a plugin author; the placeholder is a number"
     },
     "A list of apps for each reader, a mode (TurnOver in its apps, everywhere, or VoiceOver everywhere), and switching between the readers as you change apps. The list is under Tools in the TurnOver menu while this is on. Off, TurnOver reads everywhere while it is on." : {
       "extractionState" : "stale",
@@ -4506,6 +4742,44 @@
     "A list of apps for each reader, a mode (Waypoint in its apps, everywhere, or VoiceOver everywhere), and switching between the readers as you change apps. The list is under Tools in the Waypoint menu while this is on. Off, Waypoint reads everywhere while it is on." : {
 
     },
+    "A menu item cannot be pressed like a button. Choose it with menu, which checks it first." : {
+      "comment" : "Said to a plugin author when a script presses an item that is part of a menu"
+    },
+    "A password field has the focus, so a plugin cannot ask you anything now." : {
+      "comment" : "Said to a plugin author"
+    },
+    "A password field has the focus, so a plugin cannot change anything now." : {
+      "comment" : "Said to a plugin author"
+    },
+    "A password field has the focus, so a plugin cannot press keys now." : {
+      "comment" : "Said to a plugin author"
+    },
+    "A password field is never changed by a plugin." : {
+      "comment" : "Said to a plugin author"
+    },
+    "A password field is never read to a plugin." : {
+      "comment" : "Said to a plugin author"
+    },
+    "A place in the text is a whole number from 0 (before the first character)." : {
+      "comment" : "Said to a plugin author when a caret or selection place is not a whole number"
+    },
+    "A plugin may keep at most %lld KB in all, and that would be more." : {
+      "comment" : "Said to a plugin author; the placeholder is a number of kilobytes"
+    },
+    "A plugin may not choose that: %@." : {
+      "comment" : "Said to a plugin author when a script's menu path is refused; the placeholder is the reason"
+    },
+    "A plugin may not send %@: %@." : {
+      "comment" : "Said to a plugin author when a script's key is refused; the placeholders are the key and the reason",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "A plugin may not send %1$@: %2$@."
+          }
+        }
+      }
+    },
     "A public request on GitHub, filled in with how the app is built, never what is in it. You need a GitHub account" : {
       "localizations" : {
         "ru" : {
@@ -4521,6 +4795,9 @@
           }
         }
       }
+    },
+    "A question is answered when the person answers it." : {
+      "comment" : "Said to a plugin author when a script's question reaches the wrong door"
     },
     "A report in TurnOver's reports folder, and the problem form on GitHub" : {
       "extractionState" : "stale",
@@ -4540,6 +4817,9 @@
       }
     },
     "A report in Waypoint's reports folder, and the problem form on GitHub" : {
+
+    },
+    "A script you approve in developer mode starts again by itself when you save it, as long as it asks for no more" : {
 
     },
     "A short form opens in your browser, already filled in with %@ and how it is built, never what is in it. You say what happens. Nothing to install; you need a free GitHub account" : {
@@ -4612,6 +4892,9 @@
           }
         }
       }
+    },
+    "A tone is 100 to 4000 hertz and 10 to 500 milliseconds." : {
+      "comment" : "Said to a plugin author when a tone's pitch or length is out of range"
     },
     "A web game is connected on port %@." : {
       "comment" : "The Steam program's status: %@ is the port",
@@ -4696,7 +4979,7 @@
       }
     },
     "About %@" : {
-      "comment" : "Title of the overview list of an app: %@ is the app's name"
+      "comment" : "An item that reads out the details of an NVDA add-on; the placeholder is its name\nTitle of the overview list of an app: %@ is the app's name"
     },
     "About TurnOver" : {
       "extractionState" : "stale",
@@ -4785,6 +5068,9 @@
           }
         }
       }
+    },
+    "Activates Claude's focused menu item" : {
+      "comment" : "A command, as the key list and keyboard help say it"
     },
     "Activates the element at the caret" : {
       "comment" : "A command, as the key list and keyboard help say it",
@@ -5001,6 +5287,9 @@
         }
       }
     },
+    "All NVDA's add-ons" : {
+
+    },
     "All day" : {
       "comment" : "A field of a Calendar event",
       "localizations" : {
@@ -5126,6 +5415,12 @@
     "An arrow key, Return or Escape, while skimming" : {
       "comment" : "A command, as the key list and keyboard help say it"
     },
+    "An item has no text." : {
+      "comment" : "Said to a plugin author"
+    },
+    "An option of %@" : {
+      "comment" : "A hint under a plugin's option in the Plugins menu: the plugin's name"
+    },
     "Another conversation is open, not the one chosen. Press Return again." : {
       "comment" : "Spoken message",
       "localizations" : {
@@ -5142,6 +5437,9 @@
           }
         }
       }
+    },
+    "Another question is open. Ask when it has been answered." : {
+      "comment" : "Said to a plugin author when a script asks while a question is already open"
     },
     "Anywhere" : {
       "comment" : "Waypoint's list of apps, menu commands and commands that you search by typing"
@@ -5252,6 +5550,12 @@
         }
       }
     },
+    "Approve" : {
+
+    },
+    "Approve it?" : {
+      "comment" : "The question after what a plugin's script can do"
+    },
     "Apps TurnOver reads" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -5344,6 +5648,9 @@
         }
       }
     },
+    "Ask NVDA's store for its list of add-ons" : {
+
+    },
     "Ask TurnOver for the parts" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -5413,6 +5720,9 @@
         }
       }
     },
+    "Asked again the next time" : {
+
+    },
     "Asked again the next time it wants to speak" : {
       "localizations" : {
         "ru" : {
@@ -5428,6 +5738,12 @@
           }
         }
       }
+    },
+    "Asking NVDA's store" : {
+      "comment" : "Said while NVDA's add-on store is asked"
+    },
+    "Asking NVDA's store about %@" : {
+      "comment" : "Said while the store is asked about one add-on; the placeholder is its name"
     },
     "Audio ducking isn't available on this Mac" : {
       "comment" : "Spoken message",
@@ -5462,6 +5778,9 @@
           }
         }
       }
+    },
+    "Automatic focus mode for caret movement" : {
+
     },
     "Automatic%@" : {
       "localizations" : {
@@ -6103,6 +6422,9 @@
         }
       }
     },
+    "By %@." : {
+      "comment" : "An add-on's author"
+    },
     "By keyboard style" : {
       "localizations" : {
         "ru" : {
@@ -6152,7 +6474,7 @@
       }
     },
     "C copy last spoken" : {
-      "comment" : "A letter's command, as the Waypoint layer lists them",
+      "comment" : "A letter's command, as the TurnOver layer lists them",
       "localizations" : {
         "ru" : {
           "stringUnit" : {
@@ -6407,6 +6729,9 @@
         }
       }
     },
+    "Changes the Notes view and reads the focus" : {
+      "comment" : "A command"
+    },
     "Changes the slider and says its new value" : {
       "comment" : "A command, as the key list and keyboard help say it",
       "localizations" : {
@@ -6512,6 +6837,15 @@
         }
       }
     },
+    "Choose it to hear what the script can do, and approve it" : {
+      "comment" : "A hint for a plugin's script waiting for approval"
+    },
+    "Choose it to start the script again" : {
+      "comment" : "A hint for a plugin's script that was turned off after problems"
+    },
+    "Choose it to turn the script off and take your approval away" : {
+      "comment" : "A hint for a plugin's script that is on"
+    },
     "Choose the keys you know: VoiceOver's, NVDA's or JAWS's. Command Control Comma, then K, changes the style; the VO keys do what they do in VoiceOver. Command Control M opens the TurnOver menu. Every setting is in the Settings window: Command Control Comma, then S. To bring your VoiceOver voice and speed with you: Command Control Comma, then V." : {
       "comment" : "A welcome page",
       "extractionState" : "stale",
@@ -6529,6 +6863,9 @@
           }
         }
       }
+    },
+    "Chooses a Claude menu item" : {
+      "comment" : "A command, as the key list and keyboard help say it"
     },
     "Chooses extra keys to hold while clicking to place the cursor without clicking" : {
       "comment" : "A command, as the key list and keyboard help say it"
@@ -7147,6 +7484,12 @@
         }
       }
     },
+    "Confirms a Claude session deletion" : {
+      "comment" : "A keyboard command"
+    },
+    "Connect" : {
+
+    },
     "Contacts" : {
       "comment" : "A group of commands in the key list",
       "localizations" : {
@@ -7248,6 +7591,15 @@
           }
         }
       }
+    },
+    "Convert it myself" : {
+
+    },
+    "Convert with %@" : {
+
+    },
+    "Converting %@. This can take a while" : {
+      "comment" : "Said while an NVDA add-on is converted; the placeholder is its name"
     },
     "Copied" : {
       "comment" : "Copied to the clipboard",
@@ -7526,6 +7878,9 @@
         }
       }
     },
+    "Could not open the Claude app. The folder is %@." : {
+      "comment" : "Claude could not be opened: %@ is the folder"
+    },
     "Could not remove it" : {
       "comment" : "Spoken message",
       "localizations" : {
@@ -7617,6 +7972,17 @@
         }
       }
     },
+    "Could not start %@: %@. The folder is %@." : {
+      "comment" : "An AI tool could not start: its name, why, then the folder",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Could not start %1$@: %2$@. The folder is %3$@."
+          }
+        }
+      }
+    },
     "Could not start Steam in the %@ bottle: %@" : {
       "comment" : "The Steam program's message",
       "localizations" : {
@@ -7690,6 +8056,9 @@
           }
         }
       }
+    },
+    "Credited as %@." : {
+      "comment" : "Said after the credit name is kept; the placeholder is the name"
     },
     "CrossOver is not installed, so Steam in the %@ bottle cannot be started." : {
       "comment" : "Steam speech: %@ is a CrossOver bottle",
@@ -7830,7 +8199,7 @@
       }
     },
     "D direct" : {
-      "comment" : "A letter's command, as the Waypoint layer lists them",
+      "comment" : "A letter's command, as the TurnOver layer lists them",
       "localizations" : {
         "ru" : {
           "stringUnit" : {
@@ -8027,6 +8396,12 @@
         }
       }
     },
+    "Deleting %@" : {
+      "comment" : "Acknowledges a requested deletion; does not claim success"
+    },
+    "Deleting %@, 2 sessions" : {
+      "comment" : "Acknowledges a requested deletion; does not claim success"
+    },
     "Describe the image at the cursor" : {
       "localizations" : {
         "ru" : {
@@ -8196,6 +8571,18 @@
           }
         }
       }
+    },
+    "Developer mode for scripts" : {
+
+    },
+    "Developer mode for scripts could not be changed." : {
+      "comment" : "Said when the developer mode switch could not be saved"
+    },
+    "Developer mode for scripts is on." : {
+      "comment" : "Said once as TurnOver starts when developer mode for plugin scripts is on"
+    },
+    "Developer mode for scripts is on. A script you approve now keeps running when you save changes to it, as long as it asks for no more apps or abilities. TurnOver says so each time it starts." : {
+      "comment" : "Said when developer mode for plugin scripts is turned on"
     },
     "Developer: %@" : {
       "comment" : "An app's developer",
@@ -8762,7 +9149,7 @@
       }
     },
     "E screen interface" : {
-      "comment" : "A letter's command, as the Waypoint layer lists them",
+      "comment" : "A letter's command, as the TurnOver layer lists them",
       "localizations" : {
         "ru" : {
           "stringUnit" : {
@@ -8798,6 +9185,9 @@
     },
     "Each is explained in the Waypoint menu, What to test in build %@." : {
       "comment" : "A welcome page after an update: the build"
+    },
+    "Each item is text of at most %lld characters." : {
+      "comment" : "Said to a plugin author; the placeholder is a number"
     },
     "Each item's keyboard shortcut" : {
       "localizations" : {
@@ -8989,6 +9379,9 @@
     },
     "Every key normally stops what is being said. Turn this on for a key that should leave speech alone, such as volume." : {
 
+    },
+    "Every plugin is off until TurnOver starts again." : {
+      "comment" : "Said when the person turned off every plugin, rules and scripts, from the Plugins menu"
     },
     "Every setting, in a window with sections down the side" : {
       "localizations" : {
@@ -9205,6 +9598,9 @@
           }
         }
       }
+    },
+    "Find an add-on in NVDA's store and convert it into a draft plugin for your own AI tool or you to finish. Asks NVDA's store only after you agree" : {
+
     },
     "Find commands" : {
       "localizations" : {
@@ -9944,7 +10340,7 @@
       "comment" : "Hint on a menu item from the list's menu, not the item's"
     },
     "G gesture control" : {
-      "comment" : "A letter's command, as the Waypoint layer lists them",
+      "comment" : "A letter's command, as the TurnOver layer lists them",
       "localizations" : {
         "ru" : {
           "stringUnit" : {
@@ -10390,7 +10786,7 @@
       }
     },
     "H guide" : {
-      "comment" : "A letter's command, as the Waypoint layer lists them",
+      "comment" : "A letter's command, as the TurnOver layer lists them",
       "localizations" : {
         "ru" : {
           "stringUnit" : {
@@ -10704,7 +11100,7 @@
       }
     },
     "I describe image" : {
-      "comment" : "A letter's command, as the Waypoint layer lists them",
+      "comment" : "A letter's command, as the TurnOver layer lists them",
       "localizations" : {
         "ru" : {
           "stringUnit" : {
@@ -10755,6 +11151,9 @@
           }
         }
       }
+    },
+    "In %@ it can only read and speak: passwords, settings, terminals and browsers are like this. It can never press, type or choose anything there, whatever else it is allowed to do." : {
+      "comment" : "Said when asking a person to approve a plugin's script that works in a sensitive app, where scripts may only read and speak; the placeholder is the app names"
     },
     "In Steam's Big Picture menu: %@" : {
       "comment" : "A command, as the key list and keyboard help say it: %@ is the key",
@@ -11109,9 +11508,6 @@
     "In a toolbar: the previous control; the edge sound at the first" : {
       "comment" : "A command, as the key list and keyboard help say it"
     },
-    "In a web page, a plain text is read as its whole paragraph or heading, so bold, emphasized or linked words in it do not start a new announcement. A link in the paragraph is still said as a link, with its role." : {
-
-    },
     "In edit fields" : {
       "localizations" : {
         "ru" : {
@@ -11127,6 +11523,9 @@
           }
         }
       }
+    },
+    "In passwords, settings, terminals and browsers it can only read and speak. It can never press, type or choose anything there, hear what TurnOver says there or read your clipboard there, whatever else it is allowed to do." : {
+      "comment" : "Said when asking a person to approve a plugin's script that works in every app: what it can do in the sensitive apps"
     },
     "In text, moves the review cursor to the next character (NVDA+Right Arrow)" : {
       "comment" : "A command, as the key list and keyboard help say it",
@@ -11297,6 +11696,15 @@
           }
         }
       }
+    },
+    "In this app a plugin can only read and speak. It can never press, type or choose anything there." : {
+      "comment" : "Said to a plugin author when a script asks to act in a closed app such as Terminal"
+    },
+    "In this app a plugin can only read and speak. It can never read the clipboard there." : {
+      "comment" : "Said to a plugin author when a script reads the clipboard in a closed app such as a password manager"
+    },
+    "In this app a plugin can only read and speak. It cannot ask you to type here." : {
+      "comment" : "Said to a plugin author when a script asks for typed text in a closed app such as a password manager"
     },
     "Input Monitoring is on. TurnOver is ready." : {
       "comment" : "Spoken message",
@@ -11489,6 +11897,66 @@
         }
       }
     },
+    "It asks to do nothing in those apps. It can only think and keep its own notes." : {
+      "comment" : "Said when asking a person to approve a plugin's script that asks for no abilities"
+    },
+    "It can %@, so one person who is not its author reviews its first version and its author; later versions that ask for nothing new and are signed by the same key need none." : {
+      "comment" : "Why a plugin is at the higher level of review; the placeholder lists what it can do"
+    },
+    "It can %@, which is private, and could send it out another way, so a person who is not its author reads every version." : {
+      "comment" : "Why a plugin is at the highest level of review; the placeholder lists what it can do"
+    },
+    "It can change the text or value of a field in those apps, and move the cursor or the selection in it." : {
+      "comment" : "Said when asking a person to approve a plugin's script: the edit ability"
+    },
+    "It can choose commands from those apps' menus." : {
+      "comment" : "Said when asking a person to approve a plugin's script: the menu ability"
+    },
+    "It can move the keyboard focus to an item in those apps." : {
+      "comment" : "Said when asking a person to approve a plugin's script: the focus ability"
+    },
+    "It can never use the internet, read or change your files, see the keys you press, or see a password." : {
+      "comment" : "Said when asking a person to approve a plugin's script that works in every app: what no script can ever do"
+    },
+    "It can never use the internet, read or change your files, see the keys you press, see a password, or reach any other app." : {
+      "comment" : "Said when asking a person to approve a plugin's script: what no script can ever do"
+    },
+    "It can press buttons and other controls in those apps." : {
+      "comment" : "Said when asking a person to approve a plugin's script: the press ability"
+    },
+    "It can press keys in those apps for you." : {
+      "comment" : "Said when asking a person to approve a plugin's script: the keys ability"
+    },
+    "It can put text on the clipboard. It cannot read what is on it unless it also has the clipboardRead ability, which is said separately." : {
+      "comment" : "Said when asking a person to approve a plugin's script: the clipboard ability"
+    },
+    "It can read what is on the screen in those apps, including text you have typed there, the selected text and whole lines, but never a password." : {
+      "comment" : "Said when asking a person to approve a plugin's script: the read ability"
+    },
+    "It can read what you copy: the text on the clipboard, while you are in those apps." : {
+      "comment" : "Said when asking a person to approve a plugin's script: the clipboardRead ability"
+    },
+    "It can speak, change or silence what TurnOver says in those apps, play TurnOver's own sounds and tones, and ask you to choose from a list or type a line." : {
+      "comment" : "Said when asking a person to approve a plugin's script: the say ability"
+    },
+    "It has a signature, but the signature does not match its files, so the files were changed after it was signed." : {
+      "comment" : "Said when asking a person to approve a plugin's script"
+    },
+    "It hears what TurnOver says to you in those apps, as TurnOver says it, except in password fields. It cannot change it or stop it." : {
+      "comment" : "Said when asking a person to approve a plugin's script: the hearSpeech ability"
+    },
+    "It is signed with the key %@. That says who made it, not that it is safe." : {
+      "comment" : "Said when asking a person to approve a plugin's script: the signing key's fingerprint, in groups of four"
+    },
+    "It only reads and speaks in the apps it names, so it has no reviewer: the automatic checks run, and your own approval is the safeguard." : {
+      "comment" : "Why a plugin is at the lowest level of review"
+    },
+    "It works in every app except passwords and permission dialogs, and its keys work in every app." : {
+      "comment" : "Said when asking a person to approve a plugin's script: the everywhere ability"
+    },
+    "It works in every app except passwords and permission dialogs, its keys work in every app, and, because it can also read, it can read what is on the screen wherever you are." : {
+      "comment" : "Said when asking a person to approve a plugin's script: the everywhere ability, for a plugin that can also read"
+    },
     "Item details" : {
       "comment" : "A section of the Settings window",
       "localizations" : {
@@ -11527,7 +11995,7 @@
       "comment" : "An entry in the overview list of an app: opens the list of every item in the window"
     },
     "J that was wrong" : {
-      "comment" : "A letter's command, as the Waypoint layer lists them",
+      "comment" : "A letter's command, as the TurnOver layer lists them",
       "localizations" : {
         "ru" : {
           "stringUnit" : {
@@ -11748,7 +12216,7 @@
       }
     },
     "K keyboard style" : {
-      "comment" : "A letter's command, as the Waypoint layer lists them",
+      "comment" : "A letter's command, as the TurnOver layer lists them",
       "localizations" : {
         "ru" : {
           "stringUnit" : {
@@ -12489,6 +12957,9 @@
         }
       }
     },
+    "Licence: %@." : {
+      "comment" : "An add-on's licence"
+    },
     "Line by line" : {
       "localizations" : {
         "ru" : {
@@ -12811,7 +13282,7 @@
       "comment" : "A command, as the key list and keyboard help say it"
     },
     "M menu" : {
-      "comment" : "A letter's command, as the Waypoint layer lists them",
+      "comment" : "A letter's command, as the TurnOver layer lists them",
       "localizations" : {
         "ru" : {
           "stringUnit" : {
@@ -12859,6 +13330,9 @@
           }
         }
       }
+    },
+    "Made the sound set %@. Choose it in Whose sounds." : {
+      "comment" : "Spoken message after Make a starter set in Settings, Sounds; the name is the new folder's"
     },
     "Mail" : {
       "comment" : "A group of commands in the key list",
@@ -12936,6 +13410,9 @@
     "Make a plugin for this item; label, give a key to, watch or silence the item Waypoint is on, saved as your own plugin for the app" : {
       "comment" : "A command, as the key list and keyboard help say it"
     },
+    "Make a starter set" : {
+
+    },
     "Make one with %@" : {
       "localizations" : {
         "ru" : {
@@ -13000,6 +13477,12 @@
           }
         }
       }
+    },
+    "Makes a draft plugin in a new folder in TurnOver Plugins and opens it, with a brief for finishing it yourself. Nothing is installed or approved" : {
+
+    },
+    "Makes a draft plugin in a new folder in TurnOver Plugins, and gives it to %@ to finish. Nothing is installed or approved" : {
+
     },
     "Makes the item a window spot of your own (VO-Command-Shift-Right Bracket)" : {
       "comment" : "A command, as the key list and keyboard help say it",
@@ -13313,18 +13796,6 @@
           }
         }
       }
-    },
-    "Mouse interrupts other speech" : {
-
-    },
-    "Mouse moves the cursor" : {
-
-    },
-    "Mouse pointer interrupts other speech" : {
-
-    },
-    "Mouse pointer moves the review cursor" : {
-
     },
     "Mouse pointer reads the whole paragraph" : {
 
@@ -14829,6 +15300,9 @@
         }
       }
     },
+    "Mutes or unmutes your microphone in the meeting, and says which" : {
+      "comment" : "A command, as the key list and keyboard help say it"
+    },
     "My changes for %@" : {
       "localizations" : {
         "ru" : {
@@ -14877,6 +15351,12 @@
           }
         }
       }
+    },
+    "NVDA add-ons" : {
+      "comment" : "A list of every NVDA add-on"
+    },
+    "NVDA add-ons matching %@" : {
+      "comment" : "A list of NVDA add-ons; the placeholder is the search words"
     },
     "NVDA and JAWS keys move by groups too" : {
       "localizations" : {
@@ -14927,6 +15407,15 @@
         }
       }
     },
+    "NVDA's store did not answer in time, so %@ did not happen. Nothing was changed. Try again later." : {
+      "comment" : "A store step took too long: %@ names the step"
+    },
+    "NVDA's store gave an answer TurnOver could not read. Nothing was changed." : {
+      "comment" : "The store's answer did not parse"
+    },
+    "NVDA's store list was empty." : {
+      "comment" : "The store list had nothing in it"
+    },
     "NVDA's: K link, L list, D landmark, I list item" : {
 
     },
@@ -14963,6 +15452,12 @@
           }
         }
       }
+    },
+    "Name to credit for converted add-ons: %@" : {
+      "comment" : "A Plugins menu item; the placeholder is the name"
+    },
+    "Name to credit for converted add-ons: not set" : {
+      "comment" : "A Plugins menu item; the name is asked when first needed"
     },
     "Name undescribed pictures by their file name" : {
       "localizations" : {
@@ -15626,6 +16121,9 @@
         }
       }
     },
+    "No add-on on NVDA's store matches %@." : {
+      "comment" : "A search of NVDA's add-on store found nothing; the placeholder is the words"
+    },
     "No app has asked to speak through TurnOver yet. A game or another program can ask; it appears here, and you choose whether it may." : {
       "extractionState" : "stale",
       "localizations" : {
@@ -15772,6 +16270,12 @@
     "No modifier key was held; nothing changed" : {
       "comment" : "Spoken message"
     },
+    "No name given." : {
+      "comment" : "Said when the credit name was left empty"
+    },
+    "No one is speaking" : {
+      "comment" : "Zoom: the answer to who is speaking, when Zoom marks nobody"
+    },
     "No plugin for %@ yet: make one, or ask" : {
       "localizations" : {
         "ru" : {
@@ -15873,6 +16377,9 @@
           }
         }
       }
+    },
+    "Nobody has checked this script. Approve it only if you wrote it or trust the person who did." : {
+      "comment" : "Said when asking a person to approve a plugin's script that is not from the reviewed library"
     },
     "None" : {
       "localizations" : {
@@ -16188,6 +16695,17 @@
         }
       }
     },
+    "Nothing in %@ can come across to the Mac, so no plugin was made. The report is CONVERSION.md in %@. Nothing is installed or approved." : {
+      "comment" : "An add-on could not be converted; the placeholders are its name and the folder",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Nothing in %1$@ can come across to the Mac, so no plugin was made. The report is CONVERSION.md in %2$@. Nothing is installed or approved."
+          }
+        }
+      }
+    },
     "Nothing in this window can be read. Press %@ to recognise its text, or %@ to describe it." : {
       "comment" : "Spoken message: %1$@ is the key that recognises the text, %2$@ the key that describes the window",
       "localizations" : {
@@ -16264,6 +16782,9 @@
           }
         }
       }
+    },
+    "Nothing was asked of NVDA's store." : {
+      "comment" : "Said after Not now to connecting to NVDA's store"
     },
     "Notification Centre" : {
       "comment" : "Spoken message\nThe Mac's Notification Centre",
@@ -16450,9 +16971,6 @@
         }
       }
     },
-    "Off, only the pointer's own speech gives way and a notification is not cut off. On, the pointer is heard at once, even while something else is talking." : {
-
-    },
     "Off, the cursor stays on." : {
 
     },
@@ -16594,6 +17112,9 @@
         }
       }
     },
+    "On. Turn it off and TurnOver asks nothing of NVDA's store. Only the request is sent: nothing about you or your Mac" : {
+
+    },
     "On: TurnOver turns VoiceOver off as it starts and on as it quits, comes on when VoiceOver turns off and steps aside when VoiceOver comes on. Off: each reader has its own switch and neither turns the other on or off, for VoiceOver reading inside a virtual machine such as Parallels. Either way one reader speaks at a time: while VoiceOver is on, TurnOver is quiet." : {
       "extractionState" : "stale",
       "localizations" : {
@@ -16731,6 +17252,9 @@
         }
       }
     },
+    "Open the sound sets folder" : {
+
+    },
     "Opening %@" : {
       "comment" : "Spoken message\nSpoken message: an app is being opened, %@ is its name\nSpoken message: something is being opened, %@ is its name",
       "localizations" : {
@@ -16744,6 +17268,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ açılıyor"
+          }
+        }
+      }
+    },
+    "Opening %@ in Terminal, in %@. Nothing is installed or approved." : {
+      "comment" : "Handed to an AI tool: its name, then the folder",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Opening %1$@ in Terminal, in %2$@. Nothing is installed or approved."
           }
         }
       }
@@ -16770,6 +17305,9 @@
           }
         }
       }
+    },
+    "Opening Claude Code in %@, with the request typed in: send it. Nothing is installed or approved." : {
+      "comment" : "Handed to Claude: %@ is the folder"
     },
     "Opening Claude Code in the brief's folder. The request is typed in: finish the sentence with what is wrong in %@, and send. Claude can check and install the plugin itself." : {
       "comment" : "Making a plugin with Claude Code: %@ is the app",
@@ -17645,6 +18183,9 @@
         }
       }
     },
+    "Plugin scripts are off until TurnOver starts again." : {
+      "comment" : "Said when a script's command is chosen after a hang\nSaid when a script's menu item is chosen after a hang"
+    },
     "Plugins" : {
       "comment" : "A group of commands in the key list",
       "localizations" : {
@@ -18267,6 +18808,9 @@
         }
       }
     },
+    "Prompt did not receive the keyboard; the held text was not typed" : {
+      "comment" : "Claude browser return could not safely deliver typing"
+    },
     "Punctuation" : {
       "localizations" : {
         "ru" : {
@@ -18567,7 +19111,7 @@
       }
     },
     "R recognition" : {
-      "comment" : "A letter's command, as the Waypoint layer lists them",
+      "comment" : "A letter's command, as the TurnOver layer lists them",
       "localizations" : {
         "ru" : {
           "stringUnit" : {
@@ -18598,6 +19142,9 @@
           }
         }
       }
+    },
+    "Raises or lowers your hand in the meeting, and says which" : {
+      "comment" : "A command, as the key list and keyboard help say it"
     },
     "Raises the speech setting (NVDA+Shift+Control+Up Arrow)" : {
       "comment" : "A command, as the key list and keyboard help say it",
@@ -19243,6 +19790,9 @@
         }
       }
     },
+    "Reads its version, author, licence and source, and whether it can come across" : {
+      "comment" : "Hint for the About item"
+    },
     "Reads on from the reading position (A)" : {
       "comment" : "A command, as the key list and keyboard help say it"
     },
@@ -19571,6 +20121,9 @@
           }
         }
       }
+    },
+    "Reads the selected Claude command" : {
+      "comment" : "A command, as the key list and keyboard help say it"
     },
     "Reads the selected item (VO-F6)" : {
       "comment" : "A command, as the key list and keyboard help say it",
@@ -20102,6 +20655,9 @@
           }
         }
       }
+    },
+    "Report a problem with this plugin" : {
+
     },
     "Report saved in TurnOver's reports folder, open in Finder, as %@. It includes what TurnOver said, which may be the text of emails and pages: issues are public, so attach it only if nothing private was read." : {
       "comment" : "Feedback: where the report is, with speech; %@ is its name",
@@ -21158,6 +21714,17 @@
     "Review layer: on until pressed again (or Escape); its keys read around the field instead of typing" : {
       "comment" : "A command, as the key list and keyboard help say it"
     },
+    "Review level %lld. %@" : {
+      "comment" : "Printed by turnover-plugin check and consent: the level of review a plugin needs, then why",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Review level %1$lld. %2$@"
+          }
+        }
+      }
+    },
     "Review modes" : {
       "comment" : "A VoiceOver feature",
       "localizations" : {
@@ -21265,6 +21832,9 @@
           }
         }
       }
+    },
+    "Rules and scripts both, so you can tell whether a fault is TurnOver's or a plugin's" : {
+
     },
     "Run a Waypoint command" : {
 
@@ -21386,7 +21956,7 @@
       }
     },
     "S settings" : {
-      "comment" : "A letter's command, as the Waypoint layer lists them",
+      "comment" : "A letter's command, as the TurnOver layer lists them",
       "localizations" : {
         "ru" : {
           "stringUnit" : {
@@ -21780,6 +22350,12 @@
         }
       }
     },
+    "Says who is speaking in the meeting" : {
+      "comment" : "A command, as the key list and keyboard help say it"
+    },
+    "Says who looks after it and copies where to write, with its name and version and TurnOver's build" : {
+
+    },
     "Screen Curtain" : {
       "comment" : "A braille chord's command, as braille help says it",
       "localizations" : {
@@ -21981,6 +22557,9 @@
           }
         }
       }
+    },
+    "Search NVDA's add-ons" : {
+
     },
     "Search menus" : {
       "comment" : "Waypoint's search of every menu item"
@@ -22515,6 +23094,9 @@
         }
       }
     },
+    "Sends a reaction in the meeting, and says it" : {
+      "comment" : "A command, as the key list and keyboard help say it"
+    },
     "Sends the command line to the shell" : {
       "comment" : "A command, as the key list and keyboard help say it",
       "localizations" : {
@@ -22876,6 +23458,9 @@
         }
       }
     },
+    "Shows or hides Claude's browser" : {
+      "comment" : "Keyboard command"
+    },
     "Single-letter keys go round the page" : {
       "localizations" : {
         "ru" : {
@@ -22947,7 +23532,7 @@
       }
     },
     "Slash shortcuts" : {
-      "comment" : "A letter's command, as the Waypoint layer lists them",
+      "comment" : "A letter's command, as the TurnOver layer lists them",
       "localizations" : {
         "ru" : {
           "stringUnit" : {
@@ -23143,6 +23728,9 @@
           }
         }
       }
+    },
+    "Source: %@." : {
+      "comment" : "Where an add-on's source can be read"
     },
     "Space opens or closes it." : {
       "comment" : "A hint, said after a pause on an item",
@@ -23594,6 +24182,9 @@
           }
         }
       }
+    },
+    "Starts or stops your video in the meeting, and says which" : {
+      "comment" : "A command, as the key list and keyboard help say it"
     },
     "Starts the count again without sending anything" : {
       "localizations" : {
@@ -24176,6 +24767,9 @@
         }
       }
     },
+    "Switches to a recent or new Claude conversation" : {
+      "comment" : "A command, as the key list and keyboard help say it"
+    },
     "Switches to the first pane" : {
       "comment" : "A command, as the key list and keyboard help say it",
       "localizations" : {
@@ -24296,7 +24890,7 @@
       }
     },
     "T switch reader" : {
-      "comment" : "A letter's command, as the Waypoint layer lists them",
+      "comment" : "A letter's command, as the TurnOver layer lists them",
       "localizations" : {
         "ru" : {
           "stringUnit" : {
@@ -24619,11 +25213,55 @@
         }
       }
     },
+    "That add-on's id is not one TurnOver will use." : {
+      "comment" : "An add-on id with odd characters"
+    },
+    "That command's message was too large to send." : {
+      "comment" : "A plugin command could not be sent to its script"
+    },
+    "That is more than %lld requests in a second, which is the most a script may make." : {
+      "comment" : "Said to a plugin author"
+    },
+    "That is more than %lld things said in %lld seconds, which is the most a script may say." : {
+      "comment" : "Said to a plugin author",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "That is more than %1$lld things said in %2$lld seconds, which is the most a script may say."
+          }
+        }
+      }
+    },
+    "That is not a match TurnOver understands. Use the fields of a match in profile.json: role, title, identifier and so on." : {
+      "comment" : "Said to a plugin author"
+    },
+    "That item could not be pressed." : {
+      "comment" : "Said to a plugin author"
+    },
+    "That item has no text to move in." : {
+      "comment" : "Said to a plugin author"
+    },
+    "That item is not in one of this plugin's apps." : {
+      "comment" : "Said to a plugin author when a script asks about an item in another app"
+    },
+    "That item's value could not be changed." : {
+      "comment" : "Said to a plugin author"
+    },
     "That key already has a binding in this layer." : {
 
     },
     "That launcher key was not saved: it needs a key, and an app, a command, a link or a file to open" : {
       "comment" : "Spoken message"
+    },
+    "That menu item was not found." : {
+      "comment" : "Said to a plugin author"
+    },
+    "That message was sent the wrong way." : {
+      "comment" : "Said to a plugin author"
+    },
+    "That place is past the end of the text." : {
+      "comment" : "Said to a plugin author"
     },
     "That shortcut isn't on this Mac" : {
       "comment" : "Spoken message",
@@ -24641,6 +25279,12 @@
           }
         }
       }
+    },
+    "That value cannot be kept." : {
+      "comment" : "Said to a plugin author"
+    },
+    "That value is larger than %lld KB, which is the most a plugin may store." : {
+      "comment" : "Said to a plugin author"
     },
     "That voice" : {
       "comment" : "A voice with no name",
@@ -24695,6 +25339,18 @@
           }
         }
       }
+    },
+    "The Mac is hiding what is typed, as it does for a password, so a plugin cannot ask you anything now." : {
+      "comment" : "Said to a plugin author when a script asks a question while the Mac reports secure keyboard entry"
+    },
+    "The Mac is hiding what is typed, as it does for a password, so a plugin cannot change anything now." : {
+      "comment" : "Said to a plugin author when a script asks to edit while the Mac reports secure keyboard entry"
+    },
+    "The Mac is hiding what is typed, as it does for a password, so a plugin cannot press keys now." : {
+      "comment" : "Said to a plugin author when a script asks to press keys while the Mac reports secure keyboard entry"
+    },
+    "The Mac is hiding what is typed, as it does for a password, so a plugin cannot read the clipboard now." : {
+      "comment" : "Said to a plugin author when a script reads the clipboard while the Mac reports secure keyboard entry"
     },
     "The Mac's default output" : {
       "localizations" : {
@@ -24873,6 +25529,9 @@
     "The Waypoint guide, until there is a tutorial (VO-Command-F8)" : {
       "comment" : "A command, as the key list and keyboard help say it"
     },
+    "The add-on" : {
+      "comment" : "Stands for an add-on's name in a failure sentence"
+    },
     "The answer has no manifest.json, and no brief was made this session to say which app it is for." : {
       "comment" : "Spoken message",
       "localizations" : {
@@ -24889,6 +25548,9 @@
           }
         }
       }
+    },
+    "The answer was larger than %lld KB, which is the most a message may be." : {
+      "comment" : "Said to a plugin author"
     },
     "The app could not be moved to the Bin; drag it there yourself. Your settings are kept." : {
       "comment" : "Uninstalling",
@@ -24907,6 +25569,9 @@
         }
       }
     },
+    "The app did not answer." : {
+      "comment" : "Said to a plugin author when an app does not answer a question"
+    },
     "The app in front" : {
       "comment" : "The application in front, when it has no name",
       "localizations" : {
@@ -24923,6 +25588,9 @@
           }
         }
       }
+    },
+    "The app in front changed, so the keys were not sent." : {
+      "comment" : "Said to a plugin author when the app in front changed while a script's keys were being checked"
     },
     "The app's button: Open, Get, Update or Re-download; a price needs a second press; while downloading, how far it has got" : {
       "comment" : "A command, as the key list and keyboard help say it",
@@ -24974,6 +25642,12 @@
         }
       }
     },
+    "The approval could not be saved, so the script stays off." : {
+      "comment" : "Said when a plugin script's approval could not be written"
+    },
+    "The approval could not be taken away, so no script will run until TurnOver starts again." : {
+      "comment" : "Said when a plugin script's approval could not be removed: every script is stopped for this run"
+    },
     "The apps TurnOver reads" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -25013,6 +25687,18 @@
     },
     "The apps Waypoint reads, the VoiceOver settings copy, feedback, force quit, plugins" : {
 
+    },
+    "The author gave no description of what it is for." : {
+      "comment" : "Said when asking a person to approve a plugin's script"
+    },
+    "The author of %@ is not named." : {
+      "comment" : "Said when a person asks to report a problem with a plugin whose author is not named; the placeholder is the plugin's name"
+    },
+    "The author says it uses this to: %@" : {
+      "comment" : "Said when asking a person to approve a plugin's script, after what an ability allows: the author's own reason for it, in their words, not TurnOver's"
+    },
+    "The author's own words about it: %@" : {
+      "comment" : "Said when asking a person to approve a plugin's script: the plugin's description, written by its author, not by TurnOver"
     },
     "The board to the left" : {
       "comment" : "A command, as the key list and keyboard help say it",
@@ -25061,6 +25747,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Braille paneli (VO-Komut-F9)"
+          }
+        }
+      }
+    },
+    "The brief is copied, and %@ is opening. Paste it and send. When it answers, save the files it gives you into %@. Nothing is installed or approved." : {
+      "comment" : "Handed to a chat AI: its name, then the folder",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "The brief is copied, and %1$@ is opening. Paste it and send. When it answers, save the files it gives you into %2$@. Nothing is installed or approved."
           }
         }
       }
@@ -25171,6 +25868,9 @@
     "The controls of the area you are in, as a menu; pressed twice, those of the global area" : {
       "comment" : "A command, as the key list and keyboard help say it"
     },
+    "The conversion finished but wrote nothing. Nothing was changed." : {
+      "comment" : "A conversion wrote no files"
+    },
     "The cursor and panels on screen (VO-Command-F11)" : {
       "comment" : "A VoiceOver feature",
       "localizations" : {
@@ -25238,6 +25938,9 @@
           }
         }
       }
+    },
+    "The end of a selection cannot be before its start." : {
+      "comment" : "Said to a plugin author"
     },
     "The event box's next field" : {
       "comment" : "A command, as the key list and keyboard help say it",
@@ -25326,6 +26029,12 @@
           }
         }
       }
+    },
+    "The focus could not be moved to that item." : {
+      "comment" : "Said to a plugin author"
+    },
+    "The folder is %@, opened in Finder. BRIEF.md is the whole task. Nothing is installed or approved." : {
+      "comment" : "A folder handed to the person: %@ is its path"
     },
     "The form is open in your browser, filled in for %@. Add what the app needs, then submit it. Thank you." : {
       "comment" : "Help improve this app: the building block form opened; %@ is the app",
@@ -25969,6 +26678,21 @@
         }
       }
     },
+    "The plugin now asks for more than you approved." : {
+      "comment" : "Why a plugin's script does not run: it wants more abilities than were agreed to"
+    },
+    "The plugin now works in more apps than you approved." : {
+      "comment" : "Why a plugin's script does not run: it names more apps than were agreed to"
+    },
+    "The plugin's app is not in front, so the script is paused and cannot do that now." : {
+      "comment" : "Said to a plugin author when a script asks for something while it is paused"
+    },
+    "The plugin's files cannot be read to check the signature." : {
+      "comment" : "Said when a signature cannot be checked"
+    },
+    "The plugin's files changed since you approved its script." : {
+      "comment" : "Why a plugin's script does not run"
+    },
     "The pointer is not read while a page or Say All is being read out. If pages read themselves when they open, turn off \"Read a page through as it opens\" in Web pages to keep hearing the pointer." : {
 
     },
@@ -26283,6 +27007,53 @@
         }
       }
     },
+    "The script failed to load." : {
+      "comment" : "Said to a plugin author"
+    },
+    "The script is not running." : {
+      "comment" : "A plugin command could not run because its script is off"
+    },
+    "The script is too large to send to its program." : {
+      "comment" : "Said to a plugin author"
+    },
+    "The script of %@ did not load. %@" : {
+      "comment" : "Said once when a plugin's script fails to start; the placeholders are the plugin's name and the first error, with its line, in English",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "The script of %1$@ did not load. %2$@"
+          }
+        }
+      }
+    },
+    "The script of %@ is not ready yet." : {
+      "comment" : "Said when a command is chosen while its script is still starting; the placeholder is the plugin's name"
+    },
+    "The script of %@ is off after problems." : {
+      "comment" : "Said when a command of a script that was turned off is chosen; the placeholder is the plugin's name"
+    },
+    "The script of %@ kept going wrong, so it is turned off until TurnOver starts again. You can turn it on again in the Plugins menu." : {
+      "comment" : "Said once when a plugin's script is turned off after three problems in ten minutes; the placeholder is the plugin's name"
+    },
+    "The script stopped before the command finished." : {
+      "comment" : "A plugin command did not finish because its script was stopped"
+    },
+    "The script was stopped because it was too slow or too greedy." : {
+      "comment" : "Said to a plugin author; the script took too long, or too much memory or processor time"
+    },
+    "The script's program sent far more messages than it may and was stopped." : {
+      "comment" : "Said to a plugin author when the program running its script floods TurnOver with messages"
+    },
+    "The script's program stopped listening and was stopped." : {
+      "comment" : "Said to a plugin author"
+    },
+    "The script's program stopped unexpectedly." : {
+      "comment" : "Said to a plugin author when the helper that runs a script crashed"
+    },
+    "The script's requests are taking too much of TurnOver's time just now. Ask for less, or less often." : {
+      "comment" : "Said to a plugin author"
+    },
     "The sheet's next table (VO-Command-T)" : {
       "comment" : "A command, as the key list and keyboard help say it",
       "localizations" : {
@@ -26334,6 +27105,9 @@
         }
       }
     },
+    "The signature does not match the plugin's files: they changed after it was signed, or it was made with another key." : {
+      "comment" : "Said when a plugin's signature does not fit its files"
+    },
     "The speech port could not listen: %@." : {
       "comment" : "The speech port's status: %@ is why (in English)",
       "localizations" : {
@@ -26366,6 +27140,9 @@
           }
         }
       }
+    },
+    "The starter sound set could not be made." : {
+      "comment" : "Spoken message when Make a starter set in Settings, Sounds failed"
     },
     "The system keeps switching TurnOver's keyboard off; TurnOver turns it back on each time. If keys are being missed, quit and start TurnOver again." : {
       "comment" : "Spoken message",
@@ -26464,6 +27241,9 @@
           }
         }
       }
+    },
+    "The whole list, by name. Type the first letters of a name to jump to it" : {
+
     },
     "The window chooser (keypad Slash, as VoiceOver's)" : {
       "comment" : "A command, as the key list and keyboard help say it",
@@ -26565,6 +27345,9 @@
         }
       }
     },
+    "There was nothing to search for." : {
+      "comment" : "An empty search of NVDA's add-on store"
+    },
     "There's nothing to put back: VoiceOver's settings haven't been copied on this Mac." : {
       "comment" : "Reverting the VoiceOver settings copy",
       "localizations" : {
@@ -26648,6 +27431,17 @@
         }
       }
     },
+    "This needs the %@ ability. Add \"%@\" to abilities in manifest.json, and the person has to agree to it." : {
+      "comment" : "Said to a plugin author when a script asks for something its manifest did not ask for; the placeholder is the ability's name",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "This needs the %1$@ ability. Add \"%2$@\" to abilities in manifest.json, and the person has to agree to it."
+          }
+        }
+      }
+    },
     "This plugin can act on %@: %@. To install it anyway, choose the same Install again within 20 seconds." : {
       "comment" : "A plugin's warnings: the app, then the warnings (in English)",
       "localizations" : {
@@ -26671,8 +27465,50 @@
         }
       }
     },
+    "This plugin's id cannot be used to keep data." : {
+      "comment" : "Said to a plugin author"
+    },
+    "This script has not been approved on this Mac." : {
+      "comment" : "Why a plugin's script does not run"
+    },
     "This sound device has no volume control" : {
       "comment" : "Spoken message: the volume keys cannot change this device's volume"
+    },
+    "This was converted from the NVDA add-on %@ by %@, and converted by %@." : {
+      "comment" : "Said when asking a person to approve a plugin's script converted from an NVDA add-on: the add-on's id, its creator, and who converted it",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "This was converted from the NVDA add-on %1$@ by %2$@, and converted by %3$@."
+          }
+        }
+      }
+    },
+    "This was converted from the NVDA add-on %@ by %@. The person who converted it is not named." : {
+      "comment" : "Said when asking a person to approve a plugin's script converted from an NVDA add-on: the add-on's id and its creator",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "This was converted from the NVDA add-on %1$@ by %2$@. The person who converted it is not named."
+          }
+        }
+      }
+    },
+    "This was converted from the NVDA add-on %@, whose creator is not named, and converted by %@." : {
+      "comment" : "Said when asking a person to approve a plugin's script converted from an NVDA add-on: the add-on's id and who converted it",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "This was converted from the NVDA add-on %1$@, whose creator is not named, and converted by %2$@."
+          }
+        }
+      }
+    },
+    "This was converted from the NVDA add-on %@. Neither its creator nor the person who converted it is named." : {
+      "comment" : "Said when asking a person to approve a plugin's script converted from an NVDA add-on: the add-on's id"
     },
     "This will not be announced. Saved" : {
       "comment" : "An item silenced",
@@ -26690,6 +27526,9 @@
           }
         }
       }
+    },
+    "This works only while one of the plugin's apps is in front." : {
+      "comment" : "Said to a plugin author when a script asks to act while its app is not in front"
     },
     "Those keys are already part of the other chord; nothing changed" : {
       "comment" : "Spoken message"
@@ -26985,6 +27824,9 @@
         }
       }
     },
+    "Turn off every plugin until TurnOver starts again" : {
+
+    },
     "TurnOver" : {
       "comment" : "A group of commands in the key list",
       "extractionState" : "stale",
@@ -27209,6 +28051,15 @@
         }
       }
     },
+    "TurnOver cannot tell what has the focus, so a plugin cannot ask you anything now." : {
+      "comment" : "Said to a plugin author when a script asks a question and the focused item cannot be found"
+    },
+    "TurnOver cannot tell what has the focus, so a plugin cannot change anything now." : {
+      "comment" : "Said to a plugin author when a script asks to edit and the focused item cannot be found"
+    },
+    "TurnOver cannot tell what has the focus, so a plugin cannot press keys now." : {
+      "comment" : "Said to a plugin author when a script asks to press keys and the focused item cannot be found"
+    },
     "TurnOver comes on when VoiceOver turns off, and off when VoiceOver comes on" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -27261,6 +28112,18 @@
         }
       }
     },
+    "TurnOver could not do that." : {
+      "comment" : "Said to a plugin author when a request fails for no stated reason"
+    },
+    "TurnOver could not keep that." : {
+      "comment" : "Said to a plugin author when the stored data could not be written"
+    },
+    "TurnOver could not lock the script's program in its sandbox, so scripts do not run." : {
+      "comment" : "Said when the safety sandbox for plugin scripts could not be turned on"
+    },
+    "TurnOver could not reach the internet. Check the connection and try again" : {
+      "comment" : "A download had no network"
+    },
     "TurnOver could not start" : {
       "comment" : "An alert's title",
       "extractionState" : "stale",
@@ -27279,6 +28142,9 @@
         }
       }
     },
+    "TurnOver could not start its script program." : {
+      "comment" : "Said when starting the helper that runs plugin scripts fails"
+    },
     "TurnOver counts the characters as you type; Tab moves on" : {
       "comment" : "Said once on reaching a password field",
       "extractionState" : "stale",
@@ -27296,6 +28162,12 @@
           }
         }
       }
+    },
+    "TurnOver does not have that item: it was not given to this plugin, or it was given long ago and has been let go." : {
+      "comment" : "Said to a plugin author when a script uses an item handle TurnOver does not hold"
+    },
+    "TurnOver does not know that operation." : {
+      "comment" : "Said to a plugin author when a script asks for something that does not exist"
     },
     "TurnOver doesn't read %@ yet. Read it with TurnOver from now on, for %@?" : {
       "comment" : "A plugin's app TurnOver doesn't read: the app, then the plugin",
@@ -27428,6 +28300,12 @@
           }
         }
       }
+    },
+    "TurnOver has not been told it may ask NVDA's store, so nothing was asked." : {
+      "comment" : "Said when the NVDA add-on store is used without the person having agreed"
+    },
+    "TurnOver has not yet dealt with the script's earlier requests. Ask for less, or less often." : {
+      "comment" : "Said to a plugin author when too many of its requests are waiting"
     },
     "TurnOver has stopped again. Press Command Control Period to start it; if VoiceOver is silent in an app, press it again." : {
       "comment" : "TurnOver Key: TurnOver crashed twice",
@@ -27948,6 +28826,9 @@
         }
       }
     },
+    "TurnOver started again after it stopped responding, so plugin scripts are off until it starts again." : {
+      "comment" : "Said once when TurnOver restarts after a hang and plugin scripts are switched on"
+    },
     "TurnOver stopped unexpectedly. Restarting it." : {
       "comment" : "TurnOver Key: TurnOver crashed",
       "extractionState" : "stale",
@@ -28000,6 +28881,9 @@
           }
         }
       }
+    },
+    "TurnOver will fetch the list of add-ons from NVDA's store on the internet. Nothing about you or your Mac is sent beyond the request itself. Connect?" : {
+      "comment" : "The question asked once before NVDA's add-on store is used"
     },
     "TurnOver will read %@ when it changes. Saved" : {
       "comment" : "An item watched for changes: %@ is its name",
@@ -28054,6 +28938,9 @@
         }
       }
     },
+    "TurnOver's keeper of approvals cannot be used, so no script can be approved or taken back in this run. The rest of TurnOver works as usual. (%@)" : {
+      "comment" : "Said when the part of TurnOver that keeps plugin script approvals cannot be reached; the reason in brackets is technical"
+    },
     "TurnOver's keyboard is unavailable. VoiceOver is taking over. Check TurnOver's Accessibility and Input Monitoring permissions before turning TurnOver on again." : {
       "comment" : "Spoken message",
       "extractionState" : "stale",
@@ -28089,6 +28976,9 @@
           }
         }
       }
+    },
+    "TurnOver's plugin tool could not be started, so %@ did not happen." : {
+      "comment" : "A store step could not start: %@ names the step"
     },
     "TurnOver's releases page is open in your browser" : {
       "comment" : "Spoken message",
@@ -28126,6 +29016,9 @@
         }
       }
     },
+    "TurnOver's script program is missing, so scripts cannot run." : {
+      "comment" : "Said when the helper that runs plugin scripts is not in the app"
+    },
     "TurnOver's settings and permissions are removed; the app itself could not be moved to the Bin, so drag it there yourself." : {
       "comment" : "Uninstalling",
       "extractionState" : "stale",
@@ -28158,6 +29051,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "TurnOver'ın ses çıkışı durdu. VoiceOver'a devrediliyor. TurnOver'ı yeniden denemek için Komut Kontrol Ç'ye basın."
+          }
+        }
+      }
+    },
+    "TurnOver's view: %@%@." : {
+      "comment" : "Whether an add-on can come across to TurnOver; the placeholder holds the verdict and any reason",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "TurnOver's view: %1$@%2$@."
           }
         }
       }
@@ -28223,6 +29127,9 @@
     },
     "Turns keeping your places across restarts of an app or of Waypoint on or off" : {
       "comment" : "A command, as the key list and keyboard help say it"
+    },
+    "Turns on Ask NVDA's store for its list of add-ons in this menu, which you can turn off again" : {
+
     },
     "Turns on or off placing the cursor by clicking with the Waypoint key or the review layer's keys held (the click is not sent to the app)" : {
       "comment" : "A command, as the key list and keyboard help say it"
@@ -28379,6 +29286,9 @@
           }
         }
       }
+    },
+    "Type some words; TurnOver asks NVDA's store and lists what matches" : {
+
     },
     "Type, or Down for the choices." : {
       "comment" : "A hint, said after a pause on an item",
@@ -28917,7 +29827,7 @@
       }
     },
     "V copy VoiceOver settings" : {
-      "comment" : "A letter's command, as the Waypoint layer lists them",
+      "comment" : "A letter's command, as the TurnOver layer lists them",
       "localizations" : {
         "ru" : {
           "stringUnit" : {
@@ -29720,6 +30630,9 @@
     "Waiting for Waypoint. Start it with Command Control Period." : {
 
     },
+    "Waits for Claude's Prompt to receive the keyboard" : {
+      "comment" : "Keyboard command"
+    },
     "Watches hot spot %@ for changes, or stops (VO-Command-Shift-%@)" : {
       "comment" : "A command: %@ is the hot spot's number",
       "localizations" : {
@@ -29789,7 +30702,7 @@
     "Waypoint asks you to hold the keys, then press any letter" : {
 
     },
-    "Waypoint can't keep VoiceOver quiet, so you may hear both. In System Settings, Privacy and Security, Screen and System Audio Recording, turn Waypoint on; or turn CoExist off in Waypoint's Settings, Experimental." : {
+    "Waypoint can't keep VoiceOver quiet, so you may hear both. In System Settings, Privacy and Security, Screen and System Audio Recording, turn TurnOver on; or turn CoExist off in TurnOver's Settings, Experimental." : {
       "comment" : "Spoken message"
     },
     "Waypoint cannot start: it stops at %@ every time. VoiceOver reads every app once Waypoint's Activity is removed: open VoiceOver Utility, Activities, and delete Waypoint." : {
@@ -30510,13 +31423,10 @@
         }
       }
     },
+    "With Quick Look open, an arrow says the file the selection moved to" : {
+      "comment" : "A command, as the key list and keyboard help say it"
+    },
     "With mouse tracking, text in a web page is read as its whole paragraph, so bold, emphasized or linked words in it do not start a new announcement; a link is still said as a link" : {
-
-    },
-    "With mouse tracking, the pointer also cuts off other speech, such as notifications; off, only the pointer's own speech gives way" : {
-
-    },
-    "With mouse tracking, the review cursor goes to what the pointer is over; the keyboard focus never does" : {
 
     },
     "With no conversation open: into the conversations (or the sections, from one of them)" : {
@@ -30605,6 +31515,9 @@
           }
         }
       }
+    },
+    "Words to search NVDA's add-ons for" : {
+      "comment" : "Asking for a search of NVDA's add-on store"
     },
     "Write a plugin for %@ yourself" : {
       "localizations" : {
@@ -30767,6 +31680,9 @@
         }
       }
     },
+    "Your name, to credit as the person who converted it. It goes into the plugin and is read at approval" : {
+      "comment" : "Asking who to credit for a conversion"
+    },
     "Your next window spot (VO-Command-Right Bracket)" : {
       "comment" : "A command, as the key list and keyboard help say it",
       "localizations" : {
@@ -30783,6 +31699,9 @@
           }
         }
       }
+    },
+    "Your own sound sets: a folder of audio files, one for each event, named for the event. A set's sounds play where it has a file, and Waypoint's own where it has none. Make a starter set to see the names." : {
+
     },
     "Your previous window spot (VO-Command-Left Bracket)" : {
       "comment" : "A command, as the key list and keyboard help say it",
@@ -31262,6 +32181,23 @@
         }
       }
     },
+    "application switcher is open" : {
+      "comment" : "Spoken message: a heading or link search was asked for while Command-Tab's list is showing",
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "переключатель приложений открыт"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "uygulama değiştirici açık"
+          }
+        }
+      }
+    },
     "article" : {
       "comment" : "A web page's article",
       "localizations" : {
@@ -31296,6 +32232,12 @@
         }
       }
     },
+    "ask needs a prompt of at most %lld characters." : {
+      "comment" : "Said to a plugin author; the placeholder is a number"
+    },
+    "asking NVDA's store" : {
+      "comment" : "A step: asking the store for its list"
+    },
     "asking the catalog; a moment" : {
       "comment" : "Spoken message",
       "localizations" : {
@@ -31315,6 +32257,9 @@
     },
     "at the newest message" : {
       "comment" : "Spoken message: the remembered place could not be found, so the reading starts at the newest message"
+    },
+    "attachments browser" : {
+      "comment" : "Notes view change"
     },
     "auto scroll off" : {
       "comment" : "Spoken message",
@@ -32061,6 +33006,15 @@
         }
       }
     },
+    "cannot choose the folder: it is no longer available" : {
+      "comment" : "Spoken message"
+    },
+    "cannot choose the folder: the app refused selection and activation" : {
+      "comment" : "Spoken message"
+    },
+    "cannot confirm the folder selection" : {
+      "comment" : "Spoken message"
+    },
     "cannot find that item on the page now" : {
       "comment" : "Spoken message",
       "localizations" : {
@@ -32077,6 +33031,9 @@
           }
         }
       }
+    },
+    "cannot leave the attachments browser" : {
+      "comment" : "Spoken message"
     },
     "cannot open or close it" : {
       "comment" : "Spoken message",
@@ -32346,6 +33303,12 @@
         }
       }
     },
+    "change text" : {
+      "comment" : "Part of the reason a plugin needs a higher review"
+    },
+    "change your clipboard" : {
+      "comment" : "Part of the reason a plugin needs a higher review"
+    },
     "changed since you left" : {
       "comment" : "Spoken message: what changed in a part"
     },
@@ -32541,6 +33504,12 @@
     },
     "choices" : {
       "comment" : "The list of choices of a menu button in the tools panel"
+    },
+    "choose menu items" : {
+      "comment" : "Part of the reason a plugin needs a higher review"
+    },
+    "choose needs a title and a list of texts." : {
+      "comment" : "Said to a plugin author"
     },
     "clear" : {
       "comment" : "Spoken message",
@@ -32982,6 +33951,9 @@
         }
       }
     },
+    "converting the add-on" : {
+      "comment" : "A step: converting an add-on"
+    },
     "copied" : {
       "comment" : "Command C pressed\nSpoken message",
       "localizations" : {
@@ -33083,6 +34055,9 @@
           }
         }
       }
+    },
+    "copy needs the text to put on the clipboard." : {
+      "comment" : "Said to a plugin author"
     },
     "corrected to %@" : {
       "comment" : "Mail corrected a typed word: %@ is the new word",
@@ -34110,6 +35085,9 @@
         }
       }
     },
+    "every app" : {
+      "comment" : "A plugin that works in every app, in the Plugins menu: after \"for\""
+    },
     "everywhere" : {
       "comment" : "Where haptics are felt",
       "localizations" : {
@@ -34320,6 +35298,12 @@
         }
       }
     },
+    "folders hidden" : {
+      "comment" : "Notes view change"
+    },
+    "folders shown" : {
+      "comment" : "Notes view change"
+    },
     "font change" : {
       "comment" : "A kind of thing to find, after next or previous",
       "localizations" : {
@@ -34455,6 +35439,9 @@
           }
         }
       }
+    },
+    "gallery view" : {
+      "comment" : "Notes view change"
     },
     "gesture control" : {
       "comment" : "A letter's command in the Waypoint layer (Command Control Comma)",
@@ -34595,6 +35582,12 @@
         }
       }
     },
+    "hand lowered" : {
+      "comment" : "Zoom: your hand after the raise hand key"
+    },
+    "hand raised" : {
+      "comment" : "Zoom: your hand after the raise hand key, and in the state command"
+    },
     "handle" : {
       "comment" : "A role, spoken after an item's name",
       "localizations" : {
@@ -34713,6 +35706,9 @@
           }
         }
       }
+    },
+    "hear what TurnOver says to you" : {
+      "comment" : "Part of the reason a plugin needs the highest review"
     },
     "help" : {
       "comment" : "A braille chord's command, as braille help says it",
@@ -35087,6 +36083,9 @@
         }
       }
     },
+    "it would not be fetched safely, because its address is not a secure one" : {
+      "comment" : "A download was not over https"
+    },
     "italic" : {
       "comment" : "Text formatting",
       "localizations" : {
@@ -35208,6 +36207,21 @@
           }
         }
       }
+    },
+    "its download address no longer exists. That is at its author's end, not yours" : {
+      "comment" : "A download address gave 404 or 410"
+    },
+    "its download server answered %lld, not the file. Try again later" : {
+      "comment" : "A download gave another status: the placeholder is the number"
+    },
+    "its download server could not be found. That may be no internet connection, or an address that no longer exists" : {
+      "comment" : "A download's host did not resolve"
+    },
+    "its download server had a problem (%lld). Try again later" : {
+      "comment" : "A download gave a server error: the placeholder is the number"
+    },
+    "its download server refused the request (%lld). That is at its author's end, not yours" : {
+      "comment" : "A download gave 401 or 403: the placeholder is the number"
     },
     "its usual voice" : {
       "comment" : "TurnOver's usual voice, when it has no name",
@@ -35897,6 +36911,9 @@
         }
       }
     },
+    "keys needs a key, such as \"command+k\"." : {
+      "comment" : "Said to a plugin author"
+    },
     "label" : {
       "comment" : "A role, spoken after an item's name",
       "localizations" : {
@@ -36205,6 +37222,9 @@
         }
       }
     },
+    "limit must be a number." : {
+      "comment" : "Said to a plugin author"
+    },
     "line %@" : {
       "comment" : "Where the caret is: the line number",
       "localizations" : {
@@ -36480,6 +37500,9 @@
         }
       }
     },
+    "list view" : {
+      "comment" : "Notes view change"
+    },
     "list with %@ items" : {
       "comment" : "A list on a page, entered: how many items",
       "localizations" : {
@@ -36665,6 +37688,9 @@
         }
       }
     },
+    "main.js is larger than %lld KB, which is the most a script may be." : {
+      "comment" : "Said to a plugin author when a script is too large; the number is kilobytes"
+    },
     "marked" : {
       "comment" : "A moment marked for feedback\nSpoken message: the moment was marked in the log",
       "localizations" : {
@@ -36837,6 +37863,9 @@
           }
         }
       }
+    },
+    "menu needs a path of menu names, such as [\"Edit\", \"Copy\"]." : {
+      "comment" : "Said to a plugin author"
     },
     "message body" : {
       "comment" : "A Mail message's text, when it has no name",
@@ -37133,6 +38162,9 @@
         }
       }
     },
+    "move the focus" : {
+      "comment" : "Part of the reason a plugin needs a higher review"
+    },
     "move up" : {
       "comment" : "A braille chord's command, as braille help says it",
       "localizations" : {
@@ -37200,6 +38232,9 @@
           }
         }
       }
+    },
+    "muted" : {
+      "comment" : "Zoom: your microphone after the mute key"
     },
     "navigation" : {
       "comment" : "A group of commands in the key list",
@@ -37594,6 +38629,9 @@
           }
         }
       }
+    },
+    "no conversation %lld" : {
+      "comment" : "Spoken when Claude has no conversation at this shortcut number"
     },
     "no conversation open" : {
       "comment" : "Spoken message",
@@ -38880,6 +39918,9 @@
         }
       }
     },
+    "not given" : {
+      "comment" : "A licence the store does not give"
+    },
     "not in a container" : {
       "comment" : "Spoken message",
       "localizations" : {
@@ -39106,6 +40147,9 @@
           }
         }
       }
+    },
+    "notes view" : {
+      "comment" : "Notes view change"
     },
     "notes, %@" : {
       "comment" : "A Keynote slide's presenter notes: their words",
@@ -39610,6 +40654,9 @@
         }
       }
     },
+    "nth counts from 1 (the first) or from -1 (the last); it cannot be 0." : {
+      "comment" : "Said to a plugin author when a match's nth is zero or out of reach"
+    },
     "object mode" : {
       "comment" : "Spoken message",
       "localizations" : {
@@ -39779,6 +40826,9 @@
           }
         }
       }
+    },
+    "opening" : {
+      "comment" : "Spoken message"
     },
     "opening %@" : {
       "comment" : "An app being opened: %@ is its name\nSpoken message",
@@ -40521,8 +41571,14 @@
     "press Return again to confirm" : {
       "comment" : "Spoken after choosing a risky command (Delete, Quit): Return again runs it"
     },
+    "press keys" : {
+      "comment" : "Part of the reason a plugin needs a higher review"
+    },
+    "press things" : {
+      "comment" : "Part of the reason a plugin needs a higher review"
+    },
     "pressed" : {
-      "comment" : "A state, spoken after an item's role\nSpoken message: a control in the tools panel was pressed and nothing visibly changed",
+      "comment" : "A state, spoken after an item's role\nSpoken acknowledgement that an activation was sent, not that a form was submitted\nSpoken message: a control in the tools panel was pressed and nothing visibly changed",
       "localizations" : {
         "ru" : {
           "stringUnit" : {
@@ -40894,6 +41950,12 @@
           }
         }
       }
+    },
+    "read what you copy" : {
+      "comment" : "Part of the reason a plugin needs the highest review"
+    },
+    "reading on" : {
+      "comment" : "Spoken message: the bottom of a long page is being read on before it is said"
     },
     "reading the screen's controls" : {
       "comment" : "Spoken message",
@@ -41626,7 +42688,7 @@
       }
     },
     "screen interface: the window's controls from its pixels (experimental)" : {
-      "comment" : "A letter's command in the Waypoint layer (Command Control Comma)",
+      "comment" : "A letter's command in the TurnOver layer (Command Control Comma)",
       "localizations" : {
         "ru" : {
           "stringUnit" : {
@@ -41921,7 +42983,7 @@
       }
     },
     "selected" : {
-      "comment" : "A menu item that is the chosen one of its group\nA state, spoken after an item's role\nSpoken message",
+      "comment" : "A menu item that is the chosen one of its group\nA state, spoken after an item's role\nSpoken message\nSpoken state",
       "localizations" : {
         "ru" : {
           "stringUnit" : {
@@ -42075,7 +43137,7 @@
       }
     },
     "sent" : {
-      "comment" : "Spoken message",
+      "comment" : "Spoken message\nSpoken when Return sends a message from Claude's prompt",
       "localizations" : {
         "ru" : {
           "stringUnit" : {
@@ -42090,6 +43152,9 @@
           }
         }
       }
+    },
+    "sent %@" : {
+      "comment" : "Zoom: a reaction was sent; the value is the reaction, such as a thumbs up"
     },
     "separator" : {
       "comment" : "A kind of thing to find, after next or previous\nA role, spoken after an item's name",
@@ -42107,6 +43172,9 @@
           }
         }
       }
+    },
+    "setValue needs a string or a number." : {
+      "comment" : "Said to a plugin author"
     },
     "settings pane" : {
       "comment" : "A part of the System Settings window",
@@ -42264,6 +43332,9 @@
         }
       }
     },
+    "signature.json is not a signature TurnOver can read." : {
+      "comment" : "Said about a plugin's signature file that is damaged"
+    },
     "single letter navigation off" : {
       "comment" : "Spoken message",
       "localizations" : {
@@ -42414,6 +43485,9 @@
           }
         }
       }
+    },
+    "sorted by %@" : {
+      "comment" : "Spoken message after choosing an order in Finder's View, Sort By menu: %@ is the order's name, such as Date Created"
     },
     "space" : {
       "comment" : "Spoken message\nSpoken message: the space key typed",
@@ -42941,6 +44015,9 @@
           }
         }
       }
+    },
+    "storage needs a key: a short word." : {
+      "comment" : "Said to a plugin author"
     },
     "strikethrough" : {
       "comment" : "Text formatting",
@@ -44691,6 +45768,9 @@
         }
       }
     },
+    "text needs a unit: \"selection\", \"line\" or \"all\"." : {
+      "comment" : "Said to a plugin author"
+    },
     "text put back, %lld characters" : {
       "comment" : "Spoken message: %lld is how many characters"
     },
@@ -44752,7 +45832,7 @@
       }
     },
     "the application" : {
-      "comment" : "An application with no name",
+      "comment" : "An app whose name is not known\nAn application with no name",
       "localizations" : {
         "ru" : {
           "stringUnit" : {
@@ -44853,6 +45933,12 @@
         }
       }
     },
+    "the download did not work" : {
+      "comment" : "A download failed with no reason"
+    },
+    "the download took too long. Try again later" : {
+      "comment" : "A download timed out"
+    },
     "the keyboard is not in a text field" : {
       "comment" : "Spoken message"
     },
@@ -44875,6 +45961,12 @@
           }
         }
       }
+    },
+    "the page is not responding" : {
+      "comment" : "Spoken message: a web page has stopped answering"
+    },
+    "the page is responding again" : {
+      "comment" : "Spoken message: a web page that had stopped answering answers again"
     },
     "the picture could not be captured. TurnOver needs Screen Recording, in System Settings, Privacy and Security" : {
       "comment" : "Spoken message",
@@ -45637,6 +46729,7 @@
     },
     "unknown" : {
       "comment" : "A role, spoken after an item's name",
+      "extractionState" : "stale",
       "localizations" : {
         "ru" : {
           "stringUnit" : {
@@ -45685,6 +46778,9 @@
           }
         }
       }
+    },
+    "unmuted" : {
+      "comment" : "Zoom: your microphone after the mute key"
     },
     "unread" : {
       "comment" : "A Mail message not yet read",
@@ -45890,6 +46986,12 @@
           }
         }
       }
+    },
+    "video off" : {
+      "comment" : "Zoom: your camera after the video key"
+    },
+    "video on" : {
+      "comment" : "Zoom: your camera after the video key"
     },
     "video playing. Space plays and pauses; Escape leaves the video" : {
       "comment" : "Spoken message",
@@ -46219,6 +47321,9 @@
           }
         }
       }
+    },
+    "work in every app" : {
+      "comment" : "Part of the reason a plugin needs a higher review"
     },
     "wrapped to the bottom" : {
       "comment" : "Spoken message",

@@ -11,12 +11,26 @@ import TurnOverAX
 open class Dialog: TurnOverObject {
     open override var role: Role { .dialog }
     open override var isPresentableFocusAncestor: Bool { true }
-    /// What TurnOver+Tab / VO-F3 adds after "dialog": its text and its choices, as when it opened.
+    /// What TurnOver+Tab / VO-F3 adds after "dialog": its text and its named choices.
     open override var description: String? {
         let list = choicesWithLetters
         let parts = [dialogText] + (list.isEmpty ? [] : [Self.choices(list)])
         let t = parts.filter { !$0.isEmpty }.joined(separator: ", ")
         return t.isEmpty ? nil : t
+    }
+
+    /// Unnamed fields remain keyboard choices, but their role is not a label for a dialog summary.
+    var summaryChoices: [(AXUIElement, String)] {
+        choices.compactMap { control, label in
+            if ["AXTextField", "AXTextArea", "AXComboBox", "AXSearchField"].contains(control.role) {
+                // Use explicit labels here; a summary must not search neighbours for every unnamed field.
+                let explicit = [control.string(kAXTitleAttribute), control.string(kAXDescriptionAttribute), control.string(kAXPlaceholderValueAttribute)]
+                    .compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }
+                    .first { !$0.isEmpty }
+                return explicit.map { (control, $0) }
+            }
+            return (control, label)
+        }
     }
 
     static let containerRoles: Set<String> = ["AXGroup", "AXScrollArea", "AXSplitGroup", "AXLayoutArea", "AXToolbar", "AXTabGroup", "AXList", "AXUnknown", "AXCell", "AXRow"]
@@ -125,12 +139,10 @@ open class Dialog: TurnOverObject {
     static var spokenAt: (AXUIElement, Date)?
     static var choiceIndex: [Int: Int] = [:]
 
-    private func announce(choicesToo: Bool) {
+    private func announce() {
         if let (e, at) = Self.spokenAt, e.isSame(element), Date().timeIntervalSince(at) < 0.8 { return }
         Self.spokenAt = (element, Date())
-        let list = choices.map(\.1)
-        var parts = [name, role.displayString, dialogText].filter { !$0.isEmpty }
-        if choicesToo, !list.isEmpty { parts.append(Self.choices(list)) }
+        let parts = [name, role.displayString, dialogText].filter { !$0.isEmpty }
         Speech.speakMessage(parts.joined(separator: ", "))
     }
 
@@ -138,11 +150,11 @@ open class Dialog: TurnOverObject {
         // Moving between the groups inside a dialog enters it again (Word's save sheet, on every Tab): once is enough.
         // (Word passes the focus through the document behind the sheet on its way, so it is "entered" afresh.)
         if let (e, at) = Self.spokenAt, e.isSame(element), Date().timeIntervalSince(at) < 60 { return }
-        announce(choicesToo: false)
+        announce()
     }
 
-    /// The dialog itself has the focus (no control in it does): read it, with its choices, and let the keys move
-    /// among the choices.
+    /// Read the dialog once. Its focused control is read by its own focus event; listing every field here
+    /// buried that focus under dozens of unnamed "edit" choices in Open panels (14 Nov 2026).
     open override func event_gainFocus() {
         // Safari's bookmark sheet takes the focus itself for a moment between each of its fields: already read, say nothing.
         if let (e, at) = Self.spokenAt, e.isSame(element), Date().timeIntervalSince(at) < 60 { return }
@@ -154,7 +166,7 @@ open class Dialog: TurnOverObject {
             DispatchQueue.main.async { AXHandler.shared.focusChanged(web, pid: pid) }
             return
         }
-        announce(choicesToo: true)
+        announce()
     }
 
     open override func initOverlay() {

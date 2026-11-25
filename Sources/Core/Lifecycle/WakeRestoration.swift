@@ -84,3 +84,47 @@ package struct WakeRestoration {
 
     package mutating func observedVoiceOverOff() { cancel() }
 }
+
+/// Supplies a missed lock or unlock notification from an observed change in the session.
+package struct SessionLockObservation {
+    package enum Transition: Equatable { case lock, unlock }
+    private var wasLocked = false
+
+    package init() {}
+
+    /// A lock notice is evidence of a screen lock even when the first poll is after wake.
+    package mutating func noteLockNotification() { wasLocked = true }
+
+    package mutating func observe(_ sessionLocked: Bool?, watcherLocked: Bool) -> Transition? {
+        guard let sessionLocked, sessionLocked != wasLocked else { return nil }
+        wasLocked = sessionLocked
+        guard sessionLocked != watcherLocked else { return nil }
+        return sessionLocked ? .lock : .unlock
+    }
+}
+
+/// The lock screen's one request for VoiceOver. Sleep comes as notices in a burst: "sleep", then "display sleep" 86 ms
+/// later, then "lock". Each found VoiceOver's flag still off while the first request was under way, and each toggled
+/// it, so VoiceOver went on and straight off again behind the lock, and the Mac had no reader after the unlock until
+/// TurnOver was restarted (the owner's log, 13 Nov 2026, 20:24:43; posted twice at 19:29:11 and 20:26:09 as well). A notice
+/// that comes while the request is under way stands down. It is under way until it is answered, or for at most
+/// `window` seconds, so a request whose answer never comes cannot hold back the next lock.
+/// The caller supplies monotonic time.
+package struct LockVoiceOverRequest {
+    package static let window: TimeInterval = 3
+    private var startedAt: TimeInterval?
+
+    package init() {}
+
+    /// A request is under way at `now`: a lock notice now leaves it to finish.
+    package func isUnderWay(now: TimeInterval) -> Bool {
+        guard let startedAt else { return false }
+        return now - startedAt < Self.window
+    }
+
+    /// The request is made at `now`.
+    package mutating func start(now: TimeInterval) { startedAt = now }
+
+    /// The request was answered: VoiceOver's flag was seen as asked, or the request was given up.
+    package mutating func answered() { startedAt = nil }
+}

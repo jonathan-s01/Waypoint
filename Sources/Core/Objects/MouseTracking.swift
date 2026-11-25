@@ -2,8 +2,11 @@
 // Mouse tracking: what is under the mouse pointer is read as the pointer moves, and the cursor goes there (VoiceOver's
 // cursor following the mouse pointer; NVDA+M). Off until the Mouse tracking setting is on, and only while TurnOver is
 // the reader that speaks: where VoiceOver leads, its own pointer reading is the one heard. The keyboard focus is
-// never moved by the pointer, the review cursor follows only if "mouse moves the cursor" is on, and a blank place
+// never moved by the pointer, the review cursor follows it, any speech still going gives way to the item under the pointer, and a blank place
 // (a window's background, a group with no name) is silent.
+//
+// The cursor follows the pointer only into the app in front. An item in a window behind it, another app's, is said
+// and the cursor stays where it was (PointerCursor).
 //
 // The pointer is watched with a listen-only monitor of mouse-moved events: nothing is held back or changed, and the
 // keyboard is never involved. A move asks for a look at most every tenth of a second, so a long sweep across a window
@@ -70,6 +73,16 @@ public struct PointerTracker<Hit: Equatable> {
     public func spokenIs(in items: [Hit]) -> Bool { spoken.map { items.contains($0) } ?? false }
 }
 
+/// Whether the review cursor goes with the pointer, apart from every accessibility call so a test can drive it.
+public enum PointerCursor {
+    /// `item` is the process the item under the pointer belongs to, `front` the app in front as TurnOver's focus and
+    /// as the Mac have it (either may be unknown). Only an item of the app in front takes the cursor: the item keys
+    /// belong to that app, and with the cursor in another's window they walked that window. The pointer came to rest
+    /// on Mail's sidebar behind Claude, and the next-item key read Mail's mailboxes while the heading keys read
+    /// Claude's page (the maintainer, 20 Nov 2026).
+    public static func follows(itemIn item: pid_t, front: [pid_t?]) -> Bool { front.contains(item) }
+}
+
 /// Which look is out and which results still count, apart from every accessibility and main-thread call so a test can
 /// drive it with plain values.
 public struct LookState: Equatable {
@@ -112,8 +125,6 @@ public struct LookState: Equatable {
 }
 
 public enum MouseTracking {
-    /// Tags the pointer's own speech, so a new item interrupts only that and not a notification, a focus change or typing.
-    nonisolated static var speechSource: String { "mouse" }
     /// The longest between one look and the next while the pointer moves.
     nonisolated static var interval: TimeInterval { 0.1 }
 
@@ -211,8 +222,9 @@ public enum MouseTracking {
             if AXUIElementCopyElementAtPosition(AXUIElementCreateSystemWide(), Float(p.x), Float(p.y), &hit) != .success { hit = nil }
             // A cell holding one text is that text (the pointer crosses both in one item).
             if let h = hit, let inner = innerText(of: h, deadline: began.addingTimeInterval(watchdogAfter - readMargin)) { hit = inner }
-            let blank = hit.map(isBlank) ?? true
-            let label = describe(hit)
+            let role = hit?.role ?? ""
+            let blank = hit.map { isBlank($0, role: role) } ?? true
+            let label = describe(hit, role: role)
             var reading: PointerReading?
             if let hit, !blank {
                 let deadline = began.addingTimeInterval(watchdogAfter - readMargin)
@@ -263,10 +275,10 @@ public enum MouseTracking {
 
     /// What a look found, for the log: the role and the app, and not a word of what it says. Asks the app, so it runs
     /// on the lookup queue only.
-    nonisolated static func describe(_ e: AXUIElement?) -> String {
+    nonisolated static func describe(_ e: AXUIElement?, role: String) -> String {
         guard let e else { return "nothing" }
         let app = NSRunningApplication(processIdentifier: e.pid)?.bundleIdentifier ?? "pid \(e.pid)"
-        return "\(e.role) in \(app)"
+        return "\(role) in \(app)"
     }
 
     /// Where the pointer is, in the coordinates the accessibility calls use: from the top left of the main display, and
@@ -276,8 +288,7 @@ public enum MouseTracking {
     /// Whether what is under the pointer is only the place behind the items: a window's background, or a group, scroll
     /// area or the like with no name and no words of its own (a chat app's layout is nests of them). Said, it would
     /// be "group" again and again as the pointer crosses the gaps. Runs on the lookup queue.
-    nonisolated static func isBlank(_ e: AXUIElement) -> Bool {
-        let role = e.role
+    nonisolated static func isBlank(_ e: AXUIElement, role: String) -> Bool {
         if role == "AXWindow" { return true }
         // A row or cell with no words, and not one text inside it (see `innerText`), would only say "cell".
         if role == "AXCell" || role == "AXRow" { return hasNoWords(e) }
@@ -322,11 +333,14 @@ public enum MouseTracking {
             Log.io("mouse tracking: blank place (\(found.label))")
             // No empty space sound: when on it made a lot of extra noise that was annoying (a tester, 10 Nov 2026).
         case .say:
-            // As the trackpad's explore does: what was being said gives way, and the item is read. The focus stays where it is.
+            // As the trackpad's explore does: whatever was being said gives way (other speech left talking over the pointer made it
+            // no faster than the keyboard: a tester, 10 Nov 2026), and the item is read. The focus stays where it is.
             guard let reading = found.reading else { tracker.forgetLook(); return }
             Log.io("mouse tracking: says \(found.label)")
-            if config.presentation.mouseInterruptsSpeech { Speech.cancel() } else { Speech.cancel(source: Self.speechSource) }
-            ObjectNavigator.shared.hover(reading, movingCursor: config.presentation.mouseMovesCursor)
+            Speech.cancel()
+            let follows = PointerCursor.follows(itemIn: reading.element.pid, front: [API.focusPid, NSWorkspace.shared.frontmostApplication?.processIdentifier])
+            if !follows { Log.io("mouse tracking: not the app in front; said, and the cursor stays") }
+            ObjectNavigator.shared.hover(reading, movingCursor: follows)
         }
     }
 }

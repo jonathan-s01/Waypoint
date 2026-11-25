@@ -65,21 +65,6 @@ func mouseTrackingTests() {
         expect(back?.presentation.mouseTracking, true)
         let old = try? JSONDecoder().decode(Config.self, from: Data("{\"presentation\":{\"verbosity\":\"medium\"}}".utf8))
         expect(old?.presentation.mouseTracking, false, "a file from before the setting existed")
-        expect(Config().presentation.mouseMovesCursor, true, "the cursor follows unless that is turned off")
-        c.presentation.mouseMovesCursor = false
-        let kept = try? JSONDecoder().decode(Config.self, from: JSONEncoder().encode(c))
-        expect(kept?.presentation.mouseMovesCursor, false)
-        expect(old?.presentation.mouseMovesCursor, true, "a file from before the setting existed")
-    }
-
-    test("mouse tracking: interrupting other speech is on in Waypoint, and kept in the file once changed") {
-        expect(Config().presentation.mouseInterruptsSpeech, true)
-        var c = Config()
-        c.presentation.mouseInterruptsSpeech = false
-        let kept = try? JSONDecoder().decode(Config.self, from: JSONEncoder().encode(c))
-        expect(kept?.presentation.mouseInterruptsSpeech, false)
-        let old = try? JSONDecoder().decode(Config.self, from: Data("{\"presentation\":{\"mouseTracking\":true}}".utf8))
-        expect(old?.presentation.mouseInterruptsSpeech, true, "a file from before the setting existed")
     }
 
     test("mouse paragraphs: off unless asked for, and kept in the file once set") {
@@ -123,8 +108,8 @@ func mouseTrackingTests() {
         expect(t.answer("text 1", block: "P", readsBlock: true), .say, "back to the paragraph after it")
     }
 
-    test("mouse tracking: a file with the removed blank-sound and watchdog settings still loads") {
-        let old = try? JSONDecoder().decode(Config.self, from: Data("{\"presentation\":{\"mouseTracking\":true,\"mouseEmptySound\":false,\"mouseWatchdog\":false}}".utf8))
+    test("mouse tracking: a file with the removed blank-sound, watchdog, cursor and interrupt settings still loads") {
+        let old = try? JSONDecoder().decode(Config.self, from: Data("{\"presentation\":{\"mouseTracking\":true,\"mouseEmptySound\":false,\"mouseWatchdog\":false,\"mouseMovesCursor\":false,\"mouseInterruptsSpeech\":false}}".utf8))
         expect(old?.presentation.mouseTracking, true)
     }
 
@@ -161,5 +146,12 @@ func mouseTrackingTests() {
         expect(s.inFlight, false)
         expect(s.giveUp(onLookOf: look.id), false)
         expect(s.accepts(generation: look.generation), true, "nothing was dropped")
+    }
+
+    test("mouse tracking: the cursor goes with the pointer only into the app in front") {
+        expect(PointerCursor.follows(itemIn: 74868, front: [74868, 74868]), true, "an item of the app in front")
+        expect(PointerCursor.follows(itemIn: 45060, front: [74868, 74868]), false, "20 Nov 09:35: Mail's sidebar behind Claude is said, and the cursor stays in Claude")
+        expect(PointerCursor.follows(itemIn: 45060, front: [74868, 45060]), true, "the Mac's app in front counts while TurnOver's focus is still in the last one")
+        expect(PointerCursor.follows(itemIn: 45060, front: [nil, nil]), false, "no app in front known: said, and the cursor stays")
     }
 }

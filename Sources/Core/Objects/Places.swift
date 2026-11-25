@@ -268,7 +268,7 @@ enum Places {
         jumping = (pid, startedAt.addingTimeInterval(6))
         var wait: TimeInterval = 0
         if AXHandler.shared.activePid != pid {
-            ApplicationChooser.switchTo(ApplicationChooser.Entry(pid: pid, name: r.appName, windows: []), window: nil)
+            ApplicationChooser.switchTo(ApplicationChooser.Entry(pid: pid, name: r.appName, windows: []), window: nil, previous: NSWorkspace.shared.frontmostApplication)
             wait = 0.5
         }
         let fp = r.fingerprint

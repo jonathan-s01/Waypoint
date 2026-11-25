@@ -13,6 +13,7 @@ import AppKit
 
 public final class ObjectNavigator {
     public static let shared = ObjectNavigator()
+    package init() {}
     /// The navigator object's element; nil means "the focus".
     private var current: AXUIElement? { didSet { cancelWindowSearch(); movedAt = Date() } }
     /// When the review cursor last moved: VO-J starts from an app's own reader only when that reader moved since.
@@ -39,10 +40,18 @@ public final class ObjectNavigator {
         guard tracksFocus else { return }
         // Choosing in a held list moves the app's focus (Finder shows the folder): the cursor stays in the list.
         if heldList != nil, Date() < keepHoldUntil { return }
+        if !Self.keepsCursorAfterFollowing(cursorPid: current == nil ? nil : currentPid, focusPid: pid) {
+            // Forget the old app's focus request before the new app reports its first window and then a control.
+            followed = nil
+        }
         // The focus TurnOver just put on the item the cursor landed on, and the app sent it on somewhere else (Safari's
         // toolbar buttons hand it back to the page): the cursor stays on the item. Following the bounce put the
         // cursor on the page, so VO-Right from the toolbar's first button bumped at an edge, or landed on the window's
         // close button (issue 106, 26 Oct 2026).
+        // Only a bounce inside the same app: a focus in another app is the user having switched, and the cursor goes
+        // with it (22 Nov 2026, issue 351: PS Remote Play's window came forward and TurnOver Right still read the app
+        // left behind, and even moved its keyboard focus). `currentPid` is set wherever `current` is, bar the two places
+        // that clear `current` to nil; with no cursor there is nothing to keep, so it is not asked then.
         if let f = followed, Date().timeIntervalSince(f.at) < 1.5, !CFEqual(f.element, e) {
             var p: AXUIElement? = e; var hops = 0; var inside = false
             while let x = p, hops < 10 { if x.isSame(f.element) { inside = true; break }; p = x.element(kAXParentAttribute); hops += 1 }
@@ -52,8 +61,15 @@ public final class ObjectNavigator {
     }
     private var keepHoldUntil = Date.distantPast
 
+    /// Whether the "focus moved on after following the cursor" rule may keep the cursor: only when the new focus is in
+    /// the app the cursor is in (22 Nov 2026, issue 351). No cursor, or a focus in another app, always moves it.
+    nonisolated package static func keepsCursorAfterFollowing(cursorPid: pid_t?, focusPid: pid_t) -> Bool {
+        guard let cursorPid else { return false }
+        return cursorPid == focusPid
+    }
+
     /// The focus TurnOver gave to what its cursor landed on, and when.
-    private var followed: (element: AXUIElement, at: Date)?
+    package var followed: (element: AXUIElement, at: Date)?   // package, not private: the tests set it (22 Nov 2026)
     public func isFollowedFocus(_ e: AXUIElement) -> Bool {
         guard let f = followed, Date().timeIntervalSince(f.at) < 1.5 else { return false }
         return CFEqual(f.element, e)
@@ -95,7 +111,11 @@ public final class ObjectNavigator {
     /// A list that will not take the keyboard (Finder's sidebar: AXFocused cannot be set, and a click on it leaves
     /// the keyboard in the file list; 7 Oct 2026). TurnOver holds it: while the cursor is in it, Up and Down move
     /// through its rows, Return and Space choose one (as selecting it with the mouse), Left and Right close and open.
-    public private(set) var heldList: AXUIElement?
+    public private(set) var heldList: AXUIElement? {
+        didSet { announceHeldChoice = false; heldPartTab = nil }
+    }
+    private var announceHeldChoice = false
+    private var heldPartTab: ((Bool) -> Void)?
     private func hold(_ list: AXUIElement) {
         if let h = heldList, CFEqual(h, list) { return }
         heldList = list
@@ -161,28 +181,51 @@ public final class ObjectNavigator {
 
     /// Return or Space: choose the row, as clicking it would (Finder goes to that place).
     public func heldChoose() {
-        guard let list = heldList, let i = heldRowIndex else { return }
+        guard let list = heldList, let i = heldRowIndex else {
+            if announceHeldChoice { Speech.speakMessage(String(localized: "cannot choose the folder: it is no longer available", comment: "Spoken message")) }
+            return
+        }
         let rows = heldRows
-        guard rows.indices.contains(i) else { Tones.edge(); return }
+        guard rows.indices.contains(i) else {
+            if announceHeldChoice { Speech.speakMessage(String(localized: "cannot choose the folder: it is no longer available", comment: "Spoken message")) }
+            else { Tones.edge() }
+            return
+        }
         let row = rows[i]
+        func chosen() {
+            Tones.press()
+            keepHoldUntil = Date().addingTimeInterval(2)
+            guard announceHeldChoice else { return }
+            // Notes accepted AXSelectedRows without speaking in the 14 Nov 2026 trial. Read the selection
+            // back before claiming success; a successful write alone does not establish the selected folder.
+            if list.elements(kAXSelectedRowsAttribute).contains(where: { CFEqual($0, row) }) {
+                let object = ObjectFactory.make(row)
+                let name = object.name.isEmpty ? ElementMatcher.text(of: row) : object.name
+                Speech.speakOnly(name.isEmpty ? String(localized: "selected", comment: "Spoken state") : String(localized: "\(name), selected", comment: "The folder just selected in Notes"))
+            } else {
+                Speech.speakMessage(String(localized: "cannot confirm the folder selection", comment: "Spoken message"))
+            }
+        }
         let r = list.set(kAXSelectedRowsAttribute, [row] as CFArray)
         // Chromium answers success and selects nothing (Teams' chats, 16 Nov 2026): the row must read as selected.
         let took = r == .success && (list.elements(kAXSelectedRowsAttribute).contains { CFEqual($0, row) } || (row.attr(kAXSelectedAttribute) as? Bool) == true)
         Log.io("review: held list, chose row \(i + 1) → \(r.rawValue)\(r == .success && !took ? ", but it is not selected; pressing it" : "")")
-        if took { Tones.press(); keepHoldUntil = Date().addingTimeInterval(2); return }
+        if took { chosen(); return }
         // No rows to select (a plugin's held grid): the row pressed, or else its first button.
-        if AXUIElementPerformAction(row, kAXPressAction as CFString) == .success { Log.io("review: held list, pressed row \(i + 1)"); Tones.press(); keepHoldUntil = Date().addingTimeInterval(2); return }
+        if AXUIElementPerformAction(row, kAXPressAction as CFString) == .success { Log.io("review: held list, pressed row \(i + 1)"); chosen(); return }
         var queue = row.elements(kAXChildrenAttribute); var seen = 0
         while !queue.isEmpty, seen < 60 {
             let x = queue.removeFirst(); seen += 1
             var acts: CFArray?; AXUIElementCopyActionNames(x, &acts)
             if ((acts as? [String]) ?? []).contains(kAXPressAction as String), AXUIElementPerformAction(x, kAXPressAction as CFString) == .success {
-                Log.io("review: held list, pressed row \(i + 1)'s \(x.role)"); Tones.press(); keepHoldUntil = Date().addingTimeInterval(2); return
+                Log.io("review: held list, pressed row \(i + 1)'s \(x.role)"); chosen(); return
             }
             queue += x.elements(kAXChildrenAttribute)
         }
         if ClickFallback.click(row) { Log.io("review: held list, clicked row \(i + 1)"); keepHoldUntil = Date().addingTimeInterval(2); return }
-        Speech.speakMessage(String(localized: "cannot choose it", comment: "Spoken message"))
+        Speech.speakMessage(announceHeldChoice
+            ? String(localized: "cannot choose the folder: the app refused selection and activation", comment: "Spoken message")
+            : String(localized: "cannot choose it", comment: "Spoken message"))
     }
 
     /// Left and Right: close or open the row (a sidebar section).
@@ -200,13 +243,16 @@ public final class ObjectNavigator {
     public func releaseHold() { heldList = nil }
 
     /// Into a list TurnOver holds, on its selected row (Finder: Tab from the files to the sidebar).
-    public func enterHold(_ list: AXUIElement, name: String, row: AXUIElement? = nil) {
+    public func enterHold(_ list: AXUIElement, name: String, row: AXUIElement? = nil, announceChoice: Bool = false, onTab: ((Bool) -> Void)? = nil) {
+        releaseHold()
         let rows = list.elements(kAXRowsAttribute)
         guard !rows.isEmpty else { return }
         let sel = list.elements(kAXSelectedRowsAttribute).first
         // `row`: a place remembered for this list (focus memory), instead of the selected row.
         let i = (row ?? sel).flatMap { s in rows.firstIndex { CFEqual($0, s) } } ?? sel.flatMap { s in rows.firstIndex { CFEqual($0, s) } } ?? 0
         heldList = list
+        announceHeldChoice = announceChoice
+        heldPartTab = onTab
         Speech.speakMessage(name)
         landRow(rows[i], index: i, count: rows.count)
     }
@@ -215,7 +261,9 @@ public final class ObjectNavigator {
     /// else back to the keyboard focus. The app's own Tab would act on the focus, not here (it chose the next file).
     public var heldTab: ((_ forward: Bool) -> Bool)?
     public func leaveHold(forward: Bool) {
-        heldList = nil
+        let partTab = heldPartTab
+        releaseHold()
+        if let partTab { partTab(forward); return }
         if let h = heldTab, h(forward) { return }
         current = nil
         if let f = API.focusObject { Speech.speakObject(f, reason: .focus) }
@@ -600,7 +648,7 @@ public final class ObjectNavigator {
         guard Self.isGroup(cur) || cur.role == "AXWindow" else { firstChild(); return }
         let items = Self.groupItems(cur)
         guard let first = items.first else { Tones.edge(); Speech.speakMessage(String(localized: "no items inside", comment: "Spoken message")); return }
-        if !VoiceOverSounds.play("DrillIn.aiff") { Tones.beep(660, 30) }
+        if !VoiceOverSounds.play("DrillIn.aiff") { Tones.beep(660, 30, exempt: true) }
         land(on: first)
     }
 
@@ -610,7 +658,7 @@ public final class ObjectNavigator {
         // The window itself is the top level: the cursor rests on it, so VO-Left and Right then move among the window's
         // own items (the toolbar, the sidebar, the document) instead of staying in the text (Word, 17 Oct 2026).
         if container.role == "AXWindow" { current = container; currentPid = container.pid; VoiceOverSounds.play("DrillOut.aiff"); Speech.speakMessage(String(localized: "top level", comment: "Spoken message")); return }
-        if !VoiceOverSounds.play("DrillOut.aiff") { Tones.beep(440, 30) }
+        if !VoiceOverSounds.play("DrillOut.aiff") { Tones.beep(440, 30, exempt: true) }
         land(on: container)
     }
 
@@ -689,12 +737,22 @@ public final class ObjectNavigator {
                 Tones.edge()
                 Speech.speakMessage(forward ? String(localized: "no next \(kind)", comment: "Nothing more of a kind ahead: %@ is the kind (heading)") : String(localized: "no previous \(kind)", comment: "Nothing more of a kind behind: %@ is the kind (heading)"))
             case .unavailable:
-                Speech.speakMessage(String(localized: "nothing to search", comment: "Spoken message"))
+                Self.speakSearchNotice(.unavailable)
             case .incomplete(.cancelled): break
             case .incomplete(let reason):
                 Log.io("review: window \(kind) search incomplete (\(reason.rawValue))")
-                Speech.speakMessage(String(localized: "Search stopped before finishing. Try again.", comment: "Spoken message"))
+                Self.speakSearchNotice(.incomplete(reason))
             }
+        }
+    }
+
+    private static func speakSearchNotice(_ stop: WindowSearchStopKind) {
+        // Open only while Command is held: the list can stay TurnOver's focus after it closes (22 Nov 2026, issue 351).
+        let inSwitcher = (API.focusObject is AppSwitcherList || API.focusObject is AppSwitcherItem) && SwitcherCloseWatcher.commandHeld
+        switch WindowSearchNotice.notice(for: stop, focusInSwitcher: inSwitcher) {
+        case .switcherOpen: Speech.speakMessage(String(localized: "application switcher is open", comment: "Spoken message: a heading or link search was asked for while Command-Tab's list is showing"))
+        case .nothingToSearch: Speech.speakMessage(String(localized: "nothing to search", comment: "Spoken message"))
+        case .tryAgain: Speech.speakMessage(String(localized: "Search stopped before finishing. Try again.", comment: "Spoken message"))
         }
     }
 
@@ -712,7 +770,7 @@ public final class ObjectNavigator {
     /// VO-Shift-Escape: out to the top level of the window, on its first item.
     public func topLevel() {
         guard let cur = element, let w = window(of: cur), let first = Self.groupItems(w).first else { Tones.edge(); return }
-        Tones.beep(440, 30)
+        if Tones.invented("jump") { Tones.beep(440, 30) }
         land(on: first)
     }
 
@@ -778,13 +836,13 @@ public final class ObjectNavigator {
                 // first item inside; a table's selected row rather than the table.
                 let target = Self.landingPlace(in: linked)
                 Log.io("VO-J: \(y.role) links to \(linked.role); landing on \(target.role) \"\(Log.words(String((target.string(kAXDescriptionAttribute) ?? target.string(kAXTitleAttribute) ?? target.string(kAXValueAttribute) ?? "").prefix(30))))\"")
-                if !target.isSame(cur) { Tones.beep(660, 30); jumpTo(target, within: linked); return }
+                if !target.isSame(cur) { if Tones.invented("jump") { Tones.beep(660, 30) }; jumpTo(target, within: linked); return }
             }
             x = y.element(kAXParentAttribute); hops += 1
         }
         // Nothing linked by the app: between the window's panes, as VoiceOver goes from a sidebar to its content and
-        // back (8 Nov 2026, Oliver, with VoiceOver on to compare). One rule for every app: see paneJump.
-        if let target = paneJump(from: cur), !target.isSame(cur) { Tones.beep(660, 30); jumpTo(target, within: Self.lastJump?.to); return }
+        // back (8 Nov 2026, the owner, with VoiceOver on to compare). One rule for every app: see paneJump.
+        if let target = paneJump(from: cur), !target.isSame(cur) { if Tones.invented("jump") { Tones.beep(660, 30) }; jumpTo(target, within: Self.lastJump?.to); return }
         Speech.speakMessage(String(localized: "no linked item", comment: "Spoken message"))
     }
 
@@ -967,7 +1025,7 @@ public final class ObjectNavigator {
         // content, which left "no panes" from the window, 8 Nov 2026). Its panes leave out the splitters and the strips
         // along an edge: Safari's "Open in App Banner" (the whole width, 54 points of 768) lies over the top of the page,
         // so VO-J from the address bar landed on the banner's words and put the keyboard on the page's "Hide sidebar"
-        // under it (Oliver, 9 Nov 2026). With fewer than two, the split view round that one is asked: Finder's file list
+        // under it (9 Nov 2026). With fewer than two, the split view round that one is asked: Finder's file list
         // and its path bar are a split view inside the one that holds the sidebar (Codex, 9 Nov 2026).
         var split = splitAbove(cur) ?? w.firstDescendant(role: "AXSplitGroup", maxVisited: 200)
         var nested = 0
@@ -1111,7 +1169,7 @@ public final class ObjectNavigator {
         (e.attr(kAXFocusedAttribute) as? Bool) == true
     }
 
-    /// After landing, TurnOver's own focus goes where the cursor went (Oliver, 8 Nov 2026: "it's reading where I
+    /// After landing, TurnOver's own focus goes where the cursor went (8 Nov 2026: "it's reading where I
     /// should be going but not actually moving the TurnOver focus there"; the arrows and the app modules' commands
     /// follow TurnOver's focus object, not the review cursor, so Podcasts' Down Arrow went on through the sidebar).
     /// Inside a page that isn't being written in, the focus is the page's document, read from the landed line (Mail
@@ -1138,7 +1196,7 @@ public final class ObjectNavigator {
                     API.setFocusObject(page, ancestors: pageAncestors, interceptor: d)
                     Log.io("review: the reading goes into the page round the landing")
                 }
-                if d.passThrough { d.setPassThrough(false, announce: false) }
+                if d.passThrough { d.setPassThrough(false, announce: true) }
                 if d.buffer.lines.isEmpty { d.buffer.build() }
                 if let o = d.buffer.offset(of: target) { d.position = o }
                 return
@@ -1308,7 +1366,7 @@ public final class ObjectNavigator {
         // (A hit test that gets no answer clicks anyway: this is the user's own command, not a last resort.)
         if ClickFallback.hit(cur, at: p) == .covered { Speech.speakMessage(String(localized: "something else is over it; not clicked", comment: "Spoken message")); return }
         ClickFallback.perform(at: p, count: double ? 2 : 1)
-        Tones.press()
+        Tones.mouseClick()
     }
 
     /// VO-Shift-H: the item's help tag.
@@ -1363,9 +1421,10 @@ public final class ObjectNavigator {
     public func moveTo(_ e: AXUIElement) { land(on: e) }
 
     /// What the mouse pointer is over, said. The keyboard focus never follows (a sweep of the pointer across a window
-    /// must not move where typing goes); the review cursor goes there only when asked. What is said is private: text on
+    /// must not move where typing goes); the review cursor goes there when the item is in the app in front. What is said is private: text on
     /// the screen (a message) is not kept in the speech history, and goes only to a voice that may hear it.
-    package func hover(_ reading: PointerReading, movingCursor: Bool) {
+    package func hover(_ reading: PointerReading, movingCursor: Bool = true) {
+        // `movingCursor` false: an item of an app behind the one in front, said and no more (PointerCursor).
         if movingCursor {
             landedByStep = false
             current = reading.element
@@ -1373,7 +1432,7 @@ public final class ObjectNavigator {
             // (No label source: finding it asks the profile store about the element, which is for the keyboard path.)
             labelSource = nil
         }
-        Speech.asSource(MouseTracking.speechSource) { Speech.asPrivate { Speech.speakItem(reading.text, processed: true) } }
+        Speech.asPrivate { Speech.speakItem(reading.text, processed: true) }
     }
 
     /// Puts the review cursor on an element without a word: what already said it (a dialog's Tab) keeps the two

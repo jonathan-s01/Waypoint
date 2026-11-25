@@ -20,6 +20,8 @@ public final class PanesView {
     /// The front window when the alternates were last looked for: the walk is asked again when it changes.
     private var variantWindow: AXUIElement?
     private var hinted = Set<Int>()
+    /// Parts whose held selection should be confirmed aloud, enabled by the owning app module.
+    public var announcesHeldChoices = Set<Int>()
     /// Elements found, kept for a moment: finding one walks the window.
     private var found: [Int: (AXUIElement, Date)] = [:]
     /// Parts looked for and not found, for a moment: a part not on screen walked the whole window again at every
@@ -73,6 +75,9 @@ public final class PanesView {
         Log.io("panes: the front window is \(hit?.name ?? "the usual one"): \(parts.count) parts")
     }
 
+    /// A native view switch can leave a live accessibility element hidden in the old tree.
+    public func invalidate() { found.removeAll(); missed.removeAll() }
+
     /// The element of a part, now. Parts are containers, so the search never goes into rows, cells, text and the
     /// like, and visits a few hundred elements at most: a search that walked Notes' 800-row list held the main
     /// thread for seconds and the watchdog handed over (8 Oct 2026). Kept for ten seconds once found.
@@ -113,6 +118,10 @@ public final class PanesView {
     /// Which part the user is in: the one holding the keyboard focus, or TurnOver's cursor.
     public func currentIndex() -> Int? {
         let nav = ObjectNavigator.shared
+        // A held pane owns navigation even while the editor or notes retain the keyboard.
+        if nav.isHolding, let h = nav.heldList {
+            for i in parts.indices { if let e = element(of: i), h.isSame(e) { return i } }
+        }
         if let p = placed, parts.indices.contains(p.index) {
             let focusNow = API.focusObject?.element
             let unchanged = (focusNow == nil && p.focus == nil) || (focusNow != nil && p.focus != nil && focusNow!.isSame(p.focus!))
@@ -214,10 +223,10 @@ public final class PanesView {
     }
 
     /// Tab and Shift Tab: the next or previous part, round the end.
-    public func step(forward: Bool) {
+    public func step(forward: Bool, from index: Int? = nil) {
         settleParts()
         guard !parts.isEmpty else { return }
-        let cur = currentIndex()
+        let cur = index ?? currentIndex()
         go(to: neighbour(of: cur, forward: forward), from: cur)
     }
 
@@ -324,7 +333,7 @@ public final class PanesView {
             // The focus event reads the element; the part's name first.
             Speech.speakMessage(part.name)
             AreaMenu.followIfSilent(e, before: before)
-        } else if part.read != "document", let t = PartLanding.target(in: e, remembered: rememberedElement), t.element.set(kAXFocusedAttribute, kCFBooleanTrue) == .success {
+        } else if part.read != "document", e.elements(kAXRowsAttribute).isEmpty, let t = PartLanding.target(in: e, remembered: rememberedElement), t.element.set(kAXFocusedAttribute, kCFBooleanTrue) == .success {
             // A part that cannot take the keyboard (a web app's bar of apps or list of chats): it goes onto the
             // remembered place, the current item or the first control inside, so the app's own arrows and Return work.
             Log.io("panes: \(part.name): the keyboard goes to \(t.element.role) (\(t.why))")
@@ -332,7 +341,10 @@ public final class PanesView {
             // No focus event comes when that element already had the keyboard.
             if let f = API.focusObject, f.isSameElement(as: t.element) { Speech.speakObject(f, reason: .focus) }
         } else if !e.elements(kAXRowsAttribute).isEmpty {
-            ObjectNavigator.shared.enterHold(e, name: part.name, row: rememberedElement)
+            ObjectNavigator.shared.enterHold(e, name: part.name, row: rememberedElement, announceChoice: announcesHeldChoices.contains(i), onTab: { [weak self] forward in
+                guard let self, API.focusPid == self.pid else { return }
+                self.step(forward: forward, from: i)
+            })
             if rememberedElement != nil { Log.io("focus memory: \(part.name): back to the remembered row") }
             placed = (i, API.focusObject?.element)
         } else {

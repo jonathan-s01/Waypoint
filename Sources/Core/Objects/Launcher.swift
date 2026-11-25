@@ -195,7 +195,7 @@ final class LauncherActions: LauncherExecutor {
         if AXUIElementCreateApplication(pid).elements(kAXWindowsAttribute).isEmpty {
             launch(app.url, shown: shown)   // no window to come forward: opening it again makes one, as clicking its Dock icon does
         } else {
-            ApplicationChooser.switchTo(.init(pid: pid, name: shown, windows: []), window: nil)
+            ApplicationChooser.switchTo(.init(pid: pid, name: shown, windows: []), window: nil, previous: NSWorkspace.shared.frontmostApplication)
         }
     }
 
@@ -225,7 +225,7 @@ final class LauncherActions: LauncherExecutor {
             return
         }
         Log.io("launcher: \(shown) is in front; window \(next + 1) of \(windows.count)")
-        ApplicationChooser.switchTo(.init(pid: pid, name: shown, windows: []), window: windows[next])
+        ApplicationChooser.switchTo(.init(pid: pid, name: shown, windows: []), window: windows[next], previous: NSWorkspace.shared.frontmostApplication)
     }
 
     func runShell(_ command: String, timeout: Double, label: String) {

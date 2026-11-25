@@ -7,92 +7,6 @@ import SwiftUI
 import AVFoundation
 import TurnOverControl
 
-@MainActor
-final class Model: ObservableObject {
-    @Published var state: [String: Any] = [:]
-    @Published var connected = false
-    /// TurnOver closed the connection at once, five times running: this window is an old build's, left open across an
-    /// install, and TurnOver turns it away (issue 77: it knocked every two seconds until it was quit by hand).
-    @Published var turnedAway = false
-    private var refusals = 0
-    private var opened = Date()
-    /// A section TurnOver asked the window to show (a settings key pressed): with the first state, or on its own
-    /// while the window is open. The sidebar follows it and then clears it.
-    @Published var requestedSection: Pane?
-    private var connection: ControlClient.Connection?
-
-    init() {
-        connect()
-    }
-
-    /// Connected to TurnOver and listening for its settings; tried again every two seconds until TurnOver is there,
-    /// and again if TurnOver restarts.
-    private func connect() {
-        opened = Date()
-        connection = ControlClient.Connection(received: { [weak self] message in
-            self?.refusals = 0
-            if message["op"] as? String == "show", let name = message["section"] as? String {
-                self?.requestedSection = Pane(rawValue: name)
-                return
-            }
-            guard message["op"] as? String == "state", let json = message["json"] as? String, let data = json.data(using: .utf8),
-                  let dict = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any] else { return }
-            self?.state = dict; self?.connected = true
-            if let name = dict["_showSection"] as? String { self?.requestedSection = Pane(rawValue: name) }
-        }, ended: { [weak self] in
-            guard let self else { return }
-            if !connected, Date().timeIntervalSince(opened) < 1 { refusals += 1 }
-            connected = false; connection = nil
-            retry()
-        })
-        if let connection { connection.send(["op": "subscribe"]) } else { retry() }
-    }
-
-    private func retry() {
-        guard refusals < 5 else { turnedAway = true; return }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
-            guard let self, self.connection == nil else { return }
-            self.connect()
-        }
-    }
-
-    func ask() { connection?.send(["op": "ask"]) }
-
-    func get(_ section: String, _ key: String) -> Any? { (state[section] as? [String: Any])?[key] }
-    func special(_ key: String) -> Any? { state[key] }
-
-    func set(_ section: String, _ key: String, _ value: Any) {
-        var s = state[section] as? [String: Any] ?? [:]; s[key] = value; state[section] = s   // shown at once; TurnOver confirms
-        send([section: [key: value]])
-    }
-    func setSpecial(_ key: String, _ value: Any) { state[key] = value; send([key: value]) }
-    /// A patch sent as it is, without changing what the window shows: TurnOver answers with the new state (the Launcher pane).
-    func sendPatch(_ patch: [String: Any]) { send(patch) }
-
-    private func send(_ patch: [String: Any]) {
-        guard let data = try? JSONSerialization.data(withJSONObject: patch), let s = String(data: data, encoding: .utf8) else { return }
-        connection?.send(["op": "patch", "json": s])
-    }
-
-    // Bindings onto the settings.
-    func bool(_ section: String, _ key: String) -> Binding<Bool> {
-        Binding(get: { self.get(section, key) as? Bool ?? false }, set: { self.set(section, key, $0) })
-    }
-    func string(_ section: String, _ key: String, _ fallback: String) -> Binding<String> {
-        Binding(get: { self.get(section, key) as? String ?? fallback }, set: { self.set(section, key, $0) })
-    }
-    func int(_ section: String, _ key: String) -> Binding<Int> {
-        Binding(get: { (self.get(section, key) as? NSNumber)?.intValue ?? 0 }, set: { self.set(section, key, $0) })
-    }
-    /// A 0–1 value shown as 0–100 (rate, pitch).
-    func percent(_ section: String, _ key: String) -> Binding<Double> {
-        Binding(get: { ((self.get(section, key) as? NSNumber)?.doubleValue ?? 0.5) * 100 }, set: { self.set(section, key, ($0 / 100 * 100).rounded() / 100) })
-    }
-    func number(_ section: String, _ key: String) -> Binding<Double> {
-        Binding(get: { (self.get(section, key) as? NSNumber)?.doubleValue ?? 0 }, set: { self.set(section, key, Int($0.rounded())) })
-    }
-}
-
 enum Pane: String, CaseIterable, Identifiable {
     // NVDA's order, with TurnOver's own at the end: every setting the menu offered lives here since 21 Oct 2026.
     case general = "General", speech = "Speech", sounds = "Sounds", braille = "Braille", keyboard = "Keyboard", items = "Item details", webPages = "Web pages", documents = "Documents",
@@ -183,7 +97,7 @@ final class VoiceLists: ObservableObject {
         let wanted = Set(mine + ["en"])
         let voices = AVSpeechSynthesisVoice.speechVoices()
         all = voices
-        // Not Apple's novelty voices (Bells, Bubbles, Zarvox and the rest, 15 of them: Oliver, 2 Nov 2026, "a big list of
+        // Not Apple's novelty voices (Bells, Bubbles, Zarvox and the rest, 15 of them: The owner, 2 Nov 2026, "a big list of
         // shit nonsense voices that apple like to ship"). A novelty voice already chosen stays selectable (voices).
         let real = voices.filter { !$0.voiceTraits.contains(.isNoveltyVoice) }
         // English and the Mac's own languages, the Mac's languages first and Eloquence before the rest.
@@ -230,7 +144,7 @@ struct SpeechView: View {
             }))
         .accessibilityLabel(name)
     }
-    /// The voice chosen above, in the rotor or not, without Tabbing through every voice's switch (Oliver, 2 Nov 2026:
+    /// The voice chosen above, in the rotor or not, without Tabbing through every voice's switch (2 Nov 2026:
     /// "the menu and selection isn't great"). None ticked is every voice: so switching one off when none or only it is
     /// ticked ticks all the others, and all of them ticked is none.
     private func inRotor(_ id: String) -> some View {
@@ -307,7 +221,7 @@ struct SpeechView: View {
                 }
                 Section("Mac voices") { ForEach(voices, id: \.identifier) { v in Text(voiceLists.label(for: v)).tag(v.identifier) } }
             }
-            // Downloading and removing the natural voices, beside the Voice list they add to (Oliver, 6 Nov 2026: "an
+            // Downloading and removing the natural voices, beside the Voice list they add to (6 Nov 2026: "an
             // option, like in windows, to download natural voices"; "next to voice selection"; "a choice to remove").
             // All 25 at once: the engine they share is most of the size.
             if model.special("_kokoroAvailable") as? Bool == true {
@@ -475,47 +389,6 @@ struct BrailleView: View {
     }
 }
 
-struct KeyboardView: View {
-    @EnvironmentObject var model: Model
-    var body: some View {
-        Form {
-            Picker("Keyboard style", selection: model.string("general", "keyboardStyle", "mac")) {
-                Text("VoiceOver keys").tag("mac"); Text("NVDA keys").tag("windows"); Text("JAWS keys").tag("jaws")
-            }
-            Toggle("NVDA and JAWS keys where VoiceOver reads too", isOn: model.bool("general", "keysWhereVoiceOverReads"))
-            Text("On, Caps Lock is the NVDA key in every app, whichever reader is speaking. Off, VoiceOver's own Caps Lock keys work in the apps VoiceOver reads.").font(.caption)
-            Picker("Waypoint key", selection: model.string("general", "bosunKey", "both")) {
-                Text("Caps Lock or Control Option").tag("both"); Text("Caps Lock").tag("caps"); Text("Control Option").tag("controlOption")
-            }
-            Picker("Keyboard layout", selection: model.string("keyboard", "layout", "laptop")) {
-                Text("Laptop").tag("laptop"); Text("Desktop, the number pad has its NVDA keys").tag("desktop")
-            }
-            Section("Typing echo") {
-                Picker("Characters", selection: model.int("keyboard", "speakTypedCharacters")) {
-                    Text("Off").tag(0); Text("In edit fields").tag(1); Text("Always").tag(2)
-                }
-                Picker("Words", selection: model.int("keyboard", "speakTypedWords")) {
-                    Text("Off").tag(0); Text("In edit fields").tag(1); Text("Always").tag(2)
-                }
-                Toggle("New line on Return", isOn: model.bool("keyboard", "speakNewLine"))
-                Toggle("Command keys, as you press them", isOn: model.bool("keyboard", "speakCommandKeys"))
-                Toggle("Modifier keys (Command, Option, Control, Fn, Shift), as you press them", isOn: model.bool("keyboard", "speakModifierKeys"))
-            }
-            Section("Moving around") {
-                Toggle("VoiceOver keys move by groups", isOn: model.bool("general", "navigateByGroups"))
-                Toggle("NVDA and JAWS keys move by groups too", isOn: model.bool("general", "groupsInWindowsStyle"))
-                Picker("Moving the cursor moves the keyboard focus", selection: model.string("general", "focusFollowsCursor", "auto")) {
-                    Text("By style: VoiceOver keys only").tag("auto"); Text("Always").tag("on"); Text("Never").tag("off")
-                }
-            }
-            Section("The keypad") {
-                Toggle("Keypad commands with VoiceOver keys (VO Clear switches)", isOn: model.bool("keyboard", "numpadCommander"))
-                Toggle("Keypad commands with NVDA keys (Clear switches)", isOn: model.bool("keyboard", "keypadCommands"))
-            }
-        }.formStyle(.grouped).navigationTitle("Keyboard")
-    }
-}
-
 struct ItemsView: View {
     @EnvironmentObject var model: Model
     /// "everywhere", or the bundle identifier of the app the list is for.
@@ -585,11 +458,7 @@ struct ItemsView: View {
             Toggle("Hints after a pause", isOn: model.bool("presentation", "speakHints"))
             Toggle("Read what is under the mouse pointer as it moves", isOn: model.bool("presentation", "mouseTracking"))
             Text("The pointer is not read while a page or Say All is being read out. If pages read themselves when they open, turn off \"Read a page through as it opens\" in Web pages to keep hearing the pointer.").font(.caption)
-            Toggle("Mouse pointer moves the review cursor", isOn: model.bool("presentation", "mouseMovesCursor"))
             Toggle("Mouse pointer reads the whole paragraph", isOn: model.bool("presentation", "mouseReadsParagraphs"))
-            Text("In a web page, a plain text is read as its whole paragraph or heading, so bold, emphasized or linked words in it do not start a new announcement. A link in the paragraph is still said as a link, with its role.").font(.caption)
-            Toggle("Mouse pointer interrupts other speech", isOn: model.bool("presentation", "mouseInterruptsSpeech"))
-            Text("Off, only the pointer's own speech gives way and a notification is not cut off. On, the pointer is heard at once, even while something else is talking.").font(.caption)
             Toggle("Say which plugin an app has as it comes to the front", isOn: model.bool("presentation", "announcePlugins"))
             Picker("Heading, link and button: when to say them", selection: model.string("documentFormatting", "roleOrder", "auto")) {
                 Text("By keyboard style").tag("auto"); Text("Before the words, as NVDA").tag("before"); Text("After the words, as VoiceOver").tag("after")
@@ -631,6 +500,7 @@ struct WebPagesView: View {
     var body: some View {
         Form {
             Toggle("Type into a field as soon as it has the focus", isOn: model.bool("virtualBuffers", "autoFocusMode"))
+            Toggle("Automatic focus mode for caret movement", isOn: model.bool("virtualBuffers", "autoPassThroughOnCaretMove"))
             Toggle("Read a page through as it opens", isOn: model.bool("virtualBuffers", "autoSayAllOnPageLoad"))
             Picker("Single-letter keys on a page", selection: model.string("virtualBuffers", "quickNavLetters", "style")) {
                 Text("The keyboard style's own").tag("style"); Text("VoiceOver's: L link, X list, N landmark").tag("voiceOver"); Text("NVDA's: K link, L list, D landmark, I list item").tag("nvda")
@@ -713,7 +583,7 @@ struct GeneralView: View {
     }
 }
 
-/// Everything TurnOver plays, in one place (Oliver, 2 Nov 2026), as NVDA's Audio panel: whose sounds, the hand-over,
+/// Everything TurnOver plays, in one place (2 Nov 2026), as NVDA's Audio panel: whose sounds, the hand-over,
 /// progress bars, and other apps' sound lowered while TurnOver speaks. Audio graphs will join them.
 struct SoundsView: View {
     @EnvironmentObject var model: Model
@@ -733,14 +603,26 @@ struct SoundsView: View {
     private var whose: Binding<String> {
         Binding(get: {
             let s = model.get("general", "sounds") as? String ?? ""
-            return s.isEmpty ? model.special("_effectiveSounds") as? String ?? "voiceover" : s
+            let shown = s.isEmpty ? model.special("_effectiveSounds") as? String ?? "voiceover" : s
+            // A sound set whose folder has gone plays TurnOver's own sounds, so the pop-up shows that (the file keeps the choice).
+            return shown.hasPrefix("set:") && !soundSets.contains(String(shown.dropFirst(4))) ? "turnover" : shown
         }, set: { model.set("general", "sounds", $0) })
     }
+    /// The folders found in the sound sets folder, as of when the pane opened.
+    private var soundSets: [String] { model.special("_soundSets") as? [String] ?? [] }
     var body: some View {
         Form {
             Picker("Whose sounds", selection: whose) {
                 Text("VoiceOver's").tag("voiceover"); Text("Waypoint's").tag("turnover")
+                ForEach(soundSets, id: \.self) { name in Text(name).tag("set:" + name) }
             }
+            HStack {
+                Button("Open the sound sets folder") { model.setSpecial("_openSoundSets", true) }
+                    .accessibilityLabel("Open the sound sets folder")
+                Button("Make a starter set") { model.setSpecial("_makeStarterSet", true) }
+                    .accessibilityLabel("Make a starter set")
+            }
+            Text("Your own sound sets: a folder of audio files, one for each event, named for the event. A set's sounds play where it has a file, and Waypoint's own where it has none. Make a starter set to see the names.").font(.caption)
             Text("VoiceOver's: VoiceOver's own sounds where it has one, such as links and boundaries, and Waypoint's set for the rest. Waypoint's: its set throughout.").font(.caption)
             Toggle("Sounds as I move and press", isOn: model.bool("general", "navigationSounds"))
             Picker("When Waypoint takes over from VoiceOver", selection: handOver) {
@@ -753,6 +635,7 @@ struct SoundsView: View {
                 Text("No").tag("off"); Text("While speaking").tag("speech"); Text("Always").tag("always")
             }
         }.formStyle(.grouped).navigationTitle("Sounds")
+            .onAppear { model.setSpecial("_refreshSoundSets", true) }
     }
 }
 
@@ -775,7 +658,7 @@ struct ReadersView: View {
                 Text("On: Waypoint turns VoiceOver off as it starts and on as it quits, comes on when VoiceOver turns off and steps aside when VoiceOver comes on. Off: each reader has its own switch and neither turns the other on or off, for VoiceOver reading inside a virtual machine such as Parallels. Either way one reader speaks at a time: while VoiceOver is on, Waypoint is quiet.").font(.caption)
             }
             // A plain section, not a disclosure group: the triangle took the focus but neither Return nor VO Space
-            // opened it (Oliver, 28 Oct 2026: "I can't get into the experimental part").
+            // opened it (28 Oct 2026: "I can't get into the experimental part").
             Section(header: Text("Experimental: readers per app, CoExist")) {
                 Toggle("CoExist: VoiceOver stays running alongside Waypoint", isOn: coexist)
                 Text("VoiceOver is kept quiet by an audio tap where Waypoint reads and keeps passwords and macOS's own prompts. Removed on 24 Oct 2026 and back as an experiment: it can leave a Mac silent if macOS asks for audio permission while VoiceOver is muted. Changing it restarts Waypoint.").font(.caption)
