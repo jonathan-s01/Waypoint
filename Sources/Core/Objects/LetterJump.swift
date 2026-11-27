@@ -109,6 +109,28 @@ public enum LetterJump {
         return nil
     }
 
+    /// What an item is called, for matching only: its title or description, else the first text inside it, read in a
+    /// few questions. The full name (ObjectFactory) walks every cell of a row, about 20 questions to the app each:
+    /// in Finder's list of 440 files the search ran out of time before "c" and said nothing started with it
+    /// (27 Nov 2026, macOS 27). Falls back to the full name when nothing is found.
+    static func label(of item: AXUIElement) -> String {
+        let names = [kAXRoleAttribute, kAXValueAttribute, kAXTitleAttribute, kAXDescriptionAttribute, kAXChildrenAttribute]
+        func text(_ v: AnyObject?) -> String? {
+            guard let t = (v as? String)?.trimmingCharacters(in: .whitespacesAndNewlines), !t.isEmpty else { return nil }
+            return t
+        }
+        var queue = [item], visited = 0
+        while !queue.isEmpty, visited < 8 {
+            let e = queue.removeFirst(); visited += 1
+            let a = e.attrs(names)
+            let role = a[kAXRoleAttribute] as? String ?? ""
+            if let t = text(a[kAXTitleAttribute]) ?? text(a[kAXDescriptionAttribute]) { return t }
+            if role == "AXStaticText" || role == "AXTextField", let v = text(a[kAXValueAttribute]) { return v }
+            queue.append(contentsOf: (a[kAXChildrenAttribute] as? [AXUIElement]) ?? [])
+        }
+        return ObjectFactory.make(item).name
+    }
+
     static func press(_ key: String) {
         guard let list = container() else { return }
         let now = Date()
@@ -119,8 +141,9 @@ public enum LetterJump {
         let started = Date()
         let current = selectedIndex(in: all, of: list)
         let hit = target(count: all.count, current: current, text: q.text, cycling: q.cycling,
-                         name: { ObjectFactory.make(all[$0]).name }, expired: { Date().timeIntervalSince(started) > deadline })
+                         name: { label(of: all[$0]) }, expired: { Date().timeIntervalSince(started) > deadline })
         guard let i = hit else {
+            if Date().timeIntervalSince(started) > deadline { Log.io("letter jump: gave up after \(deadline) s in \(all.count) items") }
             Log.io("letter jump: nothing starts with \(q.text) in \(all.count) items")
             Tones.edge()
             Speech.speakMessage(String(localized: "Nothing starts with \(q.text)", comment: "Spoken message: %@ is the letters typed"))
