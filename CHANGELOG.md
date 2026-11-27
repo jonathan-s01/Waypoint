@@ -12,9 +12,12 @@ Changes made in the Waypoint fork, on top of TurnOver 2.0, build 24.1.
   Quick Nav keys work, reading text, a list or table, a menu, a terminal, a password field or a dialog. It plays only
   when the kind changes, so moving down a list is silent. Settings, Sounds has "A sound for the kind of place I enter".
   Each has its own file in Sound Sets (place-reading, place-list, place-menu, place-terminal, place-secure,
-  place-dialog; edit and Quick Nav reuse focus-mode and browse-mode). Silent with VoiceOver's sounds chosen.
-- Fixed: after the upstream merge, with Sounds unset, Waypoint chose VoiceOver's set, which has no file for the focus
-  tick, headings, press and more, so they went quiet. The default is Waypoint's own set again.
+  place-dialog; edit and Quick Nav reuse focus-mode and browse-mode). Silent with "VoiceOver's only".
+- Sounds: the default is now "VoiceOver's, plus Waypoint's for the rest": VoiceOver's own files wherever VoiceOver has a
+  sound (the end bumps, links, menus, dialogs, the rotor, press), and Waypoint's own tones where it has none (the focus
+  tick, headings, the place cues). Upstream's default, "VoiceOver's" (now "VoiceOver's only"), silenced everything
+  VoiceOver has no file for; "Waypoint's" replaces VoiceOver's files too. Settings, Sounds has all three. The place
+  cues for a menu or a dialog give way to VoiceOver's own sounds in the default.
 - The reader is called Waypoint where you hear and see it: "Waypoint on" and "Waypoint off", the menu, the menu bar item,
   Settings, the permission prompts, the Waypoint key, the guides and the README. Credits, the licence, the settings folder
   (Application Support/TurnOver), the bundle identifier and the source folders keep TurnOver's name, so merging TurnOver's

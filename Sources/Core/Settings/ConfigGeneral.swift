@@ -62,10 +62,11 @@ extension Config {
         /// trackpad; TurnOver's own set for the rest) or "turnover" (TurnOver's own set throughout); "" until one is
         /// chosen (effectiveSounds says what plays then).
         public var sounds = ""
-        /// Whose sounds play ("voiceover" or "turnover"): the choice, or until one is made Waypoint's own set throughout
-        /// (25 Nov 2026: upstream's default is VoiceOver's, which silences every sound VoiceOver has no file for, and Waypoint's
-        /// cues for the kind of place, the focus tick and the heading sounds went quiet).
-        public var effectiveSounds: String { sounds.isEmpty ? "turnover" : sounds }
+        /// Whose sounds play ("voiceover", "hybrid" or "turnover"): the choice, or until one is made "hybrid": VoiceOver's
+        /// files where VoiceOver has a sound, Waypoint's own tones added where it has none (25 Nov 2026: upstream's default,
+        /// "voiceover", silences every sound VoiceOver has no file for, and Waypoint's cues for the kind of place, the focus
+        /// tick and the heading sounds went quiet; 27 Nov 2026: "turnover" replaced VoiceOver's own files, such as the end bumps).
+        public var effectiveSounds: String { sounds.isEmpty ? "hybrid" : sounds }
         public init() {}
         enum Keys: String, CodingKey { case openAtLogin, showInMenuBar, windowsKeys, keyboardStyle, keysWhereVoiceOverReads, navigateByGroups, groupsInWindowsStyle, focusFollowsCursor, turnOverKey = "bosunKey", handOverChimes, navigationSounds, contextCues, screenCurtain, edition, handOverNothing, sounds }
         public init(from decoder: Decoder) throws {
@@ -86,7 +87,7 @@ extension Config {
             navigationSounds = (try? c.decodeIfPresent(Bool.self, forKey: .navigationSounds)) ?? true
             contextCues = (try? c.decodeIfPresent(Bool.self, forKey: .contextCues)) ?? true
             screenCurtain = (try? c.decodeIfPresent(String.self, forKey: .screenCurtain)) ?? "follow"
-            sounds = (try? c.decodeIfPresent(String.self, forKey: .sounds)).flatMap { ["voiceover", "turnover"].contains($0) || SoundSets.setName(fromSaved: $0) != nil ? $0 : nil } ?? ""
+            sounds = (try? c.decodeIfPresent(String.self, forKey: .sounds)).flatMap { ["voiceover", "hybrid", "turnover"].contains($0) || SoundSets.setName(fromSaved: $0) != nil ? $0 : nil } ?? ""
         }
         public func encode(to encoder: Encoder) throws {
             var c = encoder.container(keyedBy: Keys.self)

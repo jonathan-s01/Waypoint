@@ -603,7 +603,7 @@ struct SoundsView: View {
     private var whose: Binding<String> {
         Binding(get: {
             let s = model.get("general", "sounds") as? String ?? ""
-            let shown = s.isEmpty ? model.special("_effectiveSounds") as? String ?? "turnover" : s
+            let shown = s.isEmpty ? model.special("_effectiveSounds") as? String ?? "hybrid" : s
             // A sound set whose folder has gone plays TurnOver's own sounds, so the pop-up shows that (the file keeps the choice).
             return shown.hasPrefix("set:") && !soundSets.contains(String(shown.dropFirst(4))) ? "turnover" : shown
         }, set: { model.set("general", "sounds", $0) })
@@ -613,7 +613,7 @@ struct SoundsView: View {
     var body: some View {
         Form {
             Picker("Whose sounds", selection: whose) {
-                Text("VoiceOver's").tag("voiceover"); Text("Waypoint's").tag("turnover")
+                Text("VoiceOver's, plus Waypoint's for the rest").tag("hybrid"); Text("VoiceOver's only").tag("voiceover"); Text("Waypoint's").tag("turnover")
                 ForEach(soundSets, id: \.self) { name in Text(name).tag("set:" + name) }
             }
             HStack {
@@ -623,7 +623,7 @@ struct SoundsView: View {
                     .accessibilityLabel("Make a starter set")
             }
             Text("Your own sound sets: a folder of audio files, one for each event, named for the event. A set's sounds play where it has a file, and Waypoint's own where it has none. Make a starter set to see the names.").font(.caption)
-            Text("VoiceOver's: VoiceOver's own sounds where it has one, such as links and boundaries, and Waypoint's set for the rest. Waypoint's: its set throughout.").font(.caption)
+            Text("VoiceOver's, plus Waypoint's for the rest: VoiceOver's own sounds where it has one, such as links and boundaries, and Waypoint's where it has none, such as headings, the focus tick and the place cues. VoiceOver's only: no Waypoint sounds besides its start-up sounds. Waypoint's: its set throughout.").font(.caption)
             Toggle("Sounds as I move and press", isOn: model.bool("general", "navigationSounds"))
             Toggle("A sound for the kind of place I enter", isOn: model.bool("general", "contextCues"))
                 .accessibilityHint("A short cue, before the words, for an edit field, a page with Quick Nav, text to read, a list, a menu, a terminal, a password field or a dialog. It plays only when the kind of place changes.")

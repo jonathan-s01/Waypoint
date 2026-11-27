@@ -41,7 +41,7 @@ public enum VoiceOverSounds {
         if let probe = requestProbe { probe(name, config.general.effectiveSounds); return true }
         // "TurnOver's sounds" chosen (17 Oct 2026): TurnOver's own sound stands in for each of VoiceOver's files.
         // A sound set of the user's own (SoundSets) answers first where it has a file for the event; its gaps are TurnOver's.
-        if Tones.chosen {
+        if Tones.ownVoice {
             if let id = SoundEvents.id(forVoiceOverFile: name), SoundSets.handle(id, why: why) { return true }
             return ownTone(for: name, why: why)
         }

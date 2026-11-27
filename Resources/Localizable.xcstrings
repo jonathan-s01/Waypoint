@@ -30327,6 +30327,7 @@
 
     },
     "VoiceOver's" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ru" : {
           "stringUnit" : {
@@ -30418,6 +30419,9 @@
     "VoiceOver's %@, not in Waypoint yet" : {
       "comment" : "What your own key does: %@ is a VoiceOver command's English name"
     },
+    "VoiceOver's only" : {
+
+    },
     "VoiceOver's settings couldn't be read this time." : {
       "comment" : "Spoken message",
       "localizations" : {
@@ -30495,6 +30499,12 @@
     "VoiceOver's voice isn't one Waypoint can use, so Waypoint keeps %@; choose a voice in Settings, Speech." : {
       "comment" : "Copying VoiceOver's settings: %@ is Waypoint's voice"
     },
+    "VoiceOver's, plus Waypoint's for the rest" : {
+
+    },
+    "VoiceOver's, plus Waypoint's for the rest: VoiceOver's own sounds where it has one, such as links and boundaries, and Waypoint's where it has none, such as headings, the focus tick and the place cues. VoiceOver's only: no Waypoint sounds besides its start-up sounds. Waypoint's: its set throughout." : {
+
+    },
     "VoiceOver's: L link, X list, N landmark" : {
 
     },
@@ -30514,9 +30524,6 @@
           }
         }
       }
-    },
-    "VoiceOver's: VoiceOver's own sounds where it has one, such as links and boundaries, and Waypoint's set for the rest. Waypoint's: its set throughout." : {
-
     },
     "Voices for other languages" : {
       "extractionState" : "stale",

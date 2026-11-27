@@ -35,6 +35,23 @@ import TurnOverCore
         asked = []; Tones.selectionAdded()
         expect(asked, [], "text added to a selection asks for none of VoiceOver's files: DragShort was wrong by ear")
     }
+    test("sounds: by default (hybrid) the wired events ask for VoiceOver's own files and the invented tones play too") {
+        let saved = config.general.sounds, savedNav = config.general.navigationSounds
+        defer { config.general.sounds = saved; config.general.navigationSounds = savedNav; VoiceOverSounds.requestProbe = nil; Tones.inventedProbe = nil }
+        config.general.navigationSounds = true
+        config.general.sounds = ""
+        expect(config.general.effectiveSounds, "hybrid", "nothing chosen plays hybrid")
+        var asked: [String] = []
+        VoiceOverSounds.requestProbe = { name, _ in asked.append(name) }
+        for (what, file, play) in events {
+            asked = []; play()
+            expect(asked, [file], "\(what) plays \(file)")
+        }
+        var heard: [String] = []
+        Tones.inventedProbe = { heard.append($0) }
+        Tones.list(); Tones.heading(level: 1)
+        expect(heard, ["list", "heading"], "what VoiceOver has no sound for plays Waypoint's own tone")
+    }
     test("sounds: with TurnOver's chosen, a context menu keeps its popup sound and the new events add none of their own") {
         let saved = config.general.sounds, savedCues = config.general.contextCues
         defer { config.general.sounds = saved; config.general.contextCues = savedCues; VoiceOverSounds.requestProbe = nil }

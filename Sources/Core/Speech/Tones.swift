@@ -10,7 +10,12 @@ public enum Tones {
     /// throughout. Coexisting, VoiceOver is on and plays its own, so TurnOver's own are off ("turn off TurnOver's
     /// sounds"). The plain tones from before the set play where a file is missing. (3 Nov 2026: with VoiceOver's chosen
     /// and VoiceOver off, what VoiceOver hasn't fell to the plain tones, "they don't sound quite right".)
-    static var chosen: Bool { let s = config.general.effectiveSounds; return s == "turnover" || s.hasPrefix(SoundSets.savedPrefix) }
+    static var chosen: Bool { let s = config.general.effectiveSounds; return s == "turnover" || s == "hybrid" || s.hasPrefix(SoundSets.savedPrefix) }
+    /// Waypoint's set stands in for VoiceOver's files (the "turnover" choice or a set of your own). False with "hybrid"
+    /// (Waypoint's default, 27 Nov 2026: "VoiceOver's sounds by default, extra ones where there isn't an existing sound")
+    /// and "voiceover": VoiceOver's file plays wherever VoiceOver has one; with "hybrid" Waypoint's own tones also play for
+    /// what VoiceOver has no sound for (`chosen`: the focus tick, headings, the place cues), with "voiceover" they stay silent.
+    static var ownVoice: Bool { chosen && config.general.effectiveSounds != "hybrid" }
     /// A sound set of the user's own (SoundSets) answers an event: true if it has a file for it (or an empty one, which is
     /// silence), so nothing else plays; false with none chosen, its folder gone or no file for the event, and TurnOver's own
     /// sound plays as before. A custom set counts as TurnOver's chosen (`chosen`), so its gaps fall to TurnOver's own set.
@@ -69,27 +74,27 @@ public enum Tones {
     public static func menuOpened() { if ContextCues.enter(.menu) { return }; _ = voiceOver("MenuDown.aiff") }
     /// A context menu is a menu, so with VoiceOver's sounds it is MenuDown (menuOpened); PopupAppeared.aiff is VoiceOver's
     /// "Popover appeared". TurnOver's set keeps its popup sound for a context menu, as before.
-    public static func contextMenuOpened() { if ContextCues.enter(.menu) { return }; if chosen { _ = voiceOver("PopupAppeared.aiff") } }
+    public static func contextMenuOpened() { if ContextCues.enter(.menu) { return }; if ownVoice { _ = voiceOver("PopupAppeared.aiff") } }
     /// A page finished loading: VoiceOver's "Web area loaded" event plays WebPageLoaded.aiff (WebAreaLoaded.aiff is not
     /// the file its configuration names for it).
     public static func pageLoaded() { _ = voiceOver("WebPageLoaded.aiff") }
     /// A mouse click on the item (VO-Shift-Space): VoiceOver's "Mouse click" event plays SingleClick.aiff; TurnOver's own
     /// set plays its press click, as it did before.
-    public static func mouseClick() { if chosen { press() } else if config.general.navigationSounds { _ = voiceOver("SingleClick.aiff") } }
+    public static func mouseClick() { if ownVoice { press() } else if config.general.navigationSounds { _ = voiceOver("SingleClick.aiff") } }
     /// The rotor moved to its previous or next setting: VoiceOver's RotorLeft.aiff or RotorRight.aiff. TurnOver's own set has none.
-    public static func rotorMoved(forward: Bool) { if custom(forward ? "rotor-next" : "rotor-previous") { return }; if !chosen { _ = voiceOver(forward ? "RotorRight.aiff" : "RotorLeft.aiff") } }
+    public static func rotorMoved(forward: Bool) { if custom(forward ? "rotor-next" : "rotor-previous") { return }; if !ownVoice { _ = voiceOver(forward ? "RotorRight.aiff" : "RotorLeft.aiff") } }
     /// Find wrapped round the page: with VoiceOver's sounds WrapForward.aiff or WrapBack.aiff; TurnOver's own set keeps its edge sound.
     public static func searchWrapped(forward: Bool) {
         if custom(forward ? "search-wrapped-forward" : "search-wrapped-back") { onEdge?(); return }
-        guard !chosen else { edge(); return }
+        guard !ownVoice else { edge(); return }
         _ = voiceOver(forward ? "WrapForward.aiff" : "WrapBack.aiff")
         onEdge?()
     }
     /// A window became the front one, including on an app switch, but not the Finder's desktop: VoiceOver's "Window
     /// activated" plays WindowActivated.aiff. TurnOver's own set has none.
-    public static func windowActivated() { if custom("window-activated") { return }; if !chosen { _ = voiceOver("WindowActivated.aiff") } }
+    public static func windowActivated() { if custom("window-activated") { return }; if !ownVoice { _ = voiceOver("WindowActivated.aiff") } }
     /// A dialog or a system prompt appeared: VoiceOver's "System dialog appeared" plays Alert.aiff. TurnOver's own set has none.
-    public static func dialogAppeared() { if custom("dialog-appeared") { return }; if ContextCues.enter(.dialog) { return }; if !chosen { _ = voiceOver("Alert.aiff") } }
+    public static func dialogAppeared() { if custom("dialog-appeared") { return }; if ContextCues.enter(.dialog) { return }; if !ownVoice { _ = voiceOver("Alert.aiff") } }
     /// Text was added to the selection: only a sound set of your own plays here, once per change however many pieces
     /// were added. VoiceOver's DragShort.aiff ("Text added to selection") played here for a day and was wrong by ear
     /// on Select All and on Shift with the arrows (20 Nov 2026), so VoiceOver's set and TurnOver's own have none.
@@ -152,7 +157,7 @@ public enum Tones {
     /// an item is activated; TurnOver's own set plays its own click as before.
     public static func press() {
         guard config.general.navigationSounds else { return }
-        guard chosen else { _ = voiceOver("Select.aiff"); return }
+        guard ownVoice else { _ = voiceOver("Select.aiff"); return }
         guard invented("press") else { return }
         if custom("activate") { return }
         if fresh("press") { return }

@@ -48,6 +48,9 @@ public enum ContextCues {
     @discardableResult
     package static func enter(_ kind: Kind) -> Bool {
         guard active else { return false }
+        // VoiceOver has sounds for a menu opening and a dialog appearing (MenuDown, Alert): with VoiceOver's sounds
+        // as the default (27 Nov 2026) those play and no cue of ours does.
+        if kind == .menu || kind == .dialog, config.general.effectiveSounds == "hybrid" { last = kind; return false }
         guard last != kind else { return true }
         last = kind
         lastPlayedAt = Date()
